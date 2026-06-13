@@ -132,7 +132,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
   // ranking
   const ranking = brands.slice().sort((a, b) => b.count - a.count).slice(0, 4).map((b, i) => ({ rank: ['壱', '弐', '参', '四'][i], color: i === 0 ? '#BC6A2D' : '#8B8273', name: b.name, brewery: b.brewery + ' / ' + b.pref, count: b.count + '記録', click: () => st.openDetail(b.id) }));
 
-  const today = byId('kuheiji')!;
+  const today = byId('kuheiji') || brands[0] || ({} as any);
 
   // zukan
   const q = s.searchQuery.trim();
@@ -242,7 +242,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
 
   // ===== SAKE MEETUP =====
   const meName = u.name;
-  const me0 = meetups.find((m) => m.id === route.meetupId) || meetups[0];
+  const me0 = meetups.find((m) => m.id === route.meetupId) || meetups[0] || ({} as any);
   const upcoming = meetups.filter((m) => m.status === 'upcoming');
   const pastMeets = meetups.filter((m) => m.status === 'past');
   const nextMeet = upcoming[0];
@@ -423,13 +423,13 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
 
   // 飲める店マップ
   const isBars = s.mapMode === 'bars';
-  const barSel = bars.find((b) => b.id === s.barId) || bars[0];
+  const barSel = bars.find((b) => b.id === s.barId) || bars[0] || ({} as any);
   const barList = bars.map((b) => ({ name: b.name, area: b.area, type: b.type, sel: b.id === barSel.id, bg: b.id === barSel.id ? '#32507C' : '#FFFFFF', color: b.id === barSel.id ? '#FDFBF5' : '#2E2A24', subColor: b.id === barSel.id ? 'rgba(253,251,245,0.7)' : '#8B8273', click: () => st.patch({ barId: b.id }) }));
   const barView = {
     name: barSel.name, area: barSel.area, type: barSel.type, note: barSel.note,
     mapSrc: 'https://www.google.com/maps?q=' + encodeURIComponent(barSel.venueQ) + '&output=embed&hl=ja&z=15',
     mapLink: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(barSel.venueQ),
-    brands: barSel.brands.map((id) => { const br = byId(id) || ({} as any); return { label: br.name, click: () => st.openDetail(id) }; }),
+    brands: (barSel.brands || []).map((id: string) => { const br = byId(id) || ({} as any); return { label: br.name, click: () => st.openDetail(id) }; }),
   };
 
   return {

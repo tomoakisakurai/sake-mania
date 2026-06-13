@@ -71,7 +71,12 @@ export async function getReferenceData(): Promise<ReferenceData> {
       db.select().from(schema.bars).orderBy(asc(schema.bars.sortOrder)),
     ]);
 
-    if (!bRows.length) return mock;
+    // Require a fully-seeded DB; otherwise fall back to mock so screens that
+    // assume non-empty collections (meetups[0], bars[0], byId('kuheiji'), …) don't break.
+    if (!bRows.length || !mRows.length || !oRows.length || !mtRows.length || !kRows.length || !pRows.length || !barRows.length) {
+      console.warn('[getReferenceData] DB is not fully seeded — falling back to mock.');
+      return mock;
+    }
 
     const brands: Brand[] = bRows.map((r) => ({
       id: r.id, name: r.name, brewery: r.brewery, pref: r.pref, cls: r.cls, polish: r.polish,
