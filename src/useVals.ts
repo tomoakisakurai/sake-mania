@@ -5,7 +5,10 @@ import { useStore } from './store';
 import type { RouteState } from '@/lib/routes';
 import type { ReferenceData } from '@/lib/getReferenceData';
 
-const starStr = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n);
+const starStr = (n: number) => {
+  const k = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+  return '★'.repeat(k) + '☆'.repeat(5 - k);
+};
 
 export function useVals(route: RouteState, ref: ReferenceData): any {
   const st = useStore();

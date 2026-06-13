@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   description: '社内日本酒部のための利き酒記録アプリ',
 };
 
+// DB-backed app: render on demand (per request) instead of prerendering at
+// build time. Keeps the build independent of the database and always serves
+// fresh data.
+export const dynamic = 'force-dynamic';
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const initialData = await getReferenceData();
   return (
