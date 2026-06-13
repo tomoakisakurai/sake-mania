@@ -15,9 +15,9 @@ import * as schema from './schema';
 import { brands, others, members, meetups, bars, kuraMeta, prefGrid } from '../data';
 
 async function main() {
-  const db = getDb();
+  const db = getDb({ direct: true });
   if (!db) {
-    console.error('DATABASE_URL is not set. Add it to .env (Supabase connection string) and retry.');
+    console.error('No DB connection string found. Set DATABASE_URL (or POSTGRES_URL / POSTGRES_URL_NON_POOLING) in .env and retry.');
     process.exit(1);
   }
 
