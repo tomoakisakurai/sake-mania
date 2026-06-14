@@ -463,8 +463,8 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     startRecordClick: () => st.startRecord(null),
     // responsive
     isMobile: mob && route.screen !== 'login', isDesktopNav: !mob,
-    tabLeft: [mkTab('home', 'ホーム'), mkTab('zukan', '図鑑')],
-    tabRight: [mkTab('map', 'マップ'), mkTab('mypage', 'マイ')],
+    tabLeft: [mkTab('home', 'ホーム'), mkTab('zukan', '銘柄図鑑')],
+    tabRight: [mkTab('map', '酒蔵マップ'), mkTab('mypage', 'マイページ')],
     pagePad: mob ? '28px 18px 130px' : '40px 40px 80px',
     pagePadTight: mob ? '20px 18px 130px' : '32px 40px 80px',
     heroCols: mob ? '1fr' : '1.5fr 1fr',
