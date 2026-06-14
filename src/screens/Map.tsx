@@ -16,7 +16,7 @@ export function Map({ v }: { v: any }) {
           <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 24 }}>色のついた県をタップすると、その県の蔵が見られます。呑んだ蔵のある県は朱に染まります。</div>
           <div style={{ display: 'grid', gridTemplateColumns: v.mapCols, gap: 24, alignItems: 'start' }}>
             <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: v.mapPanelPad }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: v.mapGap }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gap: v.mapGap }}>
                 {v.prefTiles.map((p: any, i: number) => (
                   <div key={i} onClick={p.click} style={{ gridColumn: p.col, gridRow: p.row, aspectRatio: 1, borderRadius: 6, background: p.bg, color: p.color, border: p.border, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, cursor: p.cursor }}>
                     <span style={{ fontSize: p.fs, fontWeight: 700, lineHeight: 1.1 }}>{p.name}</span>
