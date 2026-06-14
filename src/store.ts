@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { pathForScreen, paths } from '@/lib/routes';
+import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
 import type {
   Screen, User, PostRef, Rec, MyRec, Comment, EditingComment, MeetupPhase,
 } from './types';
@@ -68,6 +69,7 @@ export interface State {
   openEventCreate: () => void;
   flash: (msg: string) => void;
   requireLogin: () => boolean;
+  setUser: (u: User | null) => void;
   doLogin: () => void;
   logout: () => void;
   startRecord: (brandId: string | null) => void;
@@ -146,18 +148,45 @@ export const useStore = create<State>((set, get) => ({
     return false;
   },
 
-  doLogin: () => {
+  setUser: (u) => set({ user: u }),
+
+  doLogin: async () => {
     const st = get();
+    const supabase = getSupabaseBrowser();
+    if (!supabase) { get().flash('Supabaseが未設定です（環境変数 NEXT_PUBLIC_SUPABASE_URL / ANON_KEY を設定してください）'); return; }
+    const email = st.loginEmail.trim();
+    const pw = st.loginPw;
+    if (!email || !pw) { get().flash('メールアドレスとパスワードを入力してください'); return; }
     const isSignup = st.loginMode === 'signup';
-    const name = isSignup && st.loginName.trim() ? st.loginName.trim() : 'yuu_sake_log';
-    const user: User = { name, avatar: name === 'yuu_sake_log' ? '悠' : name.charAt(0) };
-    clearTimeout(toastTimer);
-    set({ user, toast: isSignup ? 'ようこそ、' + name + ' さん — 最初の一杯を記録してみましょう' : 'おかえりなさい、' + name + ' さん' });
-    toastTimer = setTimeout(() => set({ toast: '' }), 4000);
-    get()._navigate('/');
+
+    const welcome = (name: string, signup: boolean) => {
+      clearTimeout(toastTimer);
+      set({ toast: signup ? 'ようこそ、' + name + ' さん — 最初の一杯を記録してみましょう' : 'おかえりなさい、' + name + ' さん' });
+      toastTimer = setTimeout(() => set({ toast: '' }), 4000);
+    };
+
+    if (isSignup) {
+      const nickname = st.loginName.trim() || email.split('@')[0];
+      const { data, error } = await supabase.auth.signUp({ email, password: pw, options: { data: { nickname } } });
+      if (error) { get().flash('登録に失敗しました: ' + error.message); return; }
+      if (!data.session) { get().flash('確認メールを送信しました。メール内のリンクから認証してください'); return; }
+      const user = mapUser(data.user);
+      set({ user, loginPw: '' });
+      welcome(user?.name ?? nickname, true);
+      get()._navigate('/');
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pw });
+      if (error) { get().flash('ログインに失敗しました: ' + error.message); return; }
+      const user = mapUser(data.user);
+      set({ user, loginPw: '' });
+      welcome(user?.name ?? email, false);
+      get()._navigate('/');
+    }
   },
 
-  logout: () => {
+  logout: async () => {
+    const supabase = getSupabaseBrowser();
+    if (supabase) await supabase.auth.signOut();
     set({ user: null, loginEmail: '', loginPw: '', loginName: '', loginMode: 'login' });
     get()._navigate('/login');
   },

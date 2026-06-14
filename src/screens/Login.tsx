@@ -25,22 +25,9 @@ export function Login({ v }: { v: any }) {
           <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>パスワード</div>
           <input type="password" value={v.loginPw} onChange={v.onLoginPw} placeholder="••••••••" style={{ width: '100%', background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', marginBottom: 22 }} />
           <div onClick={v.doLoginClick} style={{ background: '#32507C', color: '#FDFBF5', borderRadius: 999, padding: 14, textAlign: 'center', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>{v.loginCta}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
-            <div style={{ flex: 1, height: 1, background: '#E3DBCB' }}></div>
-            <span style={{ fontSize: 11, color: '#A89D8A' }}>または</span>
-            <div style={{ flex: 1, height: 1, background: '#E3DBCB' }}></div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {v.socialBtns.map((sb: any, i: number) => (
-              <div key={i} onClick={sb.click} style={{ border: '1px solid #E3DBCB', borderRadius: 999, padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer', background: '#FDFBF5' }}>
-                <span style={{ fontWeight: 800, color: sb.markColor, fontSize: 14 }}>{sb.mark}</span>
-                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2E2A24' }}>{sb.label}</span>
-              </div>
-            ))}
-          </div>
           <div onClick={v.guestClick} style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#8B8273', cursor: 'pointer' }}>ログインせずにのぞいてみる →</div>
         </div>
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#A89D8A', marginTop: 14 }}>プロトタイプのため、入力内容にかかわらずログインできます</div>
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#A89D8A', marginTop: 14 }}>新規登録はメールアドレスとパスワード（6文字以上）だけ。確認メールなしですぐ始められます。</div>
       </div>
     </div>
   );

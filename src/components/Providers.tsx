@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import { useVals } from '@/useVals';
 import { routeStateFromPath } from '@/lib/routes';
+import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
 import type { ReferenceData } from '@/lib/getReferenceData';
 import { Nav } from './Nav';
 import { TabBar } from './TabBar';
@@ -30,6 +31,19 @@ export function Providers({ initialData, children }: { initialData: ReferenceDat
     onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Sync the Supabase auth session into the store (restore on load + subscribe).
+  useEffect(() => {
+    const supabase = getSupabaseBrowser();
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data }) => {
+      useStore.getState().setUser(mapUser(data.session?.user));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      useStore.getState().setUser(mapUser(session?.user));
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   return (
