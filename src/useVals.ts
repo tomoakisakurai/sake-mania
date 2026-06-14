@@ -75,11 +75,9 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     const isOther = who.user !== yuuWho.user;
     return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.comments.length, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: any) => { e.stopPropagation(); st.toggleNomi(x.rid); }, click: () => st.openPost(ref), brandClick: (e: any) => { e.stopPropagation(); st.openDetail(b.id); } };
   };
-  // みんなの利き酒帳 = 公開記録（全ユーザー）＋ シードのサンプル投稿
-  const publicFeed = s.publicRecords.map((pr, i) =>
+  // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。サンプル投稿(others)は出さない。
+  const allFeed = s.publicRecords.map((pr, i) =>
     mkFeed(pr, { user: pr.user, mine: pr.mine ? '(あなた)' : '', avatar: pr.avatar, avatarBg: pr.avatarBg }, pr.date, { src: 'public', i }));
-  const otherFeed = others.map((o, i) => mkFeed(o, o, o.time + ' ・ ' + o.place, { src: 'other', i }));
-  const allFeed = publicFeed.concat(otherFeed);
 
   // post detail
   let post: any = null;
