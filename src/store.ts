@@ -71,6 +71,7 @@ export interface State {
   requireLogin: () => boolean;
   setUser: (u: User | null) => void;
   doLogin: () => void;
+  loginGithub: () => void;
   logout: () => void;
   startRecord: (brandId: string | null) => void;
   setRec: (patch: Partial<Rec>) => void;
@@ -182,6 +183,17 @@ export const useStore = create<State>((set, get) => ({
       welcome(user?.name ?? email, false);
       get()._navigate('/');
     }
+  },
+
+  loginGithub: async () => {
+    const supabase = getSupabaseBrowser();
+    if (!supabase) { get().flash('Supabaseが未設定です（環境変数を設定してください）'); return; }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: { redirectTo: window.location.origin + '/auth/callback' },
+    });
+    if (error) get().flash('GitHubログインに失敗しました: ' + error.message);
+    // 成功時はGitHubへリダイレクト → /auth/callback でセッション確立 → ホームへ
   },
 
   logout: async () => {

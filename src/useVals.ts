@@ -454,6 +454,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     loginPw: s.loginPw, onLoginPw: (e: any) => st.patch({ loginPw: e.target.value }),
     loginCta: s.loginMode === 'signup' ? '登録してはじめる' : 'ログイン',
     doLoginClick: () => st.doLogin(),
+    githubLogin: () => st.loginGithub(),
     socialBtns,
     guestClick: () => st.nav('home'),
     startRecordClick: () => st.startRecord(null),
