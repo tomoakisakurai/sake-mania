@@ -6,6 +6,8 @@ import { getSocial, toggleNomi as toggleNomiAction, addComment as addCommentActi
 import type { CommentItem } from '@/app/actions/social';
 import { createMeetup, getMeetups, getMeetupDetail, toggleGoing as toggleGoingAction, declareBring, cancelBring, voteMvp as voteMvpAction, setMeetupPhase } from '@/app/actions/meetups';
 import type { MeetupView, MeetupDetail } from '@/app/actions/meetups';
+import { getDeferredReference } from '@/app/actions/reference';
+import type { DeferredReferenceData } from '@/lib/getReferenceData';
 import type {
   Screen, User, PostRef, Rec, MyRec, PublicRec, MeetupPhase,
 } from './types';
@@ -36,6 +38,8 @@ export interface State {
   barId: string | null;
   meetupList: MeetupView[];
   meetupDetail: MeetupDetail | null;
+  // 描画後にクライアントから後追い取得する参照データ（null=未取得）
+  deferredRef: DeferredReferenceData | null;
   myNomi: Record<string, boolean>;
   nomiCounts: Record<string, number>;
   commentsByRid: Record<string, CommentItem[]>;
@@ -65,6 +69,7 @@ export interface State {
   openEventCreate: () => void;
   flash: (msg: string) => void;
   requireLogin: () => boolean;
+  loadDeferredReference: () => void;
   setUser: (u: User | null) => void;
   setMyRecords: (recs: MyRec[]) => void;
   loadMyRecords: () => void;
@@ -113,6 +118,7 @@ export const useStore = create<State>((set, get) => ({
   barId: null,
   meetupList: [],
   meetupDetail: null,
+  deferredRef: null,
   myNomi: {},
   nomiCounts: {},
   commentsByRid: {},
@@ -150,6 +156,12 @@ export const useStore = create<State>((set, get) => ({
     toastTimer = setTimeout(() => set({ toast: '' }), 3500);
     get()._navigate('/login');
     return false;
+  },
+
+  loadDeferredReference: async () => {
+    if (get().deferredRef) return; // 一度取得すれば十分（滅多に変わらない参照データ）
+    const d = await getDeferredReference();
+    set({ deferredRef: d });
   },
 
   setUser: (u) => set({ user: u }),

@@ -23,6 +23,11 @@ export interface ReferenceData {
   prefGrid: [string, number, number][];
 }
 
+// 初回ペイントに必要な土台（SSRでサーバー取得）。
+export type CoreReferenceData = Pick<ReferenceData, 'brands' | 'members'>;
+// 初回ペイントに不要で、描画後にクライアントから後追い取得する分。
+export type DeferredReferenceData = Pick<ReferenceData, 'others' | 'meetups' | 'bars' | 'kuraMeta' | 'prefGrid'>;
+
 // jsonb columns can come back as a parsed array OR as a raw JSON string
 // depending on the driver/runtime; normalize to an array either way.
 function arr(v: unknown): any[] { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -50,61 +55,90 @@ const mock: ReferenceData = {
   kuraMeta: mockKuraMeta,
   prefGrid: mockPrefGrid,
 };
+const mockCore: CoreReferenceData = { brands: mock.brands, members: mock.members };
+const mockDeferred: DeferredReferenceData = {
+  others: mock.others, meetups: mock.meetups, bars: mock.bars, kuraMeta: mock.kuraMeta, prefGrid: mock.prefGrid,
+};
 
-// 参照データ（図鑑・酒蔵・MEETUPシード等）は滅多に変わらないので、毎リクエストで
-// 7テーブルを再クエリしないよう短期キャッシュする。force-dynamic下での
-// コネクション枯渇（"Failed query"）を防ぐ。成功したDB読み取りのみキャッシュし、
-// 一時的な失敗時は直近の良好なキャッシュ→なければモックにフォールバック。
+const isBuildPhase = () => process.env.NEXT_PHASE === 'phase-production-build';
+
+// 参照データ（滅多に変わらない）は毎リクエストで再クエリせず短期キャッシュする。
+// core/deferred を別々にキャッシュし、それぞれ独立にフォールバックできるようにする。
 const TTL_MS = 60_000;
-let cache: { at: number; data: ReferenceData } | null = null;
+let coreCache: { at: number; data: CoreReferenceData } | null = null;
+let deferredCache: { at: number; data: DeferredReferenceData } | null = null;
+
+function mapBrands(rows: (typeof schema.brands.$inferSelect)[]): Brand[] {
+  return rows.map((r) => ({
+    id: r.id, name: r.name, brewery: r.brewery, pref: r.pref, cls: r.cls, polish: r.polish,
+    rice: r.rice, yeast: r.yeast, smv: r.smv, abv: r.abv, temp: r.temp, x: num(r.x), y: num(r.y),
+    rating: num(r.rating), count: num(r.count), tags: arr(r.tags), desc: r.description,
+  }));
+}
+function mapMembers(rows: (typeof schema.members.$inferSelect)[]): Member[] {
+  return rows.map((r) => ({
+    name: r.name, display: r.display, avatar: r.avatar, avatarBg: r.avatarBg,
+    dept: r.dept ?? undefined, taste: r.taste ?? undefined,
+  }));
+}
 
 /**
- * Reads the reference/content collections from Supabase via Drizzle.
- * Falls back to bundled mock data when DATABASE_URL is unset or the DB is empty,
- * so the app runs before/without a configured database.
+ * 初回ペイントに必要な土台データ（銘柄カタログ・メンバー）。
+ * layout の SSR から呼ぶ。DB未設定・未シード・失敗時は mock にフォールバック。
  */
-export async function getReferenceData(): Promise<ReferenceData> {
-  // 本番ビルドのページデータ収集ではDBに触れない（ビルドをDB非依存にして
-  // 接続詰まりによるビルド失敗を防ぐ。実行時=動的レンダリングではDBを読む）。
-  if (process.env.NEXT_PHASE === 'phase-production-build') return mock;
-
-  if (cache && Date.now() - cache.at < TTL_MS) return cache.data;
+export async function getCoreReferenceData(): Promise<CoreReferenceData> {
+  if (isBuildPhase()) return mockCore;
+  if (coreCache && Date.now() - coreCache.at < TTL_MS) return coreCache.data;
 
   const db = getDb();
-  if (!db) return mock;
+  if (!db) return mockCore;
 
   try {
-    // 7テーブルを一度にPromise.allで引くと同時7コネクションを掴み、プール(max:5)を
-    // 超えて枯渇の一因になる。一方で完全逐次だとcache miss時に往復が7回直列になり遅い。
-    // そこで2バッチに分割し、同時接続をプール内(最大4本)に抑えつつ往復を2回に短縮する。
-    const [bRows, mRows, oRows, mtRows] = await Promise.all([
+    // 2テーブルだけなので並列でもプール(max:5)に十分収まる。
+    const [bRows, mRows] = await Promise.all([
       db.select().from(schema.brands).orderBy(asc(schema.brands.sortOrder)),
       db.select().from(schema.members).orderBy(asc(schema.members.sortOrder)),
+    ]);
+    if (!bRows.length || !mRows.length) {
+      console.warn('[getCoreReferenceData] DB not seeded — falling back to mock.');
+      return mockCore;
+    }
+    const data: CoreReferenceData = { brands: mapBrands(bRows), members: mapMembers(mRows) };
+    coreCache = { at: Date.now(), data };
+    return data;
+  } catch (err) {
+    console.error('[getCoreReferenceData] DB read failed, falling back to mock:', err);
+    return coreCache?.data ?? mockCore;
+  }
+}
+
+/**
+ * 初回ペイントに不要な参照データ（サンプル投稿・MEETUPシード・酒蔵マップ）。
+ * クライアントから描画後に後追い取得する（サーバーアクション経由）。
+ */
+export async function getDeferredReferenceData(): Promise<DeferredReferenceData> {
+  if (isBuildPhase()) return mockDeferred;
+  if (deferredCache && Date.now() - deferredCache.at < TTL_MS) return deferredCache.data;
+
+  const db = getDb();
+  if (!db) return mockDeferred;
+
+  try {
+    // 5テーブルを2バッチ(3本/2本)に分割し、同時接続をプール(max:5)内に抑える。
+    const [oRows, mtRows, barRows] = await Promise.all([
       db.select().from(schema.others).orderBy(asc(schema.others.sortOrder)),
       db.select().from(schema.meetups).orderBy(asc(schema.meetups.sortOrder)),
-    ]);
-    const [kRows, pRows, barRows] = await Promise.all([
-      db.select().from(schema.kuraMeta),
-      db.select().from(schema.prefGrid).orderBy(asc(schema.prefGrid.sortOrder)),
       db.select().from(schema.bars).orderBy(asc(schema.bars.sortOrder)),
     ]);
-
-    // Require a fully-seeded DB; otherwise fall back to mock so screens that
-    // assume non-empty collections (meetups[0], bars[0], byId('kuheiji'), …) don't break.
-    if (!bRows.length || !mRows.length || !oRows.length || !mtRows.length || !kRows.length || !pRows.length || !barRows.length) {
-      console.warn('[getReferenceData] DB is not fully seeded — falling back to mock.');
-      return mock;
+    const [kRows, pRows] = await Promise.all([
+      db.select().from(schema.kuraMeta),
+      db.select().from(schema.prefGrid).orderBy(asc(schema.prefGrid.sortOrder)),
+    ]);
+    if (!oRows.length || !mtRows.length || !barRows.length || !kRows.length || !pRows.length) {
+      console.warn('[getDeferredReferenceData] DB not seeded — falling back to mock.');
+      return mockDeferred;
     }
 
-    const brands: Brand[] = bRows.map((r) => ({
-      id: r.id, name: r.name, brewery: r.brewery, pref: r.pref, cls: r.cls, polish: r.polish,
-      rice: r.rice, yeast: r.yeast, smv: r.smv, abv: r.abv, temp: r.temp, x: num(r.x), y: num(r.y),
-      rating: num(r.rating), count: num(r.count), tags: arr(r.tags), desc: r.description,
-    }));
-    const members: Member[] = mRows.map((r) => ({
-      name: r.name, display: r.display, avatar: r.avatar, avatarBg: r.avatarBg,
-      dept: r.dept ?? undefined, taste: r.taste ?? undefined,
-    }));
     const others: OtherRec[] = oRows.map((r) => ({
       rid: r.rid, nomi: num(r.nomi), comments: arr(r.comments), user: r.user, avatar: r.avatar,
       avatarBg: r.avatarBg, time: r.time, place: r.place, brandId: r.brandId, rating: num(r.rating),
@@ -126,12 +160,11 @@ export async function getReferenceData(): Promise<ReferenceData> {
     for (const r of kRows) kuraMeta[r.brewery] = { city: r.city, founded: num(r.founded), desc: r.description };
     const prefGrid = pRows.map((r) => [r.name, num(r.col), num(r.row)] as [string, number, number]);
 
-    const data: ReferenceData = { brands, others, members, meetups, bars, kuraMeta, prefGrid };
-    cache = { at: Date.now(), data };
+    const data: DeferredReferenceData = { others, meetups, bars, kuraMeta, prefGrid };
+    deferredCache = { at: Date.now(), data };
     return data;
   } catch (err) {
-    console.error('[getReferenceData] DB read failed, falling back to mock:', err);
-    // 一時的な接続失敗時は直近の良好なキャッシュを返し、無ければモック
-    return cache?.data ?? mock;
+    console.error('[getDeferredReferenceData] DB read failed, falling back to mock:', err);
+    return deferredCache?.data ?? mockDeferred;
   }
 }

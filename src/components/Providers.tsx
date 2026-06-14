@@ -6,7 +6,7 @@ import { useStore } from '@/store';
 import { useVals } from '@/useVals';
 import { routeStateFromPath } from '@/lib/routes';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
-import type { ReferenceData } from '@/lib/getReferenceData';
+import type { CoreReferenceData, DeferredReferenceData, ReferenceData } from '@/lib/getReferenceData';
 import { Nav } from './Nav';
 import { TabBar } from './TabBar';
 import { Toast } from './Toast';
@@ -14,11 +14,18 @@ import { Toast } from './Toast';
 const ValsContext = createContext<any>(null);
 export function useV(): any { return useContext(ValsContext); }
 
-export function Providers({ initialData, children }: { initialData: ReferenceData; children: React.ReactNode }) {
+// 後追い取得分の初期値（mount後にクライアントから実データで上書き）。
+// 空でも useVals 側の各ガードでクラッシュしない。
+const EMPTY_DEFERRED: DeferredReferenceData = { others: [], meetups: [], bars: [], kuraMeta: {}, prefGrid: [] };
+
+export function Providers({ initialData, children }: { initialData: CoreReferenceData; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const route = routeStateFromPath(pathname || '/');
-  const v = useVals(route, initialData);
+  // SSR取得のcore(brands/members) と クライアント後追いのdeferred を合成。
+  const deferredRef = useStore((s) => s.deferredRef);
+  const ref: ReferenceData = { ...initialData, ...(deferredRef ?? EMPTY_DEFERRED) };
+  const v = useVals(route, ref);
 
   // Bridge store navigation to the Next.js router.
   useEffect(() => {
@@ -55,6 +62,12 @@ export function Providers({ initialData, children }: { initialData: ReferenceDat
       await store.loadSocial();
       store.loadMeetups();
     })();
+  }, []);
+
+  // 初回ペイントに不要な参照データ(マップ系・サンプル投稿・MEETUPシード)は
+  // 描画後にクライアントから後追い取得する（SSRの描画パスをbrands/membersのみに絞る）。
+  useEffect(() => {
+    useStore.getState().loadDeferredReference();
   }, []);
 
   // 開いているMEETUPの詳細をルートから読み込む

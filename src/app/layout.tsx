@@ -1,7 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Providers } from '@/components/Providers';
-import { getReferenceData } from '@/lib/getReferenceData';
+import { getCoreReferenceData } from '@/lib/getReferenceData';
 
 export const metadata: Metadata = {
   title: '酒マニア — SAKE MANIA',
@@ -14,7 +14,9 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const initialData = await getReferenceData();
+  // 初回ペイントに必要な土台(銘柄・メンバー)のみSSRで取得。
+  // 残り(マップ系・サンプル投稿・MEETUPシード)は描画後にクライアントから後追い取得。
+  const initialData = await getCoreReferenceData();
   return (
     <html lang="ja">
       <body>
