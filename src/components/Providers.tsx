@@ -33,15 +33,18 @@ export function Providers({ initialData, children }: { initialData: ReferenceDat
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Sync the Supabase auth session into the store (restore on load + subscribe).
+  // Sync the Supabase auth session into the store, and load the user's records.
   useEffect(() => {
     const supabase = getSupabaseBrowser();
     if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => {
-      useStore.getState().setUser(mapUser(data.session?.user));
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      useStore.getState().setUser(mapUser(session?.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      const store = useStore.getState();
+      store.setUser(mapUser(session?.user));
+      if (event === 'SIGNED_OUT') {
+        store.setMyRecords([]);
+      } else if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+        store.loadMyRecords();
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, []);

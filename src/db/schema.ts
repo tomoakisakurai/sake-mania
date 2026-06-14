@@ -1,4 +1,4 @@
-import { pgTable, text, integer, real, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real, jsonb, uuid, timestamp } from 'drizzle-orm/pg-core';
 import type { Comment, MeetupBring, MeetupLineup } from '../types';
 
 // Reference / content tables. Nested arrays are stored as jsonb to keep the
@@ -98,4 +98,31 @@ export const bars = pgTable('bars', {
   brands: jsonb('brands').$type<string[]>().notNull(),
   note: text('note').notNull(),
   sortOrder: integer('sort_order').notNull().default(0),
+});
+
+// ===== ユーザーデータ（書き込み系）=====
+
+// auth.users と1:1のプロフィール（表示名・アバター）。ログイン時にupsert。
+export const profiles = pgTable('profiles', {
+  id: uuid('id').primaryKey(), // = auth.users.id
+  nickname: text('nickname').notNull(),
+  avatar: text('avatar').notNull(),
+  avatarBg: text('avatar_bg').notNull().default('#DDD3BE'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// テイスティング記録（ログインユーザーに紐づく）
+export const records = pgTable('records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull(),
+  brandId: text('brand_id').notNull(),
+  rating: integer('rating').notNull(),
+  x: integer('x').notNull(),
+  y: integer('y').notNull(),
+  sweet: integer('sweet').notNull(),
+  temps: jsonb('temps').$type<string[]>().notNull(),
+  pairing: text('pairing').notNull().default(''),
+  memo: text('memo').notNull().default(''),
+  photo: text('photo'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { pathForScreen, paths } from '@/lib/routes';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
+import { getMyRecords, saveRecord as saveRecordAction } from '@/app/actions/records';
 import type {
   Screen, User, PostRef, Rec, MyRec, Comment, EditingComment, MeetupPhase,
 } from './types';
@@ -9,15 +10,6 @@ const freshRec = (brandId: string | null): Rec => ({
   step: brandId ? 2 : 1, brandId: brandId || null, x: null, y: null,
   sweet: 50, rating: 0, temps: [], pairing: '', memo: '', query: '', photo: null,
 });
-
-const initialMyRecords: MyRec[] = [
-  { rid: 'm1', nomi: 12, comments: [{ user: 'awa_hajime', avatar: '泡', avatarBg: '#CBD8C9', time: '6月2日', text: 'X-typeいいなあ。生牡蠣と合わせるの、真似します' }], brandId: 'aramasa6', date: '6月2日', rating: 5, x: 62, y: 24, sweet: 62, temps: ['冷酒'], pairing: '生牡蠣', memo: 'ガス感と酸のバランスが完璧。今年のベスト候補。' },
-  { rid: 'm2', nomi: 5, comments: [], brandId: 'hououbiden', date: '6月8日', rating: 4, x: 56, y: 72, sweet: 30, temps: ['ぬる燗'], pairing: '鯖の塩焼き', memo: '燗にすると米の旨みがぐっと前に出る。常備したい。' },
-  { rid: 'm3', nomi: 3, comments: [], brandId: 'dassai45', date: '5月24日', rating: 4, x: 30, y: 28, sweet: 55, temps: ['冷酒'], pairing: 'カプレーゼ', memo: '安定の華やかさ。日本酒はじめての友人に勧めたら大好評。' },
-  { rid: 'm4', nomi: 2, comments: [], brandId: 'kubota', date: '5月17日', rating: 3, x: 22, y: 66, sweet: 35, temps: ['常温'], pairing: '冷奴', memo: '静かで食事を邪魔しない。良くも悪くも教科書。' },
-  { rid: 'm5', nomi: 8, comments: [], brandId: 'denshu', date: '5月10日', rating: 5, x: 52, y: 58, sweet: 48, temps: ['常温', 'ぬる燗'], pairing: 'ホタテのバター焼き', memo: '米の旨みの教科書。ぬる燗で世界が変わった。' },
-  { rid: 'm6', nomi: 6, comments: [], brandId: 'kazenomori', date: '4月29日', rating: 4, x: 48, y: 18, sweet: 64, temps: ['冷酒'], pairing: '唐揚げ', memo: '微発泡フレッシュ。揚げ物を流すガス感が最高。' },
-];
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -70,6 +62,8 @@ export interface State {
   flash: (msg: string) => void;
   requireLogin: () => boolean;
   setUser: (u: User | null) => void;
+  setMyRecords: (recs: MyRec[]) => void;
+  loadMyRecords: () => void;
   doLogin: () => void;
   loginGithub: () => void;
   logout: () => void;
@@ -118,7 +112,7 @@ export const useStore = create<State>((set, get) => ({
   editingComment: null,
   editDraft: '',
   rec: freshRec(null),
-  myRecords: initialMyRecords,
+  myRecords: [],
   krName: '', krPref: '', krCity: '', krFounded: '', krBrands: '', krDesc: '', krDone: false,
   ecName: '', ecDate: '', ecPlace: '', ecDesc: '', ecDone: false,
   fromDetail: false,
@@ -150,6 +144,11 @@ export const useStore = create<State>((set, get) => ({
   },
 
   setUser: (u) => set({ user: u }),
+  setMyRecords: (recs) => set({ myRecords: recs }),
+  loadMyRecords: async () => {
+    const recs = await getMyRecords();
+    set({ myRecords: recs });
+  },
 
   doLogin: async () => {
     const st = get();
@@ -199,7 +198,7 @@ export const useStore = create<State>((set, get) => ({
   logout: async () => {
     const supabase = getSupabaseBrowser();
     if (supabase) await supabase.auth.signOut();
-    set({ user: null, loginEmail: '', loginPw: '', loginName: '', loginMode: 'login' });
+    set({ user: null, myRecords: [], loginEmail: '', loginPw: '', loginName: '', loginMode: 'login' });
     get()._navigate('/login');
   },
 
@@ -209,12 +208,16 @@ export const useStore = create<State>((set, get) => ({
     get()._navigate('/record');
   },
   setRec: (patch) => set((s) => ({ rec: { ...s.rec, ...patch } })),
-  saveRecord: () => {
+  saveRecord: async () => {
     const r = get().rec;
-    if (r.brandId == null) return;
-    const rec: MyRec = { rid: 'm' + Date.now(), nomi: 0, comments: [], brandId: r.brandId, date: '今日', rating: r.rating, x: r.x, y: r.y, sweet: r.sweet, temps: r.temps, pairing: r.pairing, memo: r.memo, photo: r.photo, isNew: true };
+    if (r.brandId == null || r.x == null || r.y == null) return;
+    const saved = await saveRecordAction({
+      brandId: r.brandId, rating: r.rating, x: r.x, y: r.y, sweet: r.sweet,
+      temps: r.temps, pairing: r.pairing, memo: r.memo, photo: r.photo,
+    });
+    if (!saved) { get().flash('保存に失敗しました（ログインが必要です）'); return; }
     clearTimeout(toastTimer);
-    set((s) => ({ myRecords: [rec, ...s.myRecords], toast: '一杯を記録しました — 舌の地図に打点が増えました' }));
+    set((s) => ({ myRecords: [saved, ...s.myRecords], toast: '一杯を記録しました — 舌の地図に打点が増えました' }));
     toastTimer = setTimeout(() => set({ toast: '' }), 4000);
     get()._navigate('/');
   },
