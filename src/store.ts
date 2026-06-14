@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import { pathForScreen, paths } from '@/lib/routes';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
-import { getMyRecords, saveRecord as saveRecordAction } from '@/app/actions/records';
+import { getMyRecords, getPublicRecords, saveRecord as saveRecordAction, setRecordPublic as setRecordPublicAction } from '@/app/actions/records';
 import type {
-  Screen, User, PostRef, Rec, MyRec, Comment, EditingComment, MeetupPhase,
+  Screen, User, PostRef, Rec, MyRec, PublicRec, Comment, EditingComment, MeetupPhase,
 } from './types';
 
 const freshRec = (brandId: string | null): Rec => ({
   step: brandId ? 2 : 1, brandId: brandId || null, x: null, y: null,
-  sweet: 50, rating: 0, temps: [], pairing: '', memo: '', query: '', photo: null,
+  sweet: 50, rating: 0, temps: [], pairing: '', memo: '', query: '', photo: null, isPublic: false,
 });
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -41,6 +41,7 @@ export interface State {
   editDraft: string;
   rec: Rec;
   myRecords: MyRec[];
+  publicRecords: PublicRec[];
   krName: string; krPref: string; krCity: string; krFounded: string; krBrands: string; krDesc: string; krDone: boolean;
   ecName: string; ecDate: string; ecPlace: string; ecDesc: string; ecDone: boolean;
   fromDetail: boolean;
@@ -64,6 +65,8 @@ export interface State {
   setUser: (u: User | null) => void;
   setMyRecords: (recs: MyRec[]) => void;
   loadMyRecords: () => void;
+  loadPublicRecords: () => void;
+  setRecordPublic: (recordId: string, isPublic: boolean) => void;
   doLogin: () => void;
   loginGithub: () => void;
   logout: () => void;
@@ -113,6 +116,7 @@ export const useStore = create<State>((set, get) => ({
   editDraft: '',
   rec: freshRec(null),
   myRecords: [],
+  publicRecords: [],
   krName: '', krPref: '', krCity: '', krFounded: '', krBrands: '', krDesc: '', krDone: false,
   ecName: '', ecDate: '', ecPlace: '', ecDesc: '', ecDone: false,
   fromDetail: false,
@@ -148,6 +152,16 @@ export const useStore = create<State>((set, get) => ({
   loadMyRecords: async () => {
     const recs = await getMyRecords();
     set({ myRecords: recs });
+  },
+  loadPublicRecords: async () => {
+    const recs = await getPublicRecords();
+    set({ publicRecords: recs });
+  },
+  setRecordPublic: async (recordId, isPublic) => {
+    const ok = await setRecordPublicAction(recordId, isPublic);
+    if (!ok) { get().flash('変更に失敗しました'); return; }
+    await Promise.all([get().loadMyRecords(), get().loadPublicRecords()]);
+    get().flash(isPublic ? 'みんなの利き酒帳に公開しました' : '公開を取り消しました');
   },
 
   doLogin: async () => {
@@ -213,12 +227,13 @@ export const useStore = create<State>((set, get) => ({
     if (r.brandId == null || r.x == null || r.y == null) return;
     const saved = await saveRecordAction({
       brandId: r.brandId, rating: r.rating, x: r.x, y: r.y, sweet: r.sweet,
-      temps: r.temps, pairing: r.pairing, memo: r.memo, photo: r.photo,
+      temps: r.temps, pairing: r.pairing, memo: r.memo, photo: r.photo, isPublic: r.isPublic,
     });
     if (!saved) { get().flash('保存に失敗しました（ログインが必要です）'); return; }
     clearTimeout(toastTimer);
-    set((s) => ({ myRecords: [saved, ...s.myRecords], toast: '一杯を記録しました — 舌の地図に打点が増えました' }));
+    set((s) => ({ myRecords: [saved, ...s.myRecords], toast: r.isPublic ? '一杯を記録し、みんなに公開しました' : '一杯を記録しました — 舌の地図に打点が増えました' }));
     toastTimer = setTimeout(() => set({ toast: '' }), 4000);
+    if (r.isPublic) get().loadPublicRecords();
     get()._navigate('/');
   },
 

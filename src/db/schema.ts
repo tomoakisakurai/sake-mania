@@ -1,4 +1,4 @@
-import { pgTable, text, integer, real, jsonb, uuid, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real, jsonb, uuid, timestamp, boolean } from 'drizzle-orm/pg-core';
 import type { Comment, MeetupBring, MeetupLineup } from '../types';
 
 // Reference / content tables. Nested arrays are stored as jsonb to keep the
@@ -124,5 +124,6 @@ export const records = pgTable('records', {
   pairing: text('pairing').notNull().default(''),
   memo: text('memo').notNull().default(''),
   photo: text('photo'),
+  isPublic: boolean('is_public').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

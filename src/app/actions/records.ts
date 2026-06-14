@@ -1,9 +1,9 @@
 'use server';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
-import type { MyRec } from '@/types';
+import type { MyRec, PublicRec } from '@/types';
 
 interface RecordInput {
   brandId: string;
@@ -15,6 +15,7 @@ interface RecordInput {
   pairing: string;
   memo: string;
   photo: string | null;
+  isPublic: boolean;
 }
 
 const fmtDate = (d: Date) => `${d.getMonth() + 1}月${d.getDate()}日`;
@@ -25,7 +26,7 @@ function toMyRec(r: typeof schema.records.$inferSelect, isNew = false): MyRec {
     date: isNew ? '今日' : fmtDate(new Date(r.createdAt)),
     rating: r.rating, x: r.x, y: r.y, sweet: r.sweet,
     temps: (r.temps as string[]) ?? [], pairing: r.pairing, memo: r.memo,
-    photo: r.photo ?? undefined, isNew,
+    photo: r.photo ?? undefined, isNew, isPublic: r.isPublic,
   };
 }
 
@@ -72,7 +73,45 @@ export async function saveRecord(input: RecordInput): Promise<MyRec | null> {
     pairing: input.pairing,
     memo: input.memo,
     photo: input.photo,
+    isPublic: input.isPublic,
   }).returning();
 
   return toMyRec(row, true);
+}
+
+/** Publish / unpublish one of the current user's records. Returns success. */
+export async function setRecordPublic(recordId: string, isPublic: boolean): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user) return false;
+  const updated = await db.update(schema.records)
+    .set({ isPublic })
+    .where(and(eq(schema.records.id, recordId), eq(schema.records.userId, user.id)))
+    .returning({ id: schema.records.id });
+  return updated.length > 0;
+}
+
+/** All users' published records (newest first) with author profile, for the feed. */
+export async function getPublicRecords(): Promise<PublicRec[]> {
+  const db = getDb();
+  if (!db) return [];
+  const user = await currentUser();
+  const rows = await db
+    .select({ r: schema.records, p: schema.profiles })
+    .from(schema.records)
+    .leftJoin(schema.profiles, eq(schema.profiles.id, schema.records.userId))
+    .where(eq(schema.records.isPublic, true))
+    .orderBy(desc(schema.records.createdAt))
+    .limit(50);
+  return rows.map(({ r, p }) => {
+    const name = p?.nickname || 'sake_user';
+    return {
+      rid: r.id, brandId: r.brandId, rating: r.rating, x: r.x, y: r.y, sweet: r.sweet,
+      temps: (r.temps as string[]) ?? [], pairing: r.pairing, memo: r.memo, photo: r.photo ?? undefined,
+      nomi: 0, comments: [],
+      user: name, avatar: p?.avatar || name.charAt(0) || '酒', avatarBg: p?.avatarBg || '#DDD3BE',
+      mine: !!user && r.userId === user.id,
+      date: fmtDate(new Date(r.createdAt)),
+    };
+  });
 }

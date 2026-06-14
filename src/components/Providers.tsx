@@ -33,6 +33,11 @@ export function Providers({ initialData, children }: { initialData: ReferenceDat
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Public feed (みんなの利き酒帳) — visible to everyone, incl. guests.
+  useEffect(() => {
+    useStore.getState().loadPublicRecords();
+  }, []);
+
   // Sync the Supabase auth session into the store, and load the user's records.
   useEffect(() => {
     const supabase = getSupabaseBrowser();

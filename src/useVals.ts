@@ -75,23 +75,31 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     const isOther = who.user !== yuuWho.user;
     return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.comments.length, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: any) => { e.stopPropagation(); st.toggleNomi(x.rid); }, click: () => st.openPost(ref), brandClick: (e: any) => { e.stopPropagation(); st.openDetail(b.id); } };
   };
-  const mineFeed: any[] = [];
-  s.myRecords.forEach((x, i) => { if (x.isNew) mineFeed.push(mkFeed(x, yuuWho, 'たった今', { src: 'mine', i })); });
+  // みんなの利き酒帳 = 公開記録（全ユーザー）＋ シードのサンプル投稿
+  const publicFeed = s.publicRecords.map((pr, i) =>
+    mkFeed(pr, { user: pr.user, mine: pr.mine ? '(あなた)' : '', avatar: pr.avatar, avatarBg: pr.avatarBg }, pr.date, { src: 'public', i }));
   const otherFeed = others.map((o, i) => mkFeed(o, o, o.time + ' ・ ' + o.place, { src: 'other', i }));
-  const allFeed = mineFeed.concat(otherFeed);
+  const allFeed = publicFeed.concat(otherFeed);
 
   // post detail
   let post: any = null;
   const prf = route.postRef;
   if (prf) {
-    const isMine = prf.src === 'mine';
-    const px: any = isMine ? s.myRecords[prf.i] : others[prf.i];
+    const px: any = prf.src === 'mine' ? s.myRecords[prf.i] : prf.src === 'public' ? s.publicRecords[prf.i] : others[prf.i];
+    const isMine = prf.src === 'mine' || (prf.src === 'public' && !!px && px.mine);
     if (px) {
       const pb = byId(px.brandId) || ({} as any);
+      // この記録は本人のもの＝公開トグル可能（DBレコードのみ。シードのothersは不可）
+      const isOwnDbRecord = prf.src === 'mine' || (prf.src === 'public' && px.mine);
+      const recPublicNow = prf.src === 'public' ? true : !!px.isPublic;
       post = {
         user: isMine ? yuuWho.user : px.user, mine: isMine ? '(あなた)' : '',
         avatar: isMine ? yuuWho.avatar : px.avatar, avatarBg: isMine ? yuuWho.avatarBg : px.avatarBg,
-        timePlace: isMine ? px.date + ' ・ 自分の記録' : px.time + ' ・ ' + px.place,
+        timePlace: isMine ? px.date + ' ・ 自分の記録' : (prf.src === 'public' ? px.date + ' ・ ' + px.user + ' さんの記録' : px.time + ' ・ ' + px.place),
+        canPublish: isOwnDbRecord,
+        isPublic: recPublicNow,
+        publishLabel: recPublicNow ? '公開中 — 非公開にする' : 'みんなの利き酒帳に公開する',
+        publishToggle: () => st.setRecordPublic(px.rid, !recPublicNow),
         brandName: pb.name, brewery: pb.brewery, brandSubRest: pb.pref + ' — ' + pb.cls,
         kuraClick: () => st.openKura(pb.brewery), stars: starStr(px.rating), ratingNum: px.rating.toFixed(1),
         x: px.x, y: px.y, bx: pb.x, by: pb.y,
@@ -519,6 +527,8 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     onPhotoRemove: (e: any) => { e.stopPropagation(); st.setRec({ photo: null }); },
     recPhoto: r.photo || '', recHasPhoto: !!r.photo, recNoPhoto: !r.photo,
     recStarsStr: starStr(r.rating), recEnjoyLabel: enjoyParts,
+    recPublic: r.isPublic,
+    toggleRecPublic: () => st.setRec({ isPublic: !r.isPublic }),
     recShowFooter: r.step >= 2, recBack, recNext,
     recNextLabel: r.step === 2 ? (step2Valid ? 'つぎへ — 合わせ' : 'マップに打点と評価をどうぞ') : r.step === 3 ? 'つぎへ — メモ' : '記す — 保存する',
     recNextBg: nextOk ? '#32507C' : '#C9C2B2',

@@ -80,6 +80,7 @@ export interface MyRec {
   memo: string;
   photo?: string | null;
   isNew?: boolean;
+  isPublic?: boolean;
 }
 
 export interface Member {
@@ -147,8 +148,29 @@ export interface User {
 }
 
 export interface PostRef {
-  src: 'mine' | 'other';
+  src: 'mine' | 'other' | 'public';
   i: number;
+}
+
+// A published record by any user, shaped to be feed/post compatible.
+export interface PublicRec {
+  rid: string;
+  brandId: string;
+  rating: number;
+  x: number;
+  y: number;
+  sweet: number;
+  temps: string[];
+  pairing: string;
+  memo: string;
+  photo?: string | null;
+  nomi: number;
+  comments: Comment[];
+  user: string;
+  avatar: string;
+  avatarBg: string;
+  mine: boolean;
+  date: string;
 }
 
 export interface Rec {
@@ -163,6 +185,7 @@ export interface Rec {
   memo: string;
   query: string;
   photo: string | null;
+  isPublic: boolean;
 }
 
 export interface EditingComment {

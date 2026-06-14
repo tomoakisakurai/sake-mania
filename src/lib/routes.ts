@@ -25,7 +25,10 @@ export function routeStateFromPath(pathname: string): RouteState {
   if (p === '/map') return { ...base, screen: 'map' };
   if (p === '/zukan') return { ...base, screen: 'zukan' };
   if (seg[0] === 'zukan' && seg[1]) return { ...base, screen: 'detail', detailId: decodeURIComponent(seg[1]) };
-  if (seg[0] === 'post' && seg[1] && seg[2] != null) return { ...base, screen: 'post', postRef: { src: seg[1] === 'mine' ? 'mine' : 'other', i: Number(seg[2]) } };
+  if (seg[0] === 'post' && seg[1] && seg[2] != null) {
+    const src = seg[1] === 'mine' ? 'mine' : seg[1] === 'public' ? 'public' : 'other';
+    return { ...base, screen: 'post', postRef: { src, i: Number(seg[2]) } };
+  }
   if (p === '/kura/register') return { ...base, screen: 'kuraReg' };
   if (seg[0] === 'kura' && seg[1]) return { ...base, screen: 'kura', kuraName: decodeURIComponent(seg[1]) };
   if (p === '/meetup/create') return { ...base, screen: 'eventCreate' };

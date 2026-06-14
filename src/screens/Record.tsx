@@ -135,6 +135,15 @@ export function Record({ v }: { v: any }) {
               <div style={{ display: 'flex', gap: 12 }}><span style={{ color: '#8B8273', width: 64 }}>楽しみ方</span><span>{v.recEnjoyLabel}</span></div>
             </div>
           </div>
+          <div onClick={v.toggleRecPublic} style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12, background: v.recPublic ? '#FBF0E6' : '#FFFFFF', border: `1px solid ${v.recPublic ? '#E8C9A8' : '#E3DBCB'}`, borderRadius: 12, padding: '14px 18px', cursor: 'pointer' }}>
+            <div style={{ width: 42, height: 24, borderRadius: 999, background: v.recPublic ? '#BC6A2D' : '#D9D0BC', position: 'relative', flexShrink: 0, transition: 'background 0.2s' }}>
+              <div style={{ position: 'absolute', top: 2, left: v.recPublic ? 20 : 2, width: 20, height: 20, borderRadius: '50%', background: '#FDFBF5', transition: 'left 0.2s' }} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700 }}>みんなの利き酒帳に公開する</div>
+              <div style={{ fontSize: 11.5, color: '#8B8273', marginTop: 2 }}>{v.recPublic ? '部員みんなのフィードに表示されます' : '非公開（自分のマイページのみ）'}</div>
+            </div>
+          </div>
         </>
       )}
 

@@ -10,16 +10,22 @@ try {
 import postgres from 'postgres';
 import { resolveDbUrl } from './client';
 
-const url = resolveDbUrl(true);
-if (!url) { console.error('No DB connection string'); process.exit(1); }
+const base = resolveDbUrl(true);
+if (!base) { console.error('No DB connection string'); process.exit(1); }
+// セッションプーラ(5432)の同時接続上限を避けるため、トランザクションプーラ(6543)を使う
+const url = base.includes(':5432/') ? base.replace(':5432/', ':6543/') : base;
 
-const sql = postgres(url, { prepare: false });
+const sql = postgres(url, { prepare: false, max: 1 });
 
 const statements = [
+  // 念のため列を保証（db:pushがプーラ上限で未適用のことがあるため・冪等）
+  `alter table public.records add column if not exists is_public boolean not null default false`,
   `alter table public.records enable row level security`,
   `alter table public.profiles enable row level security`,
   `drop policy if exists "records_select_own" on public.records`,
   `create policy "records_select_own" on public.records for select using (auth.uid() = user_id)`,
+  `drop policy if exists "records_select_public" on public.records`,
+  `create policy "records_select_public" on public.records for select using (is_public = true)`,
   `drop policy if exists "records_insert_own" on public.records`,
   `create policy "records_insert_own" on public.records for insert with check (auth.uid() = user_id)`,
   `drop policy if exists "records_update_own" on public.records`,
