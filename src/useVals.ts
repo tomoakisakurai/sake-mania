@@ -65,14 +65,18 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
   ].map((o) => ({ ...o, click: () => st.doLogin() }));
 
   const socialOf = (x: any) => {
-    const liked = !!s.myNomi[x.rid];
-    return { liked, nomi: s.nomiCounts[x.rid] || 0, comments: s.commentsByRid[x.rid] || [] };
+    // 押下後はストアのマップを優先、未取得時はレコード同梱の値（=フィードの数字が遅れない）
+    const liked = (x.rid in s.myNomi) ? s.myNomi[x.rid] : !!x.liked;
+    const nomi = (x.rid in s.nomiCounts) ? s.nomiCounts[x.rid] : (x.nomi || 0);
+    const loaded = s.commentsByRid[x.rid];
+    const commentCount = loaded ? loaded.length : (x.commentCount || 0);
+    return { liked, nomi, comments: loaded || [], commentCount };
   };
   const mkFeed = (x: any, who: any, time: string, ref: any) => {
     const b = byId(x.brandId) || ({} as any);
     const so = socialOf(x);
     const isOther = who.user !== yuuWho.user;
-    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.comments.length, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: any) => { e.stopPropagation(); st.toggleNomi(x.rid); }, click: () => st.openPost(ref), brandClick: (e: any) => { e.stopPropagation(); st.openDetail(b.id); } };
+    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: any) => { e.stopPropagation(); st.toggleNomi(x.rid); }, click: () => st.openPost(ref), brandClick: (e: any) => { e.stopPropagation(); st.openDetail(b.id); } };
   };
   // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。サンプル投稿(others)は出さない。
   const allFeed = s.publicRecords.map((pr, i) =>
@@ -127,8 +131,8 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
           deleteClick: () => st.deleteComment(c.id),
         };
       });
-      post.commentCount = pso.comments.length;
-      post.hasComments = pso.comments.length > 0;
+      post.commentCount = pso.commentCount;
+      post.hasComments = pso.commentCount > 0;
       post.commentSend = () => st.addComment(px.rid);
       post.onCommentKey = (e: any) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !(e.nativeEvent && e.nativeEvent.isComposing) && e.keyCode !== 229) { e.preventDefault(); st.addComment(px.rid); } };
     }

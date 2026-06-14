@@ -1,5 +1,5 @@
 'use server';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, inArray, sql } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
@@ -103,12 +103,29 @@ export async function getPublicRecords(): Promise<PublicRec[]> {
     .where(eq(schema.records.isPublic, true))
     .orderBy(desc(schema.records.createdAt))
     .limit(50);
+
+  // のみたいね数・コメント数・自分が押したか を同梱（フィードの数字が遅れて出ないように）
+  const ids = rows.map(({ r }) => r.id);
+  const nomiCount: Record<string, number> = {};
+  const commentCount: Record<string, number> = {};
+  const liked: Record<string, boolean> = {};
+  if (ids.length) {
+    const [nRows, cRows, myRows] = await Promise.all([
+      db.select({ id: schema.nomi.recordId, n: sql<number>`count(*)::int` }).from(schema.nomi).where(inArray(schema.nomi.recordId, ids)).groupBy(schema.nomi.recordId),
+      db.select({ id: schema.comments.recordId, n: sql<number>`count(*)::int` }).from(schema.comments).where(inArray(schema.comments.recordId, ids)).groupBy(schema.comments.recordId),
+      user ? db.select({ id: schema.nomi.recordId }).from(schema.nomi).where(and(inArray(schema.nomi.recordId, ids), eq(schema.nomi.userId, user.id))) : Promise.resolve([] as { id: string }[]),
+    ]);
+    for (const r of nRows) nomiCount[r.id] = r.n;
+    for (const r of cRows) commentCount[r.id] = r.n;
+    for (const r of myRows) liked[r.id] = true;
+  }
+
   return rows.map(({ r, p }) => {
     const name = p?.nickname || 'sake_user';
     return {
       rid: r.id, brandId: r.brandId, rating: r.rating, x: r.x, y: r.y, sweet: r.sweet,
       temps: (r.temps as string[]) ?? [], pairing: r.pairing, memo: r.memo, photo: r.photo ?? undefined,
-      nomi: 0, comments: [],
+      nomi: nomiCount[r.id] || 0, commentCount: commentCount[r.id] || 0, liked: !!liked[r.id], comments: [],
       user: name, avatar: p?.avatar || name.charAt(0) || '酒', avatarBg: p?.avatarBg || '#DDD3BE',
       mine: !!user && r.userId === user.id,
       date: fmtDate(new Date(r.createdAt)),

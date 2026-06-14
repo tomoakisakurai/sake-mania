@@ -165,6 +165,8 @@ export interface PublicRec {
   memo: string;
   photo?: string | null;
   nomi: number;
+  commentCount: number;
+  liked: boolean;
   comments: Comment[];
   user: string;
   avatar: string;
