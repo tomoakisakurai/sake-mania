@@ -51,12 +51,25 @@ const mock: ReferenceData = {
   prefGrid: mockPrefGrid,
 };
 
+// 参照データ（図鑑・酒蔵・MEETUPシード等）は滅多に変わらないので、毎リクエストで
+// 7テーブルを再クエリしないよう短期キャッシュする。force-dynamic下での
+// コネクション枯渇（"Failed query"）を防ぐ。成功したDB読み取りのみキャッシュし、
+// 一時的な失敗時は直近の良好なキャッシュ→なければモックにフォールバック。
+const TTL_MS = 60_000;
+let cache: { at: number; data: ReferenceData } | null = null;
+
 /**
  * Reads the reference/content collections from Supabase via Drizzle.
  * Falls back to bundled mock data when DATABASE_URL is unset or the DB is empty,
  * so the app runs before/without a configured database.
  */
 export async function getReferenceData(): Promise<ReferenceData> {
+  // 本番ビルドのページデータ収集ではDBに触れない（ビルドをDB非依存にして
+  // 接続詰まりによるビルド失敗を防ぐ。実行時=動的レンダリングではDBを読む）。
+  if (process.env.NEXT_PHASE === 'phase-production-build') return mock;
+
+  if (cache && Date.now() - cache.at < TTL_MS) return cache.data;
+
   const db = getDb();
   if (!db) return mock;
 
@@ -108,9 +121,12 @@ export async function getReferenceData(): Promise<ReferenceData> {
     for (const r of kRows) kuraMeta[r.brewery] = { city: r.city, founded: num(r.founded), desc: r.description };
     const prefGrid = pRows.map((r) => [r.name, num(r.col), num(r.row)] as [string, number, number]);
 
-    return { brands, others, members, meetups, bars, kuraMeta, prefGrid };
+    const data: ReferenceData = { brands, others, members, meetups, bars, kuraMeta, prefGrid };
+    cache = { at: Date.now(), data };
+    return data;
   } catch (err) {
     console.error('[getReferenceData] DB read failed, falling back to mock:', err);
-    return mock;
+    // 一時的な接続失敗時は直近の良好なキャッシュを返し、無ければモック
+    return cache?.data ?? mock;
   }
 }
