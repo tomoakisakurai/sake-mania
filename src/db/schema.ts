@@ -1,4 +1,4 @@
-import { pgTable, text, integer, real, jsonb, uuid, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real, jsonb, uuid, timestamp, boolean, primaryKey } from 'drizzle-orm/pg-core';
 import type { Comment, MeetupBring, MeetupLineup } from '../types';
 
 // Reference / content tables. Nested arrays are stored as jsonb to keep the
@@ -126,4 +126,22 @@ export const records = pgTable('records', {
   photo: text('photo'),
   isPublic: boolean('is_public').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// のみたいね（1ユーザー1レコード1回）
+export const nomi = pgTable('nomi', {
+  recordId: uuid('record_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.recordId, t.userId] })]);
+
+// コメント
+export const comments = pgTable('comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  recordId: uuid('record_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  text: text('text').notNull(),
+  edited: boolean('edited').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

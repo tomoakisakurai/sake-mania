@@ -65,9 +65,8 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
   ].map((o) => ({ ...o, click: () => st.doLogin() }));
 
   const socialOf = (x: any) => {
-    const mine = s.myComments[x.rid] || [];
     const liked = !!s.myNomi[x.rid];
-    return { liked, nomi: (x.nomi || 0) + (liked ? 1 : 0), comments: (x.comments || []).concat(mine) };
+    return { liked, nomi: s.nomiCounts[x.rid] || 0, comments: s.commentsByRid[x.rid] || [] };
   };
   const mkFeed = (x: any, who: any, time: string, ref: any) => {
     const b = byId(x.brandId) || ({} as any);
@@ -117,20 +116,17 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
       post.nomiBg = pso.liked ? '#BC6A2D' : '#FDFBF5';
       post.nomiColor = pso.liked ? '#FDFBF5' : '#BC6A2D';
       post.nomiClick = () => st.toggleNomi(px.rid);
-      const baseC = px.comments || [];
-      const mineC = s.myComments[px.rid] || [];
       const ed = s.editingComment;
-      post.comments = baseC.map((c: any) => ({ user: c.user, avatar: c.avatar, avatarBg: c.avatarBg, time: c.time, text: c.text, canEdit: false, notEditing: true, isEditing: false }))
-        .concat(mineC.map((c: any, ci: number) => {
-          const editing = !!ed && ed.rid === px.rid && ed.i === ci;
-          return {
-            user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
-            time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
-            canEdit: !editing, isEditing: editing, notEditing: !editing,
-            editClick: () => st.patch({ editingComment: { rid: px.rid, i: ci }, editDraft: c.text }),
-            deleteClick: () => st.deleteComment(px.rid, ci),
-          };
-        }));
+      post.comments = (s.commentsByRid[px.rid] || []).map((c: any) => {
+        const editing = ed === c.id;
+        return {
+          user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
+          time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
+          canEdit: c.mine && !editing, isEditing: editing, notEditing: !editing,
+          editClick: () => st.patch({ editingComment: c.id, editDraft: c.text }),
+          deleteClick: () => st.deleteComment(c.id),
+        };
+      });
       post.commentCount = pso.comments.length;
       post.hasComments = pso.comments.length > 0;
       post.commentSend = () => st.addComment(px.rid);

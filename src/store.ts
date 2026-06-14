@@ -2,8 +2,10 @@ import { create } from 'zustand';
 import { pathForScreen, paths } from '@/lib/routes';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
 import { getMyRecords, getPublicRecords, saveRecord as saveRecordAction, setRecordPublic as setRecordPublicAction } from '@/app/actions/records';
+import { getSocial, toggleNomi as toggleNomiAction, addComment as addCommentAction, editComment as editCommentAction, deleteComment as deleteCommentAction } from '@/app/actions/social';
+import type { CommentItem } from '@/app/actions/social';
 import type {
-  Screen, User, PostRef, Rec, MyRec, PublicRec, Comment, EditingComment, MeetupPhase,
+  Screen, User, PostRef, Rec, MyRec, PublicRec, MeetupPhase,
 } from './types';
 
 const freshRec = (brandId: string | null): Rec => ({
@@ -35,9 +37,10 @@ export interface State {
   myMvpVotes: Record<string, string | null>;
   meetPhase: Record<string, MeetupPhase>;
   myNomi: Record<string, boolean>;
-  myComments: Record<string, Comment[]>;
+  nomiCounts: Record<string, number>;
+  commentsByRid: Record<string, CommentItem[]>;
   commentDraft: string;
-  editingComment: EditingComment | null;
+  editingComment: string | null;
   editDraft: string;
   rec: Rec;
   myRecords: MyRec[];
@@ -73,9 +76,10 @@ export interface State {
   startRecord: (brandId: string | null) => void;
   setRec: (patch: Partial<Rec>) => void;
   saveRecord: () => void;
+  loadSocial: () => void;
   toggleNomi: (rid: string) => void;
   addComment: (rid: string) => void;
-  deleteComment: (rid: string, i: number) => void;
+  deleteComment: (commentId: string) => void;
   saveEditComment: () => void;
   toggleGoing: (id: string) => void;
   submitDeclare: (meetupId: string) => void;
@@ -110,7 +114,8 @@ export const useStore = create<State>((set, get) => ({
   myMvpVotes: {},
   meetPhase: {},
   myNomi: {},
-  myComments: {},
+  nomiCounts: {},
+  commentsByRid: {},
   commentDraft: '',
   editingComment: null,
   editDraft: '',
@@ -161,6 +166,7 @@ export const useStore = create<State>((set, get) => ({
     const ok = await setRecordPublicAction(recordId, isPublic);
     if (!ok) { get().flash('変更に失敗しました'); return; }
     await Promise.all([get().loadMyRecords(), get().loadPublicRecords()]);
+    await get().loadSocial();
     get().flash(isPublic ? 'みんなの利き酒帳に公開しました' : '公開を取り消しました');
   },
 
@@ -233,39 +239,46 @@ export const useStore = create<State>((set, get) => ({
     clearTimeout(toastTimer);
     set((s) => ({ myRecords: [saved, ...s.myRecords], toast: r.isPublic ? '一杯を記録し、みんなに公開しました' : '一杯を記録しました — 舌の地図に打点が増えました' }));
     toastTimer = setTimeout(() => set({ toast: '' }), 4000);
-    if (r.isPublic) get().loadPublicRecords();
+    if (r.isPublic) { await get().loadPublicRecords(); await get().loadSocial(); }
     get()._navigate('/');
   },
 
-  toggleNomi: (rid) => {
-    if (!get().requireLogin()) return;
-    set((s) => ({ myNomi: { ...s.myNomi, [rid]: !s.myNomi[rid] } }));
+  loadSocial: async () => {
+    const st = get();
+    const ids = Array.from(new Set([...st.myRecords.map((r) => r.rid), ...st.publicRecords.map((r) => r.rid)]));
+    const social = await getSocial(ids);
+    set({ nomiCounts: social.counts, myNomi: social.mine, commentsByRid: social.comments });
   },
-  addComment: (rid) => {
+  toggleNomi: async (rid) => {
+    if (!get().requireLogin()) return;
+    const res = await toggleNomiAction(rid);
+    if (!res) return;
+    set((s) => ({ myNomi: { ...s.myNomi, [rid]: res.liked }, nomiCounts: { ...s.nomiCounts, [rid]: res.count } }));
+  },
+  addComment: async (rid) => {
     const t = get().commentDraft.trim();
     if (!t) return;
     if (!get().requireLogin()) return;
-    const u = get().user!;
-    set((s) => ({
-      myComments: { ...s.myComments, [rid]: (s.myComments[rid] || []).concat([{ user: u.name, avatar: u.avatar, avatarBg: '#DDD3BE', time: 'たった今', text: t }]) },
-      commentDraft: '',
-    }));
+    const ok = await addCommentAction(rid, t);
+    if (!ok) { get().flash('コメントの送信に失敗しました'); return; }
+    set({ commentDraft: '' });
+    await get().loadSocial();
   },
-  deleteComment: (rid, i) => {
-    set((s) => ({
-      myComments: { ...s.myComments, [rid]: (s.myComments[rid] || []).filter((_, j) => j !== i) },
-      editingComment: null,
-    }));
+  deleteComment: async (commentId) => {
+    const ok = await deleteCommentAction(commentId);
+    if (!ok) return;
+    set({ editingComment: null });
+    await get().loadSocial();
   },
-  saveEditComment: () => {
-    const ed = get().editingComment;
-    if (!ed) return;
+  saveEditComment: async () => {
+    const id = get().editingComment;
+    if (!id) return;
     const t = get().editDraft.trim();
     if (!t) return;
-    set((s) => ({
-      myComments: { ...s.myComments, [ed.rid]: (s.myComments[ed.rid] || []).map((c, j) => j === ed.i ? { ...c, text: t, edited: true } : c) },
-      editingComment: null, editDraft: '',
-    }));
+    const ok = await editCommentAction(id, t);
+    if (!ok) { get().flash('編集に失敗しました'); return; }
+    set({ editingComment: null, editDraft: '' });
+    await get().loadSocial();
   },
 
   toggleGoing: (id) => {

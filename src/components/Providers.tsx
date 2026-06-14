@@ -35,20 +35,26 @@ export function Providers({ initialData, children }: { initialData: ReferenceDat
 
   // Public feed (みんなの利き酒帳) — visible to everyone, incl. guests.
   useEffect(() => {
-    useStore.getState().loadPublicRecords();
+    (async () => {
+      const store = useStore.getState();
+      await store.loadPublicRecords();
+      await store.loadSocial();
+    })();
   }, []);
 
-  // Sync the Supabase auth session into the store, and load the user's records.
+  // Sync the Supabase auth session into the store, and load the user's data.
   useEffect(() => {
     const supabase = getSupabaseBrowser();
     if (!supabase) return;
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
       const store = useStore.getState();
       store.setUser(mapUser(session?.user));
       if (event === 'SIGNED_OUT') {
         store.setMyRecords([]);
+        await store.loadSocial();
       } else if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-        store.loadMyRecords();
+        await store.loadMyRecords();
+        await store.loadSocial();
       }
     });
     return () => sub.subscription.unsubscribe();
