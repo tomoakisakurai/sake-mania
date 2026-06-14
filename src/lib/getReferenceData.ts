@@ -74,17 +74,20 @@ export async function getReferenceData(): Promise<ReferenceData> {
   if (!db) return mock;
 
   try {
-    // 7テーブルを並列(Promise.all)で引くとcache miss時に同時7コネクションを掴み、
-    // プール(max:5)を超えて枯渇の原因になる。参照データはキャッシュ越しで実行頻度が
-    // 低く、tinyテーブルなので並列化の時短メリットも小さい。逐次読みにして
-    // ピーク同時接続を1本に抑える。
-    const bRows = await db.select().from(schema.brands).orderBy(asc(schema.brands.sortOrder));
-    const mRows = await db.select().from(schema.members).orderBy(asc(schema.members.sortOrder));
-    const oRows = await db.select().from(schema.others).orderBy(asc(schema.others.sortOrder));
-    const mtRows = await db.select().from(schema.meetups).orderBy(asc(schema.meetups.sortOrder));
-    const kRows = await db.select().from(schema.kuraMeta);
-    const pRows = await db.select().from(schema.prefGrid).orderBy(asc(schema.prefGrid.sortOrder));
-    const barRows = await db.select().from(schema.bars).orderBy(asc(schema.bars.sortOrder));
+    // 7テーブルを一度にPromise.allで引くと同時7コネクションを掴み、プール(max:5)を
+    // 超えて枯渇の一因になる。一方で完全逐次だとcache miss時に往復が7回直列になり遅い。
+    // そこで2バッチに分割し、同時接続をプール内(最大4本)に抑えつつ往復を2回に短縮する。
+    const [bRows, mRows, oRows, mtRows] = await Promise.all([
+      db.select().from(schema.brands).orderBy(asc(schema.brands.sortOrder)),
+      db.select().from(schema.members).orderBy(asc(schema.members.sortOrder)),
+      db.select().from(schema.others).orderBy(asc(schema.others.sortOrder)),
+      db.select().from(schema.meetups).orderBy(asc(schema.meetups.sortOrder)),
+    ]);
+    const [kRows, pRows, barRows] = await Promise.all([
+      db.select().from(schema.kuraMeta),
+      db.select().from(schema.prefGrid).orderBy(asc(schema.prefGrid.sortOrder)),
+      db.select().from(schema.bars).orderBy(asc(schema.bars.sortOrder)),
+    ]);
 
     // Require a fully-seeded DB; otherwise fall back to mock so screens that
     // assume non-empty collections (meetups[0], bars[0], byId('kuheiji'), …) don't break.
