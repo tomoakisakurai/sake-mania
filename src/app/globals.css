@@ -2,6 +2,12 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+html {
+  /* スクロールバー分の領域を常に確保し、コンテンツ高さの増減で
+     中央寄せレイアウトが左右にズレるのを防ぐ */
+  scrollbar-gutter: stable;
+}
+
 html, body {
   margin: 0;
   padding: 0;
