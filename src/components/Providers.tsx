@@ -26,11 +26,25 @@ export function Providers({ initialData, children }: { initialData: ReferenceDat
   }, [router]);
 
   // Track viewport width after mount (avoids SSR hydration mismatch).
+  // DevTools responsive mode does not always fire a window `resize` when the
+  // Dimensions change, so we also listen to matchMedia (fires on crossing the
+  // breakpoint) and visualViewport resize for reliable detection.
   useEffect(() => {
-    const onResize = () => useStore.getState().patch({ vw: window.innerWidth });
-    onResize();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    const update = () => useStore.getState().patch({
+      vw: document.documentElement.clientWidth || window.innerWidth,
+    });
+    update();
+    const mq = window.matchMedia('(max-width: 759px)');
+    mq.addEventListener('change', update);
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    window.visualViewport?.addEventListener('resize', update);
+    return () => {
+      mq.removeEventListener('change', update);
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+      window.visualViewport?.removeEventListener('resize', update);
+    };
   }, []);
 
   // Public feed (みんなの利き酒帳) + MEETUP一覧 — visible to everyone, incl. guests.
