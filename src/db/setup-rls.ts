@@ -58,6 +58,34 @@ const statements = [
   `create policy "comments_update_own" on public.comments for update using (auth.uid() = user_id) with check (auth.uid() = user_id)`,
   `drop policy if exists "comments_delete_own" on public.comments`,
   `create policy "comments_delete_own" on public.comments for delete using (auth.uid() = user_id)`,
+
+  // MEETUP本体: 閲覧公開、作成/更新/削除は幹事(host)本人
+  `alter table public.meetup_events enable row level security`,
+  `drop policy if exists "me_select_all" on public.meetup_events`,
+  `create policy "me_select_all" on public.meetup_events for select using (true)`,
+  `drop policy if exists "me_insert_own" on public.meetup_events`,
+  `create policy "me_insert_own" on public.meetup_events for insert with check (auth.uid() = host_id)`,
+  `drop policy if exists "me_update_host" on public.meetup_events`,
+  `create policy "me_update_host" on public.meetup_events for update using (auth.uid() = host_id) with check (auth.uid() = host_id)`,
+  `drop policy if exists "me_delete_host" on public.meetup_events`,
+  `create policy "me_delete_host" on public.meetup_events for delete using (auth.uid() = host_id)`,
+
+  // 出欠・宣言・投票: 閲覧公開、書き込みは本人のみ
+  `alter table public.meetup_attendees enable row level security`,
+  `drop policy if exists "ma_select_all" on public.meetup_attendees`,
+  `create policy "ma_select_all" on public.meetup_attendees for select using (true)`,
+  `drop policy if exists "ma_write_own" on public.meetup_attendees`,
+  `create policy "ma_write_own" on public.meetup_attendees for all using (auth.uid() = user_id) with check (auth.uid() = user_id)`,
+  `alter table public.meetup_brings enable row level security`,
+  `drop policy if exists "mb_select_all" on public.meetup_brings`,
+  `create policy "mb_select_all" on public.meetup_brings for select using (true)`,
+  `drop policy if exists "mb_write_own" on public.meetup_brings`,
+  `create policy "mb_write_own" on public.meetup_brings for all using (auth.uid() = user_id) with check (auth.uid() = user_id)`,
+  `alter table public.meetup_votes enable row level security`,
+  `drop policy if exists "mv_select_all" on public.meetup_votes`,
+  `create policy "mv_select_all" on public.meetup_votes for select using (true)`,
+  `drop policy if exists "mv_write_own" on public.meetup_votes`,
+  `create policy "mv_write_own" on public.meetup_votes for all using (auth.uid() = user_id) with check (auth.uid() = user_id)`,
 ];
 
 for (const s of statements) {

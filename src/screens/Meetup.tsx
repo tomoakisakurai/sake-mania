@@ -119,8 +119,7 @@ export function Meetup({ v }: { v: any }) {
                   </div>
                   <div style={{ fontSize: 11.5, color: '#8B8273', marginBottom: 6 }}>{lp.brandSub}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-                    <span style={{ color: '#BC6A2D', fontSize: 14, letterSpacing: 2 }}>{lp.stars}</span>
-                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: '#5C5547' }}>平均{lp.score} ・ {lp.votes}</span>
+                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: '#BC6A2D', fontWeight: 700 }}>得票 {lp.votes}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <div style={{ width: 24, height: 24, borderRadius: '50%', background: lp.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>{lp.avatar}</div>

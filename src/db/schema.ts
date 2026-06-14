@@ -145,3 +145,40 @@ export const comments = pgTable('comments', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ===== MEETUP（ユーザー作成）=====
+export const meetupEvents = pgTable('meetup_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  dateLabel: text('date_label').notNull(),
+  place: text('place').notNull(),
+  theme: text('theme').notNull().default(''),
+  hostId: uuid('host_id').notNull(),
+  phase: text('phase').notNull().default('before'), // before | voting | closed
+  voteDeadline: text('vote_deadline'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 出欠
+export const meetupAttendees = pgTable('meetup_attendees', {
+  meetupId: uuid('meetup_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.meetupId, t.userId] })]);
+
+// 持ち寄り宣言（1人1本）
+export const meetupBrings = pgTable('meetup_brings', {
+  meetupId: uuid('meetup_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  brandId: text('brand_id').notNull(),
+  note: text('note').notNull().default(''),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.meetupId, t.userId] })]);
+
+// MVP投票（1人1票）
+export const meetupVotes = pgTable('meetup_votes', {
+  meetupId: uuid('meetup_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  brandId: text('brand_id').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.meetupId, t.userId] })]);

@@ -33,14 +33,23 @@ export function Providers({ initialData, children }: { initialData: ReferenceDat
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Public feed (みんなの利き酒帳) — visible to everyone, incl. guests.
+  // Public feed (みんなの利き酒帳) + MEETUP一覧 — visible to everyone, incl. guests.
   useEffect(() => {
     (async () => {
       const store = useStore.getState();
       await store.loadPublicRecords();
       await store.loadSocial();
+      store.loadMeetups();
     })();
   }, []);
+
+  // 開いているMEETUPの詳細をルートから読み込む
+  useEffect(() => {
+    const { screen, meetupId } = route;
+    if ((screen === 'meetup' || screen === 'declare') && meetupId) {
+      useStore.getState().loadMeetupDetail(meetupId);
+    }
+  }, [route.screen, route.meetupId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync the Supabase auth session into the store, and load the user's data.
   useEffect(() => {
@@ -52,9 +61,13 @@ export function Providers({ initialData, children }: { initialData: ReferenceDat
       if (event === 'SIGNED_OUT') {
         store.setMyRecords([]);
         await store.loadSocial();
+        store.loadMeetups();
       } else if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         await store.loadMyRecords();
         await store.loadSocial();
+        store.loadMeetups();
+        const mid = routeStateFromPath(pathname || '/').meetupId;
+        if (mid) store.loadMeetupDetail(mid);
       }
     });
     return () => sub.subscription.unsubscribe();

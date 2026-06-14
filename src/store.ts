@@ -4,6 +4,8 @@ import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
 import { getMyRecords, getPublicRecords, saveRecord as saveRecordAction, setRecordPublic as setRecordPublicAction } from '@/app/actions/records';
 import { getSocial, toggleNomi as toggleNomiAction, addComment as addCommentAction, editComment as editCommentAction, deleteComment as deleteCommentAction } from '@/app/actions/social';
 import type { CommentItem } from '@/app/actions/social';
+import { createMeetup, getMeetups, getMeetupDetail, toggleGoing as toggleGoingAction, declareBring, cancelBring, voteMvp as voteMvpAction, setMeetupPhase } from '@/app/actions/meetups';
+import type { MeetupView, MeetupDetail } from '@/app/actions/meetups';
 import type {
   Screen, User, PostRef, Rec, MyRec, PublicRec, MeetupPhase,
 } from './types';
@@ -27,15 +29,13 @@ export interface State {
   toast: string;
   wantIds: string[];
   mapPref: string | null;
-  myGoing: Record<string, boolean>;
-  myBring: Record<string, { brandId: string; note: string }>;
   declareBrandId: string | null;
   declareNote: string;
   declareQuery: string;
   mapMode: 'kura' | 'bars';
   barId: string | null;
-  myMvpVotes: Record<string, string | null>;
-  meetPhase: Record<string, MeetupPhase>;
+  meetupList: MeetupView[];
+  meetupDetail: MeetupDetail | null;
   myNomi: Record<string, boolean>;
   nomiCounts: Record<string, number>;
   commentsByRid: Record<string, CommentItem[]>;
@@ -81,6 +81,8 @@ export interface State {
   addComment: (rid: string) => void;
   deleteComment: (commentId: string) => void;
   saveEditComment: () => void;
+  loadMeetups: () => void;
+  loadMeetupDetail: (id: string) => void;
   toggleGoing: (id: string) => void;
   submitDeclare: (meetupId: string) => void;
   cancelDeclare: (id: string) => void;
@@ -104,15 +106,13 @@ export const useStore = create<State>((set, get) => ({
   toast: '',
   wantIds: ['kuheiji', 'hanaabi'],
   mapPref: null,
-  myGoing: {},
-  myBring: {},
   declareBrandId: null,
   declareNote: '',
   declareQuery: '',
   mapMode: 'kura',
   barId: null,
-  myMvpVotes: {},
-  meetPhase: {},
+  meetupList: [],
+  meetupDetail: null,
   myNomi: {},
   nomiCounts: {},
   commentsByRid: {},
@@ -281,33 +281,50 @@ export const useStore = create<State>((set, get) => ({
     await get().loadSocial();
   },
 
-  toggleGoing: (id) => {
+  loadMeetups: async () => {
+    const list = await getMeetups();
+    set({ meetupList: list });
+  },
+  loadMeetupDetail: async (id) => {
+    const detail = await getMeetupDetail(id);
+    set({ meetupDetail: detail });
+  },
+  toggleGoing: async (id) => {
     if (!get().requireLogin()) return;
-    set((s) => ({ myGoing: { ...s.myGoing, [id]: !s.myGoing[id] } }));
+    await toggleGoingAction(id);
+    await Promise.all([get().loadMeetupDetail(id), get().loadMeetups()]);
   },
   openDeclare: (id) => {
     if (!get().requireLogin()) return;
-    const ex = get().myBring[id];
-    set({ declareBrandId: ex ? ex.brandId : null, declareNote: ex ? ex.note : '', declareQuery: '' });
+    const md = get().meetupDetail;
+    const ex = md && md.id === id ? md.myBringBrandId : null;
+    const exBring = md && md.id === id ? md.brings.find((b) => b.mine) : undefined;
+    set({ declareBrandId: ex, declareNote: exBring?.note || '', declareQuery: '' });
     get()._navigate(paths.declare(id));
   },
-  submitDeclare: (meetupId) => {
-    if (!get().declareBrandId) { get().flash('持ち寄る一本を選んでください'); return; }
-    set((s) => ({
-      myBring: { ...s.myBring, [meetupId]: { brandId: s.declareBrandId!, note: s.declareNote } },
-      myGoing: { ...s.myGoing, [meetupId]: true },
-    }));
+  submitDeclare: async (meetupId) => {
+    const brandId = get().declareBrandId;
+    if (!brandId) { get().flash('持ち寄る一本を選んでください'); return; }
+    const ok = await declareBring(meetupId, brandId, get().declareNote);
+    if (!ok) { get().flash('宣言に失敗しました（ログインが必要です）'); return; }
+    await Promise.all([get().loadMeetupDetail(meetupId), get().loadMeetups()]);
     get()._navigate(paths.meetup(meetupId));
     get().flash('持ち寄りを宣言しました');
   },
-  cancelDeclare: (id) => set((s) => { const mb = { ...s.myBring }; delete mb[id]; return { myBring: mb }; }),
-  voteMvp: (meetId, brandId) => {
-    if (!get().requireLogin()) return;
-    set((s) => ({ myMvpVotes: { ...s.myMvpVotes, [meetId]: s.myMvpVotes[meetId] === brandId ? null : brandId } }));
+  cancelDeclare: async (id) => {
+    await cancelBring(id);
+    await Promise.all([get().loadMeetupDetail(id), get().loadMeetups()]);
   },
-  setPhase: (meetId, phase) => {
+  voteMvp: async (meetId, brandId) => {
     if (!get().requireLogin()) return;
-    set((s) => ({ meetPhase: { ...s.meetPhase, [meetId]: phase } }));
+    await voteMvpAction(meetId, brandId);
+    await get().loadMeetupDetail(meetId);
+  },
+  setPhase: async (meetId, phase) => {
+    if (!get().requireLogin()) return;
+    const ok = await setMeetupPhase(meetId, phase);
+    if (!ok) { get().flash('権限がありません（幹事のみ）'); return; }
+    await Promise.all([get().loadMeetupDetail(meetId), get().loadMeetups()]);
     get().flash(phase === 'voting' ? 'MVP投票を開始しました' : phase === 'closed' ? 'MVPを確定しました' : '');
   },
 
@@ -327,8 +344,12 @@ export const useStore = create<State>((set, get) => ({
     set({ ecDone: false });
     get()._navigate('/meetup/create');
   },
-  submitEventCreate: () => {
-    if (!get().ecName.trim() || !get().ecDate.trim() || !get().ecPlace.trim()) { get().flash('会の名前・日時・会場は必須です'); return; }
+  submitEventCreate: async () => {
+    const st = get();
+    if (!st.ecName.trim() || !st.ecDate.trim() || !st.ecPlace.trim()) { get().flash('会の名前・日時・会場は必須です'); return; }
+    const id = await createMeetup({ name: st.ecName.trim(), dateLabel: st.ecDate.trim(), place: st.ecPlace.trim(), theme: st.ecDesc.trim() });
+    if (!id) { get().flash('作成に失敗しました（ログインが必要です）'); return; }
+    await get().loadMeetups();
     set({ ecDone: true });
   },
   resetEventCreate: () => set({ ecName: '', ecDate: '', ecPlace: '', ecDesc: '', ecDone: false }),
