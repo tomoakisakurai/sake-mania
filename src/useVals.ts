@@ -479,7 +479,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     statCups: s.myRecords.length, statBrands: uniqBrands.size, statKura: uniqKura.size,
     today: { name: today.name, sub: subOf(today) },
     todayClick: () => st.openDetail(today.id),
-    myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => st.nav('feed'), post: post || {}, ranking,
+    myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => st.nav('feed'), post: post || { comments: [] }, ranking,
     // zukan
     searchQuery: s.searchQuery,
     onSearch: (e: any) => st.patch({ searchQuery: e.target.value }),

@@ -114,14 +114,21 @@ export function Home({ v }: { v: any }) {
               </div>
             ))}
           </div>
-          <div onClick={v.homeNext.click} style={{ background: '#32507C', borderRadius: 12, padding: '22px 24px', color: '#FDFBF5', cursor: 'pointer' }}>
-            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, letterSpacing: '0.16em', opacity: 0.7, marginBottom: 8 }}>次回のSAKE MEETUP</div>
-            <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 19, fontWeight: 700, lineHeight: 1.5 }}>{v.homeNext.name}</div>
-            <div style={{ fontSize: 12.5, opacity: 0.85, marginTop: 6 }}>{v.homeNext.dateLabel} ・ {v.homeNext.place}</div>
-            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>テーマ:{v.homeNext.theme}</div>
-            <div style={{ display: 'flex', gap: 16, marginTop: 12, fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, opacity: 0.85 }}><span>{v.homeNext.goingLabel}</span><span>{v.homeNext.bringLabel}</span></div>
-            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 12 }}>詳細・持ち寄りを宣言する →</div>
-          </div>
+          {v.homeNext ? (
+            <div onClick={v.homeNext.click} style={{ background: '#32507C', borderRadius: 12, padding: '22px 24px', color: '#FDFBF5', cursor: 'pointer' }}>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, letterSpacing: '0.16em', opacity: 0.7, marginBottom: 8 }}>次回のSAKE MEETUP</div>
+              <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 19, fontWeight: 700, lineHeight: 1.5 }}>{v.homeNext.name}</div>
+              <div style={{ fontSize: 12.5, opacity: 0.85, marginTop: 6 }}>{v.homeNext.dateLabel} ・ {v.homeNext.place}</div>
+              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>テーマ:{v.homeNext.theme}</div>
+              <div style={{ display: 'flex', gap: 16, marginTop: 12, fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, opacity: 0.85 }}><span>{v.homeNext.goingLabel}</span><span>{v.homeNext.bringLabel}</span></div>
+              <div style={{ fontSize: 12, fontWeight: 700, marginTop: 12 }}>詳細・持ち寄りを宣言する →</div>
+            </div>
+          ) : (
+            <div style={{ background: '#FDFBF5', border: '1px dashed #D9D0BC', borderRadius: 12, padding: '22px 24px', color: '#8B8273' }}>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, letterSpacing: '0.16em', marginBottom: 8 }}>次回のSAKE MEETUP</div>
+              <div style={{ fontSize: 13, lineHeight: 1.8 }}>予定されている会はまだありません。<br />下の「＋ SAKE MEETUPを立てる」から作成できます。</div>
+            </div>
+          )}
           {v.hasVoting && (
             <div onClick={v.homeVoting.click} style={{ background: '#FBF0E6', border: '1px solid #E8C9A8', borderRadius: 12, padding: '16px 20px', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
