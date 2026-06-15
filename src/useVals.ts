@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Faithful port of the Claude Design prototype's renderVals(): builds the full
 // view-model object consumed by every screen. Mirrors the prototype 1:1.
+import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 import { useStore } from './store';
 import type { RouteState } from '@/lib/routes';
 import type { ReferenceData } from '@/lib/getReferenceData';
+import type { Brand } from '@/types';
+
+// 入力系(input/textarea)のonChangeで使う共通イベント型
+type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 
 const starStr = (n: number) => {
   const k = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
@@ -31,7 +36,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     const active = screenActive(key);
     return { label, color: active ? '#32507C' : '#8B8273', weight: active ? 700 : 500, click: () => { if (key === 'mypage') { if (st.requireLogin()) st.nav('mypage'); } else st.nav(key as any); } };
   };
-  const subOf = (b: any) => b.brewery + ' / ' + b.pref + ' — ' + b.cls;
+  const subOf = (b: Brand) => b.brewery + ' / ' + b.pref + ' — ' + b.cls;
 
   // nav
   const navDef: [string, string][] = [['home', 'ホーム'], ['zukan', '図鑑'], ['meetups', 'MEETUP'], ['map', '酒蔵マップ'], ['feed', 'みんなの利き酒帳'], ['mypage', 'マイページ']];
@@ -76,7 +81,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     const b = byId(x.brandId) || ({} as any);
     const so = socialOf(x);
     const isOther = who.user !== yuuWho.user;
-    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: any) => { e.stopPropagation(); st.toggleNomi(x.rid); }, click: () => st.openPost(ref), brandClick: (e: any) => { e.stopPropagation(); st.openDetail(b.id); } };
+    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: MouseEvent) => { e.stopPropagation(); st.toggleNomi(x.rid); }, click: () => st.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); st.openDetail(b.id); } };
   };
   // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。サンプル投稿(others)は出さない。
   const allFeed = s.publicRecords.map((pr, i) =>
@@ -121,7 +126,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
       post.nomiColor = pso.liked ? '#FDFBF5' : '#BC6A2D';
       post.nomiClick = () => st.toggleNomi(px.rid);
       const ed = s.editingComment;
-      post.comments = (s.commentsByRid[px.rid] || []).map((c: any) => {
+      post.comments = (s.commentsByRid[px.rid] || []).map((c) => {
         const editing = ed === c.id;
         return {
           user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
@@ -134,7 +139,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
       post.commentCount = pso.commentCount;
       post.hasComments = pso.commentCount > 0;
       post.commentSend = () => st.addComment(px.rid);
-      post.onCommentKey = (e: any) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !(e.nativeEvent && e.nativeEvent.isComposing) && e.keyCode !== 229) { e.preventDefault(); st.addComment(px.rid); } };
+      post.onCommentKey = (e: KeyboardEvent) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !(e.nativeEvent && e.nativeEvent.isComposing) && e.keyCode !== 229) { e.preventDefault(); st.addComment(px.rid); } };
     }
   }
 
@@ -277,7 +282,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
       name: m.name, dateLabel: m.dateLabel, place: m.place, theme: m.theme,
       isUpcoming: m.phase === 'before', isVoting: m.phase === 'voting', isClosed: m.phase === 'closed',
       goCount: m.goingCount, bringCount: m.bringCount,
-      goToggle: (e: any) => { e.stopPropagation(); st.toggleGoing(m.id); },
+      goToggle: (e: MouseEvent) => { e.stopPropagation(); st.toggleGoing(m.id); },
       goLabel: m.iGoing ? '参加予定 ✓' : '参加する',
       goLabelBg: m.iGoing ? '#32507C' : '#FDFBF5',
       goLabelColor: m.iGoing ? '#FDFBF5' : '#32507C',
@@ -296,7 +301,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const showLineup = !isBefore;
   const isHost = !!md?.isHost;
   const iGo = !!md?.iGoing;
-  const goingAvatars = (md?.attendees || []).slice(0, 10).map((a: any) => ({ avatar: a.avatar, bg: a.avatarBg, name: a.name }));
+  const goingAvatars = (md?.attendees || []).slice(0, 10).map((a) => ({ avatar: a.avatar, bg: a.avatarBg, name: a.name }));
   const allBring: any[] = md?.brings || [];
   const brandCounts: Record<string, number> = {};
   allBring.forEach((b) => { brandCounts[b.brandId] = (brandCounts[b.brandId] || 0) + 1; });
@@ -356,22 +361,22 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const dTaken = dBrand ? allBring.find((x) => x.brandId === dBrand.id && !x.mine) : null;
   const declare = {
     meetName: md?.name || '',
-    query: s.declareQuery, onQuery: (e: any) => st.patch({ declareQuery: e.target.value }), results: declareResults,
+    query: s.declareQuery, onQuery: (e: ChangeEv) => st.patch({ declareQuery: e.target.value }), results: declareResults,
     picked: !!dBrand, pickedName: dBrand ? dBrand.name : '', pickedSub: dBrand ? (dBrand.brewery + ' / ' + dBrand.pref) : '',
     changeBrand: () => st.patch({ declareBrandId: null }),
     dupWarn: !!dTaken, dupWarnLabel: dTaken ? (dTaken.memberName + 'さんが既に持ち寄り予定です。かぶってもOKですが、変えると喜ばれるかも。') : '',
-    note: s.declareNote, onNote: (e: any) => st.patch({ declareNote: e.target.value }),
+    note: s.declareNote, onNote: (e: ChangeEv) => st.patch({ declareNote: e.target.value }),
     canSubmit: !!dBrand, submit: () => st.submitDeclare(meId),
     notPicked: !dBrand,
     cancel: () => st.openMeetup(meId),
   };
   const kuraReg = {
-    krName: s.krName, onName: (e: any) => st.patch({ krName: e.target.value }),
-    krPref: s.krPref, onPref: (e: any) => st.patch({ krPref: e.target.value }),
-    krCity: s.krCity, onCity: (e: any) => st.patch({ krCity: e.target.value }),
-    krFounded: s.krFounded, onFounded: (e: any) => st.patch({ krFounded: e.target.value }),
-    krBrands: s.krBrands, onBrands: (e: any) => st.patch({ krBrands: e.target.value }),
-    krDesc: s.krDesc, onDesc: (e: any) => st.patch({ krDesc: e.target.value }),
+    krName: s.krName, onName: (e: ChangeEv) => st.patch({ krName: e.target.value }),
+    krPref: s.krPref, onPref: (e: ChangeEv) => st.patch({ krPref: e.target.value }),
+    krCity: s.krCity, onCity: (e: ChangeEv) => st.patch({ krCity: e.target.value }),
+    krFounded: s.krFounded, onFounded: (e: ChangeEv) => st.patch({ krFounded: e.target.value }),
+    krBrands: s.krBrands, onBrands: (e: ChangeEv) => st.patch({ krBrands: e.target.value }),
+    krDesc: s.krDesc, onDesc: (e: ChangeEv) => st.patch({ krDesc: e.target.value }),
     submit: () => st.submitKuraReg(),
     done: s.krDone, notDone: !s.krDone,
     registeredName: s.krName,
@@ -379,10 +384,10 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     backToMap: () => st.nav('map'),
   };
   const meetupCreate = {
-    ecName: s.ecName, onName: (e: any) => st.patch({ ecName: e.target.value }),
-    ecDate: s.ecDate, onDate: (e: any) => st.patch({ ecDate: e.target.value }),
-    ecPlace: s.ecPlace, onPlace: (e: any) => st.patch({ ecPlace: e.target.value }),
-    ecDesc: s.ecDesc, onDesc: (e: any) => st.patch({ ecDesc: e.target.value }),
+    ecName: s.ecName, onName: (e: ChangeEv) => st.patch({ ecName: e.target.value }),
+    ecDate: s.ecDate, onDate: (e: ChangeEv) => st.patch({ ecDate: e.target.value }),
+    ecPlace: s.ecPlace, onPlace: (e: ChangeEv) => st.patch({ ecPlace: e.target.value }),
+    ecDesc: s.ecDesc, onDesc: (e: ChangeEv) => st.patch({ ecDesc: e.target.value }),
     submit: () => st.submitEventCreate(),
     done: s.ecDone, notDone: !s.ecDone,
     registeredName: s.ecName,
@@ -422,7 +427,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     const b = byId(x.brandId) || ({} as any);
     return { name: b.name, sub: b.brewery + ' / ' + b.pref, date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)', tags: x.temps.concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, click: () => st.openPost({ src: 'mine', i }) };
   });
-  const wantList = s.wantIds.map((id) => byId(id)).filter(Boolean).map((b: any) => ({ name: b.name, sub: b.brewery + ' / ' + b.pref, click: () => st.openDetail(b.id), buyUrl: 'https://search.rakuten.co.jp/search/mall/' + encodeURIComponent(b.name) + '/' }));
+  const wantList = s.wantIds.map((id) => byId(id)).filter((b): b is Brand => Boolean(b)).map((b) => ({ name: b.name, sub: b.brewery + ' / ' + b.pref, click: () => st.openDetail(b.id), buyUrl: 'https://search.rakuten.co.jp/search/mall/' + encodeURIComponent(b.name) + '/' }));
 
   // 利き酒師ランク
   const cupsN = s.myRecords.length;
@@ -479,9 +484,9 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     goLogin: () => st.nav('login'),
     doLogout: () => st.logout(),
     loginTabs, isSignup: s.loginMode === 'signup',
-    loginName: s.loginName, onLoginName: (e: any) => st.patch({ loginName: e.target.value }),
-    loginEmail: s.loginEmail, onLoginEmail: (e: any) => st.patch({ loginEmail: e.target.value }),
-    loginPw: s.loginPw, onLoginPw: (e: any) => st.patch({ loginPw: e.target.value }),
+    loginName: s.loginName, onLoginName: (e: ChangeEv) => st.patch({ loginName: e.target.value }),
+    loginEmail: s.loginEmail, onLoginEmail: (e: ChangeEv) => st.patch({ loginEmail: e.target.value }),
+    loginPw: s.loginPw, onLoginPw: (e: ChangeEv) => st.patch({ loginPw: e.target.value }),
     loginCta: s.loginMode === 'signup' ? '登録してはじめる' : 'ログイン',
     doLoginClick: () => st.doLogin(),
     githubLogin: () => st.loginGithub(),
@@ -513,7 +518,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => st.nav('feed'), post: post || { comments: [] }, ranking,
     // zukan
     searchQuery: s.searchQuery,
-    onSearch: (e: any) => st.patch({ searchQuery: e.target.value }),
+    onSearch: (e: ChangeEv) => st.patch({ searchQuery: e.target.value }),
     tagChips, filteredBrands, resultCount: filteredBrands.length,
     // detail
     d: { name: d.name, brewery: d.brewery, pref: d.pref, cls: d.cls, class: d.cls, polish: d.polish, rice: d.rice, yeast: d.yeast, smv: d.smv, abv: d.abv, temp: d.temp, desc: d.desc, x: d.x, y: d.y, rating: d.rating.toFixed(1), count: d.count },
@@ -529,10 +534,10 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     recSteps, recProgress: r.step / 4 * 100,
     recTitle: titles[r.step - 1][0], recSub: titles[r.step - 1][1],
     isRecStep1: r.step === 1, isRecStep2: r.step === 2, isRecStep3: r.step === 3, isRecStep4: r.step === 4,
-    recQuery: r.query, onRecSearch: (e: any) => st.setRec({ query: e.target.value }), recResults,
+    recQuery: r.query, onRecSearch: (e: ChangeEv) => st.setRec({ query: e.target.value }), recResults,
     recBrandName: recBrand ? recBrand.name : '', recBrandSub: recBrand ? recBrand.brewery + ' / ' + recBrand.pref + ' — ' + recBrand.cls : '',
     recChangeBrand: () => { st.patch({ fromDetail: false }); st.setRec({ step: 1 }); },
-    onMapTap: (e: any) => {
+    onMapTap: (e: MouseEvent<HTMLDivElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = Math.min(95, Math.max(5, Math.round((e.clientX - rect.left) / rect.width * 100)));
       const y = Math.min(95, Math.max(5, Math.round((e.clientY - rect.top) / rect.height * 100)));
@@ -540,13 +545,13 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     },
     recHasPoint: r.x != null, recX: r.x, recY: r.y, recGhostDots,
     recTasteLabel, recSweet: r.sweet, recSweetLabel,
-    onSweet: (e: any) => st.setRec({ sweet: Number(e.target.value) }),
+    onSweet: (e: ChangeEv) => st.setRec({ sweet: Number(e.target.value) }),
     recStars, recRatingLabel: r.rating > 0 ? r.rating.toFixed(1) : '未評価',
     tempChips, recPairing: r.pairing,
-    onPairing: (e: any) => st.setRec({ pairing: e.target.value }),
-    recMemo: r.memo, onMemo: (e: any) => st.setRec({ memo: e.target.value }),
-    onPhoto: (e: any) => { const f = e.target.files && e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => st.setRec({ photo: rd.result as string }); rd.readAsDataURL(f); e.target.value = ''; },
-    onPhotoRemove: (e: any) => { e.stopPropagation(); st.setRec({ photo: null }); },
+    onPairing: (e: ChangeEv) => st.setRec({ pairing: e.target.value }),
+    recMemo: r.memo, onMemo: (e: ChangeEv) => st.setRec({ memo: e.target.value }),
+    onPhoto: (e: ChangeEvent<HTMLInputElement>) => { const f = e.target.files && e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => st.setRec({ photo: rd.result as string }); rd.readAsDataURL(f); e.target.value = ''; },
+    onPhotoRemove: (e: MouseEvent) => { e.stopPropagation(); st.setRec({ photo: null }); },
     recPhoto: r.photo || '', recHasPhoto: !!r.photo, recNoPhoto: !r.photo,
     recStarsStr: starStr(r.rating), recEnjoyLabel: enjoyParts,
     recPublic: r.isPublic,
@@ -590,15 +595,15 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     mapGap: mob ? '4px' : '6px',
     // comments
     commentDraft: s.commentDraft,
-    onCommentDraft: (e: any) => st.patch({ commentDraft: e.target.value }),
+    onCommentDraft: (e: ChangeEv) => st.patch({ commentDraft: e.target.value }),
     editDraft: s.editDraft,
-    onEditDraft: (e: any) => st.patch({ editDraft: e.target.value }),
+    onEditDraft: (e: ChangeEv) => st.patch({ editDraft: e.target.value }),
     editSave: () => st.saveEditComment(),
     editCancel: () => st.patch({ editingComment: null, editDraft: '' }),
-    onEditKey: (e: any) => { const composing = (e.nativeEvent && e.nativeEvent.isComposing) || e.keyCode === 229; if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !composing) { e.preventDefault(); st.saveEditComment(); } else if (e.key === 'Escape') st.patch({ editingComment: null, editDraft: '' }); },
+    onEditKey: (e: KeyboardEvent) => { const composing = (e.nativeEvent && e.nativeEvent.isComposing) || e.keyCode === 229; if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !composing) { e.preventDefault(); st.saveEditComment(); } else if (e.key === 'Escape') st.patch({ editingComment: null, editDraft: '' }); },
     // toast
     toastVisible: !!s.toast, toastMsg: s.toast,
-    stopProp: (e: any) => e.stopPropagation(),
+    stopProp: (e: MouseEvent) => e.stopPropagation(),
   };
 }
 
