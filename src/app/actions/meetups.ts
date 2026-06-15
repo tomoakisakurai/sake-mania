@@ -70,9 +70,12 @@ export async function createMeetup(input: { name: string; dateLabel: string; pla
 export async function getMeetups(): Promise<MeetupView[]> {
   const db = getDb();
   if (!db) return [];
-  const events = await db.select().from(schema.meetupEvents).orderBy(desc(schema.meetupEvents.createdAt));
+  // currentUser()はSupabase Authへの往復を伴うため、events取得と並行させる。
+  const eventsPromise = db.select().from(schema.meetupEvents).orderBy(desc(schema.meetupEvents.createdAt));
+  const userPromise = currentUser();
+  const events = await eventsPromise;
   if (!events.length) return [];
-  const user = await currentUser();
+  const user = await userPromise;
   const ids = events.map((e) => e.id);
   const [profiles, attendees, brings, votes] = await Promise.all([
     db.select().from(schema.profiles),
@@ -103,9 +106,12 @@ export async function getMeetups(): Promise<MeetupView[]> {
 export async function getMeetupDetail(meetupId: string): Promise<MeetupDetail | null> {
   const db = getDb();
   if (!db) return null;
-  const [event] = await db.select().from(schema.meetupEvents).where(eq(schema.meetupEvents.id, meetupId));
+  // currentUser()はSupabase Authへの往復を伴うため、event取得と並行させる。
+  const eventPromise = db.select().from(schema.meetupEvents).where(eq(schema.meetupEvents.id, meetupId));
+  const userPromise = currentUser();
+  const [event] = await eventPromise;
   if (!event) return null;
-  const user = await currentUser();
+  const user = await userPromise;
   const [profiles, attendees, brings, votes] = await Promise.all([
     db.select().from(schema.profiles),
     db.select().from(schema.meetupAttendees).where(eq(schema.meetupAttendees.meetupId, meetupId)),

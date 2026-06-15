@@ -56,11 +56,13 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
 
   // Public feed (みんなの利き酒帳) + MEETUP一覧 — visible to everyone, incl. guests.
   useEffect(() => {
+    const store = useStore.getState();
+    // MEETUP一覧はフィードと独立なので即時並行で取得（先行2リクエストを待たない）。
+    store.loadMeetups();
+    // social は publicRecords のidに依存するため、この2つは直列。
     (async () => {
-      const store = useStore.getState();
       await store.loadPublicRecords();
       await store.loadSocial();
-      store.loadMeetups();
     })();
   }, []);
 
