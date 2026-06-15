@@ -20,6 +20,18 @@ const sql = postgres(url, { prepare: false, max: 1 });
 const statements = [
   // 念のため列を保証（db:pushがプーラ上限で未適用のことがあるため・冪等）
   `alter table public.records add column if not exists is_public boolean not null default false`,
+
+  // --- インデックス（件数増加時の遅延対策・冪等） ---
+  // マイページ: 自分の記録取得 WHERE user_id = ...
+  `create index if not exists records_user_id_idx on public.records (user_id)`,
+  // みんなの利き酒帳フィード: WHERE is_public = true ORDER BY created_at DESC
+  `create index if not exists records_public_created_idx on public.records (is_public, created_at desc)`,
+  // フィードのコメント数集計: WHERE record_id IN (...) GROUP BY record_id
+  `create index if not exists comments_record_id_idx on public.comments (record_id)`,
+  // ※ nomi / meetup_attendees / meetup_brings / meetup_votes は複合PKの先頭列が
+  //   record_id / meetup_id なので、その絞り込みは既存PKインデックスで効く（追加不要）
+
+
   `alter table public.records enable row level security`,
   `alter table public.profiles enable row level security`,
   `drop policy if exists "records_select_own" on public.records`,
