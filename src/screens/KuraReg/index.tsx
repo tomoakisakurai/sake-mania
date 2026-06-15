@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Done } from './Done';
+
 export function KuraReg({ v }: { v: any }) {
   return (
     <div style={{ maxWidth: 620, margin: '0 auto', padding: v.pagePadTight }}>
@@ -42,20 +44,7 @@ export function KuraReg({ v }: { v: any }) {
           <div style={{ textAlign: 'center', fontSize: 11, color: '#A89D8A', marginTop: 12 }}>プロトタイプのため、申請内容は保存されません</div>
         </>
       )}
-      {v.kuraReg.done && (
-        <div style={{ textAlign: 'center', padding: '40px 0 20px' }}>
-          <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#32507C', color: '#FDFBF5', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          </div>
-          <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 26, fontWeight: 700, marginBottom: 12 }}>申請ありがとうございます</div>
-          <div style={{ fontSize: 14, lineHeight: 2, color: '#5C5547', maxWidth: 400, margin: '0 auto 8px' }}>「{v.kuraReg.registeredName}」の掲載リクエストを受け付けました。編集部が内容を確認のうえ、図鑑に追加します。</div>
-          <div style={{ fontSize: 12.5, color: '#8B8273', marginBottom: 32 }}>通常3〜5日ほどお時間をいただきます。</div>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <div onClick={v.kuraReg.another} style={{ border: '1px solid #E3DBCB', borderRadius: 999, padding: '12px 26px', fontSize: 13.5, fontWeight: 700, color: '#5C5547', cursor: 'pointer', background: '#FDFBF5' }}>続けて登録する</div>
-            <div onClick={v.kuraReg.backToMap} style={{ background: '#32507C', color: '#FDFBF5', borderRadius: 999, padding: '12px 26px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>酒蔵マップへ</div>
-          </div>
-        </div>
-      )}
+      {v.kuraReg.done && <Done v={v} />}
     </div>
   );
 }
