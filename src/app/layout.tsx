@@ -6,6 +6,8 @@ import { getCoreReferenceData } from '@/lib/getReferenceData';
 export const metadata: Metadata = {
   title: '酒マニア — SAKE MANIA',
   description: '社内日本酒部のための利き酒記録アプリ',
+  // 社内向けアプリのため検索エンジンにインデックスさせない（全ページに適用）
+  robots: { index: false, follow: false },
 };
 
 // DB-backed app: render on demand (per request) instead of prerendering at
