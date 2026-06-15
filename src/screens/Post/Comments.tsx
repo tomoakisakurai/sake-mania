@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 投稿詳細フッタ: のみたいね + コメント一覧 + 投稿フォーム
-export function Comments({ v }: { v: any }) {
+export function Comments({ v }: { v: Vals }) {
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 26, paddingTop: 20, borderTop: '1px solid #F0EADC', flexWrap: 'wrap' }}>

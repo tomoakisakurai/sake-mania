@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { Picked } from './Picked';
 import { Search } from './Search';
 
-export function Declare({ v }: { v: any }) {
+export function Declare({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", padding: v.pagePadTight }}>
       <div onClick={v.declare.cancel} style={{ fontSize: 13, color: "#8B8273", cursor: "pointer", marginBottom: 24 }}>← SAKE MEETUPにもどる</div>

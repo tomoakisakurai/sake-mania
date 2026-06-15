@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // ホーム上部: コピー + 統計 と 「今日の一本」カード
-export function Hero({ v }: { v: any }) {
+export function Hero({ v }: { v: Vals }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: v.heroCols, gap: 32, marginBottom: 36 }}>
       <div>

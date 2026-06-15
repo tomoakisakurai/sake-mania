@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // マイページ右カラム: 舌の地図(打点マップ) + 飲みたいリスト
-export function Sidebar({ v }: { v: any }) {
+export function Sidebar({ v }: { v: Vals }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: '22px 24px' }}>

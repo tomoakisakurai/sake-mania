@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { Step1Brand } from './Step1Brand';
 import { Step2Taste } from './Step2Taste';
 import { Step3Pairing } from './Step3Pairing';
 import { Step4Memo } from './Step4Memo';
 
-export function Record({ v }: { v: any }) {
+export function Record({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: v.pagePad }}>
       {/* progress */}

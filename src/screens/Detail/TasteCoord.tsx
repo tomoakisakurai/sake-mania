@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 銘柄詳細の味わい座標(ミニマップ): みんなの平均 + あなたの打点
-export function TasteCoord({ v }: { v: any }) {
+export function TasteCoord({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 560, background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 12, padding: "20px 24px", marginBottom: 28 }}>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 15, fontWeight: 700, marginBottom: 12 }}>味わいの座標</div>

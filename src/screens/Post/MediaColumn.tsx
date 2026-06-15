@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 投稿詳細の左カラム: 写真 + アクション(図鑑/記録/公開トグル)
-export function MediaColumn({ v }: { v: any }) {
+export function MediaColumn({ v }: { v: Vals }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {v.post.hasPhoto && (<img src={v.post.photo} style={{ width: '100%', height: 340, borderRadius: 10, objectFit: 'cover', border: '1px solid #E3DBCB', display: 'block' }} alt="" />)}

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 記録ステップ4: メモ + まとめ + 公開トグル
-export function Step4Memo({ v }: { v: any }) {
+export function Step4Memo({ v }: { v: Vals }) {
   return (
     <>
       <textarea value={v.recMemo} onChange={v.onMemo} placeholder="香り、含み、余韻。未来の自分が読み返したくなる一言を。" style={{ width: '100%', height: 140, background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 20px', fontSize: 14, lineHeight: 1.9, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', resize: 'vertical', marginBottom: 24 }} />

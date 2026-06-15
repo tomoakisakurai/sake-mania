@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 投票受付中 / 結果確定フェーズ: 投票バナー + MVPカード + 得票ランキング
-export function ReviewPhase({ v }: { v: any }) {
+export function ReviewPhase({ v }: { v: Vals }) {
   const m = v.meetup;
   return (
     <>

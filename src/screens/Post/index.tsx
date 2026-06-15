@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { Header } from './Header';
 import { MediaColumn } from './MediaColumn';
 import { TasteColumn } from './TasteColumn';
 import { Comments } from './Comments';
 
-export function Post({ v }: { v: any }) {
+export function Post({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', padding: v.pagePadTight }}>
       <div onClick={v.goFeed} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 22 }}>← みんなの利き酒帳にもどる</div>

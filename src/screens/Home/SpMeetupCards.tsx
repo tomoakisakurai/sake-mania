@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // SP専用: ホーム最上部に表示する次回MEETUP / MVP投票カード。
 // PCでは右カラム(MeetupSidebar)に出すため、ここは isMobile のときだけ描画する。
-export function SpMeetupCards({ v }: { v: any }) {
+export function SpMeetupCards({ v }: { v: Vals }) {
   if (!v.isMobile) return null;
   return (
     <>
@@ -15,7 +16,7 @@ export function SpMeetupCards({ v }: { v: any }) {
           <div className="mt-[10px] text-[11.5px] font-bold opacity-95">詳細・持ち寄りを宣言する →</div>
         </div>
       )}
-      {v.hasVoting && (
+      {v.homeVoting && (
         <div onClick={v.homeVoting.click} className="mb-[22px] cursor-pointer rounded-xl border border-[#E8C9A8] bg-[#FBF0E6] p-[14px_16px]">
           <div className="mb-1 flex items-center gap-2">
             <span className="rounded-full bg-accent px-[10px] py-[2px] text-[10px] font-bold text-surface">MVP投票受付中</span>

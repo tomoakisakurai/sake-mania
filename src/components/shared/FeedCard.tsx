@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // みんなの利き酒帳の投稿カード。ホーム(サイドの抜粋)とフィード一覧で共有する。
 // 見た目はプロトタイプ通り(インラインスタイル)。padはホーム=20px 24px / フィード=22px 26px。
 
@@ -10,7 +11,7 @@ function NomiCup() {
   );
 }
 
-export function FeedCard({ f, pad = '22px 26px' }: { f: any; pad?: string }) {
+export function FeedCard({ f, pad = '22px 26px' }: { f: Vals['feedAll'][number]; pad?: string }) {
   return (
     <div onClick={f.click} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: pad, cursor: 'pointer' }}>
       {/* author row */}

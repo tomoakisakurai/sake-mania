@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { BeforePhase } from './BeforePhase';
 import { ReviewPhase } from './ReviewPhase';
 
-export function Meetup({ v }: { v: any }) {
+export function Meetup({ v }: { v: Vals }) {
   const m = v.meetup;
   return (
     <div style={{ maxWidth: 920, margin: '0 auto', padding: v.pagePadTight }}>

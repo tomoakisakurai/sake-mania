@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { Sidebar } from './Sidebar';
 import { Specs } from './Specs';
 import { TasteCoord } from './TasteCoord';
 import { Reviews } from './Reviews';
 
-export function Detail({ v }: { v: any }) {
+export function Detail({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: v.pagePadTight }}>
       <div onClick={v.goZukan} style={{ fontSize: 13, color: "#8B8273", cursor: "pointer", marginBottom: 24 }}>← 図鑑にもどる</div>

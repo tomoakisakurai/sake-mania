@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 飲める店モード: 店リスト + 選択店の詳細(地図埋め込み + 提供銘柄)
-export function BarsMode({ v }: { v: any }) {
+export function BarsMode({ v }: { v: Vals }) {
   return (
     <>
       <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 24 }}>銘酒を飲める居酒屋・角打ちを集めました。店をタップすると地図と提供銘柄が見られます。</div>

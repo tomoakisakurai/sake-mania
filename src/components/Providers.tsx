@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import { useVals } from '@/useVals';
+import type { Vals } from '@/useVals';
 import { routeStateFromPath } from '@/lib/routes';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
 import type { CoreReferenceData, DeferredReferenceData, ReferenceData } from '@/lib/getReferenceData';
@@ -11,8 +12,8 @@ import { Nav } from './Nav';
 import { TabBar } from './TabBar';
 import { Toast } from './Toast';
 
-const ValsContext = createContext<any>(null);
-export function useV(): any { return useContext(ValsContext); }
+const ValsContext = createContext<Vals | null>(null);
+export function useV(): Vals { return useContext(ValsContext) as Vals; }
 
 // 後追い取得分の初期値（mount後にクライアントから実データで上書き）。
 // 空でも useVals 側の各ガードでクラッシュしない。

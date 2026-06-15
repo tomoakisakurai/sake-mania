@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 銘柄スペック表(精米歩合・酒米・酵母・日本酒度・アルコール・温度)
 function Cell({ label, value }: { label: string; value: string }) {
   return (
@@ -9,7 +10,7 @@ function Cell({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function Specs({ v }: { v: any }) {
+export function Specs({ v }: { v: Vals }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: v.specCols, gap: 1, background: "#E3DBCB", border: "1px solid #E3DBCB", borderRadius: 10, overflow: "hidden", maxWidth: 560, marginBottom: 28 }}>
       <Cell label="精米歩合" value={v.d.polish} />

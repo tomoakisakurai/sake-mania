@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { Done } from './Done';
 
-export function MeetupCreate({ v }: { v: any }) {
+export function MeetupCreate({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 620, margin: "0 auto", padding: v.pagePadTight }}>
       {v.meetupCreate.notDone && (

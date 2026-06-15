@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { MeetupCard } from './MeetupCard';
 
-export function Meetups({ v }: { v: any }) {
+export function Meetups({ v }: { v: Vals }) {
   return (
     <div className="mx-auto max-w-[900px]" style={{ padding: v.pagePad }}>
       <div className="mb-7 flex flex-wrap items-center gap-4">

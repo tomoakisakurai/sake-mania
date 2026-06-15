@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { useRef } from 'react';
 
 // 記録ステップ3: 飲み方 + 合わせた料理 + 写真
-export function Step3Pairing({ v }: { v: any }) {
+export function Step3Pairing({ v }: { v: Vals }) {
   const photoRef = useRef<HTMLInputElement>(null);
   const onPhotoClick = () => photoRef.current?.click();
   return (

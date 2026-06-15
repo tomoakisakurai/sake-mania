@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { FeedCard } from '@/components/shared/FeedCard';
 
-export function Feed({ v }: { v: any }) {
+export function Feed({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: v.pagePad }}>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, marginBottom: 4 }}>みんなの利き酒帳</div>

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 記録ステップ2: 味わいの座標(打点) + 甘辛 + 総合評価
-export function Step2Taste({ v }: { v: any }) {
+export function Step2Taste({ v }: { v: Vals }) {
   return (
     <>
       <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>

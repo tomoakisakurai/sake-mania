@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 'use client';
 import { useState } from 'react';
 
-export function Nav({ v }: { v: any }) {
+export function Nav({ v }: { v: Vals }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 50, display: 'flex', alignItems: 'center', gap: 20, padding: '16px 32px', borderBottom: '1px solid #E3DBCB', background: '#FDFBF5' }}>

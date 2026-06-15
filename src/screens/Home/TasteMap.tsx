@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { Fragment } from 'react';
 
 // ホームの「あなたの味わいマップ」: 記録した盃を香り×淡麗濃醇の座標に打点表示
-export function TasteMap({ v }: { v: any }) {
+export function TasteMap({ v }: { v: Vals }) {
   return (
     <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: '28px 32px', marginBottom: 36 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18 }}>

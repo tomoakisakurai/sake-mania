@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // マイページ: わたしの利き酒帳(自分の記録一覧)
-export function RecordList({ v }: { v: any }) {
+export function RecordList({ v }: { v: Vals }) {
   return (
     <div>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 16 }}>わたしの利き酒帳</div>

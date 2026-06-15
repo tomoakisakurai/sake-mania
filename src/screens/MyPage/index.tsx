@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { ProfileHeader } from './ProfileHeader';
 import { Achievements } from './Achievements';
 import { RecordList } from './RecordList';
 import { Sidebar } from './Sidebar';
 
-export function MyPage({ v }: { v: any }) {
+export function MyPage({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: v.pagePad }}>
       <ProfileHeader v={v} />

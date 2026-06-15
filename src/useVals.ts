@@ -10,7 +10,7 @@ const starStr = (n: number) => {
   return '★'.repeat(k) + '☆'.repeat(5 - k);
 };
 
-export function useVals(route: RouteState, ref: ReferenceData): any {
+export function useVals(route: RouteState, ref: ReferenceData) {
   const st = useStore();
   const s = st;
   const r = s.rec;
@@ -343,7 +343,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
       const voted = myVote === l.brandId;
       return { rank: i + 1, rankLabel: ['壱', '弐', '参', '四', '五'][i] || (i + 1), isMvp: mvpBrandId === l.brandId, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: l.memberName, avatar: l.avatar, avatarBg: l.avatarBg, score: '', stars: '', votes: vc + '票', comment: l.note || '', brandClick: () => st.openDetail(l.brandId), canVote: isVoting, voted, voteLabel: voted ? '投票済み ✓' : 'MVPに投票', voteBg: voted ? '#BC6A2D' : '#FDFBF5', voteColor: voted ? '#FDFBF5' : '#BC6A2D', voteClick: () => st.voteMvp(meId, l.brandId) };
     }),
-    mvp: showLineup && mvpBrandId ? (() => { const br = byId(mvpBrandId) || ({} as any); const lp = allBring.find((x) => x.brandId === mvpBrandId) || ({} as any); return { brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: lp.memberName || '', votesLabel: (voteCounts[mvpBrandId] || 0) + '票', comment: lp.note || '', brandClick: () => st.openDetail(mvpBrandId) }; })() : {},
+    mvp: showLineup && mvpBrandId ? (() => { const br = byId(mvpBrandId) || ({} as any); const lp = allBring.find((x) => x.brandId === mvpBrandId) || ({} as any); return { brandName: br.name as string, brandSub: br.brewery + ' / ' + br.pref, broughtBy: lp.memberName || '', votesLabel: (voteCounts[mvpBrandId] || 0) + '票', comment: lp.note || '', brandClick: () => st.openDetail(mvpBrandId) }; })() : { brandName: '', brandSub: '', broughtBy: '', votesLabel: '', comment: '', brandClick: () => {} },
   };
 
   // declare flow（かぶり判定は現在の宣言一覧から）
@@ -601,3 +601,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     stopProp: (e: any) => e.stopPropagation(),
   };
 }
+
+// 画面コンポーネントが受け取るビューモデルの型。useVals の戻り値から推論する
+// （明示的な巨大interfaceを保守しなくて済む）。各画面は { v }: { v: Vals } で受ける。
+export type Vals = ReturnType<typeof useVals>;

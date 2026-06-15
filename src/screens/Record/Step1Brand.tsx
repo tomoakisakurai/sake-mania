@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 記録ステップ1: 銘柄を検索して選ぶ
-export function Step1Brand({ v }: { v: any }) {
+export function Step1Brand({ v }: { v: Vals }) {
   return (
     <>
       <input type="text" value={v.recQuery} onChange={v.onRecSearch} placeholder="銘柄名・酒蔵でさがす" style={{ width: '100%', background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 999, padding: '14px 24px', fontSize: 14.5, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'block', marginBottom: 16 }} />

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 酒蔵登録: 申請完了画面
-export function Done({ v }: { v: any }) {
+export function Done({ v }: { v: Vals }) {
   return (
     <div style={{ textAlign: 'center', padding: '40px 0 20px' }}>
       <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#32507C', color: '#FDFBF5', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>

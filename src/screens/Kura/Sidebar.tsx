@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { Fragment } from 'react';
 
 // 酒蔵詳細の右カラム: 蔵の場所(地図) + 味わい傾向(座標) + わたしの盃
-export function Sidebar({ v }: { v: any }) {
+export function Sidebar({ v }: { v: Vals }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: '20px 22px' }}>

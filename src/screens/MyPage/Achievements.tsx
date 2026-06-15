@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // マイページ: 利き酒師ランク + 制覇状況 + 実績バッジ
-export function Achievements({ v }: { v: any }) {
+export function Achievements({ v }: { v: Vals }) {
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: v.myCols, gap: 32, alignItems: 'start', marginBottom: 32 }}>

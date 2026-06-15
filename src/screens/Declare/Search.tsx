@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 持ち寄り宣言: 銘柄未選択(検索 + 候補一覧、かぶりはタグ表示)
-export function Search({ v }: { v: any }) {
+export function Search({ v }: { v: Vals }) {
   const d = v.declare;
   return (
     <>

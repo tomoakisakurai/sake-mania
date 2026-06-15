@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 酒蔵マップモード: 47都道府県タイル + 凡例 と、選択県の蔵リスト(未選択時は県チップ)
-export function KuraMode({ v }: { v: any }) {
+export function KuraMode({ v }: { v: Vals }) {
   return (
     <>
       <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 24 }}>色のついた県をタップすると、その県の蔵が見られます。呑んだ蔵のある県は朱に染まります。</div>

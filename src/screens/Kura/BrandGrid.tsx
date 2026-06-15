@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 酒蔵詳細: この蔵の銘柄グリッド
-export function BrandGrid({ v }: { v: any }) {
+export function BrandGrid({ v }: { v: Vals }) {
   return (
     <div>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 16 }}>この蔵の銘柄</div>

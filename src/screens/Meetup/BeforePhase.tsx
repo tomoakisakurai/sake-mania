@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 開催前フェーズ: 出欠トグル + 持ち寄りラインナップ + あなたの一本 + 幹事メニュー
-export function BeforePhase({ v }: { v: any }) {
+export function BeforePhase({ v }: { v: Vals }) {
   const m = v.meetup;
   return (
     <>

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // マイページ上部: アバター + 名前 + 利き酒師ランク + 統計 + ログアウト
-export function ProfileHeader({ v }: { v: any }) {
+export function ProfileHeader({ v }: { v: Vals }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 20, marginBottom: 32 }}>
       <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#DDD3BE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, fontWeight: 700, fontFamily: "'Shippori Mincho', serif" }}>{v.userAvatar}</div>

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { BrandGrid } from './BrandGrid';
 import { Sidebar } from './Sidebar';
 
-export function Kura({ v }: { v: any }) {
+export function Kura({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: v.pagePadTight }}>
       <div onClick={v.goMap} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 24 }}>← 酒蔵マップにもどる</div>

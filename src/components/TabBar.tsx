@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 
-export function TabBar({ v }: { v: any }) {
+export function TabBar({ v }: { v: Vals }) {
   return (
     <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 60, display: 'grid', gridTemplateColumns: '1fr 1fr 76px 1fr 1fr', alignItems: 'center', background: '#FDFBF5', borderTop: '1px solid #E3DBCB', padding: '12px 8px 20px' }}>
       {v.tabLeft.map((tb: any, i: number) => (

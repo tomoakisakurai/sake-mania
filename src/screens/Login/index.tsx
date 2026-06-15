@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export function Login({ v }: { v: any }) {
+import type { Vals } from '@/useVals';
+export function Login({ v }: { v: Vals }) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 18px' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>

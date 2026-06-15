@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // この銘柄の利き酒帳(レビュー一覧)
-export function Reviews({ v }: { v: any }) {
+export function Reviews({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 560 }}>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: "1px solid #E3DBCB", paddingBottom: 10, marginBottom: 4 }}>この銘柄の利き酒帳</div>

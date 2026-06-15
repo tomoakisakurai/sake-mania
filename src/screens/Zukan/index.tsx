@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { BrandCard } from './BrandCard';
 
-export function Zukan({ v }: { v: any }) {
+export function Zukan({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: v.pagePad }}>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, marginBottom: 20 }}>銘柄図鑑</div>

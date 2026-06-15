@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 投稿詳細ヘッダ: 投稿者 + 評価(星)
-export function Header({ v }: { v: any }) {
+export function Header({ v }: { v: Vals }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 26, paddingBottom: 18, borderBottom: '1px solid #F0EADC' }}>
       <div style={{ width: 44, height: 44, borderRadius: '50%', background: v.post.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700 }}>{v.post.avatar}</div>

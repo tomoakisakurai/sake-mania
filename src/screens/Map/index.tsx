@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { KuraMode } from './KuraMode';
 import { BarsMode } from './BarsMode';
 
-export function Map({ v }: { v: any }) {
+export function Map({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 1140, margin: '0 auto', padding: v.pagePad }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16, marginBottom: 4 }}>

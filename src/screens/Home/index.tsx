@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 import { FeedCard } from '@/components/shared/FeedCard';
 import { Hero } from './Hero';
 import { TasteMap } from './TasteMap';
 import { SpMeetupCards } from './SpMeetupCards';
 import { MeetupSidebar } from './MeetupSidebar';
 
-export function Home({ v }: { v: any }) {
+export function Home({ v }: { v: Vals }) {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: v.pagePad }}>
       <SpMeetupCards v={v} />

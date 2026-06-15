@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // 銘柄詳細の左カラム: ボトル写真 + 記録/飲みたい + 「この銘柄を買う」導線
-export function Sidebar({ v }: { v: any }) {
+export function Sidebar({ v }: { v: Vals }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ height: v.bottleH, borderRadius: 12, background: "repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3DBCB" }}><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#8B8273", writingMode: "vertical-rl" }}>ボトル写真</span></div>

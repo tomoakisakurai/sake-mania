@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Vals } from '@/useVals';
 // ホーム右カラム: 次回MEETUP/投票カード(PCのみ) + 過去のふりかえり + 今週の人気銘柄
-export function MeetupSidebar({ v }: { v: any }) {
+export function MeetupSidebar({ v }: { v: Vals }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* 次回MEETUP/投票カードはPCの右カラムのみ（SPは最上部に表示し重複させない） */}
@@ -21,7 +22,7 @@ export function MeetupSidebar({ v }: { v: any }) {
               <div style={{ fontSize: 13, lineHeight: 1.8 }}>予定されている会はまだありません。<br />下の「＋ SAKE MEETUPを立てる」から作成できます。</div>
             </div>
           )}
-          {v.hasVoting && (
+          {v.homeVoting && (
             <div onClick={v.homeVoting.click} style={{ background: '#FBF0E6', border: '1px solid #E8C9A8', borderRadius: 12, padding: '16px 20px', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ background: '#BC6A2D', color: '#FDFBF5', borderRadius: 999, padding: '2px 10px', fontSize: 10, fontWeight: 700 }}>MVP投票受付中</span>
