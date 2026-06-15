@@ -77,12 +77,16 @@ export async function getMeetups(): Promise<MeetupView[]> {
   if (!events.length) return [];
   const user = await userPromise;
   const ids = events.map((e) => e.id);
-  const [profiles, attendees, brings, votes] = await Promise.all([
-    db.select().from(schema.profiles),
+  const [attendees, brings, votes] = await Promise.all([
     db.select().from(schema.meetupAttendees).where(inArray(schema.meetupAttendees.meetupId, ids)),
     db.select().from(schema.meetupBrings).where(inArray(schema.meetupBrings.meetupId, ids)),
     db.select().from(schema.meetupVotes).where(inArray(schema.meetupVotes.meetupId, ids)),
   ]);
+  // profilesは全件ではなく、一覧に出る幹事(host)のぶんだけに絞る
+  const hostIds = Array.from(new Set(events.map((e) => e.hostId)));
+  const profiles = hostIds.length
+    ? await db.select().from(schema.profiles).where(inArray(schema.profiles.id, hostIds))
+    : [];
   const nameOf = (uid: string) => profiles.find((p) => p.id === uid)?.nickname || 'sake_user';
   // 各MEETUPの最多得票の銘柄（結果確定カードのMVP表示用）
   const mvpOf = (meetupId: string): string | null => {
@@ -112,12 +116,17 @@ export async function getMeetupDetail(meetupId: string): Promise<MeetupDetail | 
   const [event] = await eventPromise;
   if (!event) return null;
   const user = await userPromise;
-  const [profiles, attendees, brings, votes] = await Promise.all([
-    db.select().from(schema.profiles),
+  // 出欠・持ち寄り・投票はmeetupIdで絞って取得
+  const [attendees, brings, votes] = await Promise.all([
     db.select().from(schema.meetupAttendees).where(eq(schema.meetupAttendees.meetupId, meetupId)),
     db.select().from(schema.meetupBrings).where(eq(schema.meetupBrings.meetupId, meetupId)),
     db.select().from(schema.meetupVotes).where(eq(schema.meetupVotes.meetupId, meetupId)),
   ]);
+  // profilesは全件ではなく、この会に関係するuser(幹事+出欠+持ち寄り)だけに絞る
+  const uids = Array.from(new Set<string>([event.hostId, ...attendees.map((a) => a.userId), ...brings.map((b) => b.userId)]));
+  const profiles = uids.length
+    ? await db.select().from(schema.profiles).where(inArray(schema.profiles.id, uids))
+    : [];
   const prof = (uid: string) => profiles.find((p) => p.id === uid);
   const nameOf = (uid: string) => prof(uid)?.nickname || 'sake_user';
 
