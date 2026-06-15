@@ -1,14 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Faithful port of the Claude Design prototype's renderVals(): builds the full
 // view-model object consumed by every screen. Mirrors the prototype 1:1.
 import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 import { useStore } from './store';
 import type { RouteState } from '@/lib/routes';
 import type { ReferenceData } from '@/lib/getReferenceData';
-import type { Brand } from '@/types';
+import type { Brand, Bar, Screen, PostRef } from '@/types';
 
 // 入力系(input/textarea)のonChangeで使う共通イベント型
 type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
+
+// byId/bars.find が見つからない場合のフォールバック（プロトタイプ移植時のnull回避を型安全に）
+const EMPTY_BRAND: Brand = { id: '', name: '', brewery: '', pref: '', cls: '', polish: '', rice: '', yeast: '', smv: '', abv: '', temp: '', x: 0, y: 0, rating: 0, count: 0, tags: [], desc: '' };
+const EMPTY_BAR: Bar = { id: '', name: '', area: '', type: '', venueQ: '', brands: [], note: '' };
+
+// socialOf/mkFeed が読む記録のフィールド（PublicRec/MyRec/OtherRec が満たす最小構造）
+type SocialRec = { rid: string; nomi?: number; liked?: boolean; commentCount?: number };
+type FeedSourceRec = SocialRec & { brandId: string; rating: number; memo: string; temps: string[]; pairing: string; photo?: string | null };
+type FeedWho = { user: string; mine: string; avatar: string; avatarBg: string };
 
 const starStr = (n: number) => {
   const k = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
@@ -32,34 +40,34 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     || (key === 'map' && (route.screen === 'kura' || route.screen === 'kuraReg'))
     || (key === 'meetups' && (route.screen === 'meetup' || route.screen === 'declare' || route.screen === 'eventCreate'));
 
-  const mkTab = (key: string, label: string) => {
+  const mkTab = (key: Screen, label: string) => {
     const active = screenActive(key);
-    return { label, color: active ? '#32507C' : '#8B8273', weight: active ? 700 : 500, click: () => { if (key === 'mypage') { if (st.requireLogin()) st.nav('mypage'); } else st.nav(key as any); } };
+    return { label, color: active ? '#32507C' : '#8B8273', weight: active ? 700 : 500, click: () => { if (key === 'mypage') { if (st.requireLogin()) st.nav('mypage'); } else st.nav(key); } };
   };
   const subOf = (b: Brand) => b.brewery + ' / ' + b.pref + ' — ' + b.cls;
 
   // nav
-  const navDef: [string, string][] = [['home', 'ホーム'], ['zukan', '図鑑'], ['meetups', 'MEETUP'], ['map', '酒蔵マップ'], ['feed', 'みんなの利き酒帳'], ['mypage', 'マイページ']];
+  const navDef: [Screen, string][] = [['home', 'ホーム'], ['zukan', '図鑑'], ['meetups', 'MEETUP'], ['map', '酒蔵マップ'], ['feed', 'みんなの利き酒帳'], ['mypage', 'マイページ']];
   const navItems = navDef.map((d) => {
     const active = screenActive(d[0]);
-    return { label: d[1], color: active ? '#2E2A24' : '#5C5547', weight: active ? 700 : 400, border: active ? '2px solid #32507C' : '2px solid transparent', click: () => { if (d[0] === 'mypage') { if (st.requireLogin()) st.nav('mypage'); } else st.nav(d[0] as any); } };
+    return { label: d[1], color: active ? '#2E2A24' : '#5C5547', weight: active ? 700 : 400, border: active ? '2px solid #32507C' : '2px solid transparent', click: () => { if (d[0] === 'mypage') { if (st.requireLogin()) st.nav('mypage'); } else st.nav(d[0]); } };
   });
 
   // stats
   const uniqBrands = new Set(s.myRecords.map((x) => x.brandId));
-  const uniqKura = new Set(s.myRecords.map((x) => (byId(x.brandId) || ({} as any)).brewery));
+  const uniqKura = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).brewery));
 
   // map dots
   const myDots = s.myRecords.map((x) => {
-    const b = byId(x.brandId) || ({} as any);
+    const b = byId(x.brandId) || EMPTY_BRAND;
     return { left: x.x, top: x.y, size: x.rating >= 5 ? 15 : 10, bg: x.rating >= 5 ? '#BC6A2D' : '#32507C', label: (b.name || '').split(' ')[0] };
   });
 
   // feed
   const u = s.user || { name: 'yuu_sake_log', avatar: '悠' };
   const yuuWho = { user: u.name, mine: '(あなた)', avatar: u.avatar, avatarBg: '#DDD3BE' };
-  const loginTabs = ([['login', 'ログイン'], ['signup', '新規登録']] as [string, string][]).map((t) => ({
-    label: t[1], click: () => st.patch({ loginMode: t[0] as any }),
+  const loginTabs = ([['login', 'ログイン'], ['signup', '新規登録']] as ['login' | 'signup', string][]).map((t) => ({
+    label: t[1], click: () => st.patch({ loginMode: t[0] }),
     color: s.loginMode === t[0] ? '#2E2A24' : '#A89D8A',
     weight: s.loginMode === t[0] ? 700 : 400,
     border: s.loginMode === t[0] ? '2px solid #32507C' : '2px solid transparent',
@@ -69,7 +77,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     { mark: '●', markColor: '#06C755', label: 'LINEでつづける' },
   ].map((o) => ({ ...o, click: () => st.doLogin() }));
 
-  const socialOf = (x: any) => {
+  const socialOf = (x: SocialRec) => {
     // 押下後はストアのマップを優先、未取得時はレコード同梱の値（=フィードの数字が遅れない）
     const liked = (x.rid in s.myNomi) ? s.myNomi[x.rid] : !!x.liked;
     const nomi = (x.rid in s.nomiCounts) ? s.nomiCounts[x.rid] : (x.nomi || 0);
@@ -77,8 +85,8 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     const commentCount = loaded ? loaded.length : (x.commentCount || 0);
     return { liked, nomi, comments: loaded || [], commentCount };
   };
-  const mkFeed = (x: any, who: any, time: string, ref: any) => {
-    const b = byId(x.brandId) || ({} as any);
+  const mkFeed = (x: FeedSourceRec, who: FeedWho, time: string, ref: PostRef) => {
+    const b = byId(x.brandId) || EMPTY_BRAND;
     const so = socialOf(x);
     const isOther = who.user !== yuuWho.user;
     return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: MouseEvent) => { e.stopPropagation(); st.toggleNomi(x.rid); }, click: () => st.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); st.openDetail(b.id); } };
@@ -88,13 +96,18 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     mkFeed(pr, { user: pr.user, mine: pr.mine ? '(あなた)' : '', avatar: pr.avatar, avatarBg: pr.avatarBg }, pr.date, { src: 'public', i }));
 
   // post detail
+  // post/px は mine/public/other の3レコードを prf.src で出し分ける判別union seam。
+  // 型付けには実行時ナローイングが要り(px.x が number|null 等)、移植の挙動を保つため
+  // ここだけ any を許容する。
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let post: any = null;
   const prf = route.postRef;
   if (prf) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const px: any = prf.src === 'mine' ? s.myRecords[prf.i] : prf.src === 'public' ? s.publicRecords[prf.i] : others[prf.i];
     const isMine = prf.src === 'mine' || (prf.src === 'public' && !!px && px.mine);
     if (px) {
-      const pb = byId(px.brandId) || ({} as any);
+      const pb = byId(px.brandId) || EMPTY_BRAND;
       // この記録は本人のもの＝公開トグル可能（DBレコードのみ。シードのothersは不可）
       const isOwnDbRecord = prf.src === 'mine' || (prf.src === 'public' && px.mine);
       const recPublicNow = prf.src === 'public' ? true : !!px.isPublic;
@@ -146,7 +159,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   // ranking
   const ranking = brands.slice().sort((a, b) => b.count - a.count).slice(0, 4).map((b, i) => ({ rank: ['壱', '弐', '参', '四'][i], color: i === 0 ? '#BC6A2D' : '#8B8273', name: b.name, brewery: b.brewery + ' / ' + b.pref, count: b.count + '記録', click: () => st.openDetail(b.id) }));
 
-  const today = byId('kuheiji') || brands[0] || ({} as any);
+  const today = byId('kuheiji') || brands[0] || EMPTY_BRAND;
 
   // zukan
   const q = s.searchQuery.trim();
@@ -206,13 +219,13 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const enjoyParts = (r.temps.length ? r.temps.join('・') : '未記入') + (r.pairing ? ' / 肴: ' + r.pairing : '');
 
   // kura map
-  const kuraByPref: Record<string, Record<string, any[]>> = {};
+  const kuraByPref: Record<string, Record<string, Brand[]>> = {};
   brands.forEach((b) => {
     if (!kuraByPref[b.pref]) kuraByPref[b.pref] = {};
     if (!kuraByPref[b.pref][b.brewery]) kuraByPref[b.pref][b.brewery] = [];
     kuraByPref[b.pref][b.brewery].push(b);
   });
-  const drunkPrefs = new Set(s.myRecords.map((x) => (byId(x.brandId) || ({} as any)).pref).filter(Boolean));
+  const drunkPrefs = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).pref).filter(Boolean));
   const prefTiles = prefGrid.map((p) => {
     const name = p[0];
     const hasK = !!kuraByPref[name];
@@ -231,22 +244,22 @@ export function useVals(route: RouteState, ref: ReferenceData) {
       click: hasK ? (() => st.patch({ mapPref: sel ? null : name })) : (() => { /* noop */ }),
     };
   });
-  const mapKuras: any[] = [];
-  if (s.mapPref && kuraByPref[s.mapPref]) {
-    Object.keys(kuraByPref[s.mapPref]).forEach((kn) => {
-      const meta: any = kuraMeta[kn] || {};
-      const bs = kuraByPref[s.mapPref!][kn];
-      const cups = s.myRecords.filter((x) => bs.some((b) => b.id === x.brandId)).length;
-      mapKuras.push({
-        name: kn,
-        nameClick: () => st.openKura(kn),
-        gmapLink: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(kn + ' ' + (meta.city || '') + ' ' + s.mapPref),
-        meta: s.mapPref + ' ' + (meta.city || '') + (meta.founded ? ' — 創業 ' + meta.founded + '年' : ''),
-        hasCups: cups > 0, cupsLabel: '呑んだ盃 ' + cups,
-        brands: bs.map((b) => ({ label: b.name, click: () => st.openDetail(b.id) })),
-      });
-    });
-  }
+  const mapPref = s.mapPref;
+  const mapKuras = (mapPref && kuraByPref[mapPref])
+    ? Object.keys(kuraByPref[mapPref]).map((kn) => {
+        const meta = kuraMeta[kn];
+        const bs = kuraByPref[mapPref][kn];
+        const cups = s.myRecords.filter((x) => bs.some((b) => b.id === x.brandId)).length;
+        return {
+          name: kn,
+          nameClick: () => st.openKura(kn),
+          gmapLink: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(kn + ' ' + (meta?.city || '') + ' ' + mapPref),
+          meta: mapPref + ' ' + (meta?.city || '') + (meta?.founded ? ' — 創業 ' + meta.founded + '年' : ''),
+          hasCups: cups > 0, cupsLabel: '呑んだ盃 ' + cups,
+          brands: bs.map((b) => ({ label: b.name, click: () => st.openDetail(b.id) })),
+        };
+      })
+    : [];
   const prefChipList = Object.keys(kuraByPref).map((pn) => ({
     label: pn + ' ' + Object.keys(kuraByPref[pn]).length + '蔵',
     bg: drunkPrefs.has(pn) ? '#BC6A2D' : '#32507C',
@@ -302,11 +315,11 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const isHost = !!md?.isHost;
   const iGo = !!md?.iGoing;
   const goingAvatars = (md?.attendees || []).slice(0, 10).map((a) => ({ avatar: a.avatar, bg: a.avatarBg, name: a.name }));
-  const allBring: any[] = md?.brings || [];
+  const allBring = md?.brings || [];
   const brandCounts: Record<string, number> = {};
   allBring.forEach((b) => { brandCounts[b.brandId] = (brandCounts[b.brandId] || 0) + 1; });
   const bringList = allBring.map((b) => {
-    const br = byId(b.brandId) || ({} as any);
+    const br = byId(b.brandId) || EMPTY_BRAND;
     return { memberName: b.memberName, avatar: b.avatar, avatarBg: b.avatarBg, mine: !!b.mine, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, note: b.note || '', dup: brandCounts[b.brandId] > 1, brandClick: () => st.openDetail(b.brandId) };
   });
   const voteCounts: Record<string, number> = md?.voteCounts || {};
@@ -343,12 +356,12 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     myVoted: !!myVote,
     canVote: isVoting,
     lineup: sortedLineup.map((l, i) => {
-      const br = byId(l.brandId) || ({} as any);
+      const br = byId(l.brandId) || EMPTY_BRAND;
       const vc = voteCounts[l.brandId] || 0;
       const voted = myVote === l.brandId;
       return { rank: i + 1, rankLabel: ['壱', '弐', '参', '四', '五'][i] || (i + 1), isMvp: mvpBrandId === l.brandId, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: l.memberName, avatar: l.avatar, avatarBg: l.avatarBg, score: '', stars: '', votes: vc + '票', comment: l.note || '', brandClick: () => st.openDetail(l.brandId), canVote: isVoting, voted, voteLabel: voted ? '投票済み ✓' : 'MVPに投票', voteBg: voted ? '#BC6A2D' : '#FDFBF5', voteColor: voted ? '#FDFBF5' : '#BC6A2D', voteClick: () => st.voteMvp(meId, l.brandId) };
     }),
-    mvp: showLineup && mvpBrandId ? (() => { const br = byId(mvpBrandId) || ({} as any); const lp = allBring.find((x) => x.brandId === mvpBrandId) || ({} as any); return { brandName: br.name as string, brandSub: br.brewery + ' / ' + br.pref, broughtBy: lp.memberName || '', votesLabel: (voteCounts[mvpBrandId] || 0) + '票', comment: lp.note || '', brandClick: () => st.openDetail(mvpBrandId) }; })() : { brandName: '', brandSub: '', broughtBy: '', votesLabel: '', comment: '', brandClick: () => {} },
+    mvp: showLineup && mvpBrandId ? (() => { const br = byId(mvpBrandId) || EMPTY_BRAND; const lp = allBring.find((x) => x.brandId === mvpBrandId); return { brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: lp?.memberName || '', votesLabel: (voteCounts[mvpBrandId] || 0) + '票', comment: lp?.note || '', brandClick: () => st.openDetail(mvpBrandId) }; })() : { brandName: '', brandSub: '', broughtBy: '', votesLabel: '', comment: '', brandClick: () => {} },
   };
 
   // declare flow（かぶり判定は現在の宣言一覧から）
@@ -398,18 +411,17 @@ export function useVals(route: RouteState, ref: ReferenceData) {
 
   // kura detail
   const kn0 = route.kuraName;
-  const kmeta: any = (kn0 && kuraMeta[kn0]) || {};
+  const kmeta = kn0 ? kuraMeta[kn0] : undefined;
   const kBrands = brands.filter((b) => b.brewery === kn0);
   const kPref = kBrands.length ? kBrands[0].pref : '';
-  const kRecs: any[] = [];
-  s.myRecords.forEach((x, i) => { if (kBrands.some((b) => b.id === x.brandId)) kRecs.push({ rec: x, idx: i }); });
-  const kQuery = encodeURIComponent((kn0 || '') + ' ' + (kmeta.city || '') + ' ' + kPref);
+  const kRecs = s.myRecords.map((x, i) => ({ rec: x, idx: i })).filter((o) => kBrands.some((b) => b.id === o.rec.brandId));
+  const kQuery = encodeURIComponent((kn0 || '') + ' ' + (kmeta?.city || '') + ' ' + kPref);
   const ku = {
     name: kn0 || '',
     mapSrc: 'https://www.google.com/maps?q=' + kQuery + '&output=embed&hl=ja&z=13',
     mapLink: 'https://www.google.com/maps/search/?api=1&query=' + kQuery,
-    meta: kPref + (kmeta.city ? ' ' + kmeta.city : '') + (kmeta.founded ? ' — 創業 ' + kmeta.founded + '年' : ''),
-    desc: kmeta.desc || '',
+    meta: kPref + (kmeta?.city ? ' ' + kmeta.city : '') + (kmeta?.founded ? ' — 創業 ' + kmeta.founded + '年' : ''),
+    desc: kmeta?.desc || '',
     brandCount: kBrands.length,
     totalRecs: kBrands.reduce((a, b) => a + b.count, 0),
     myCupCount: kRecs.length,
@@ -417,14 +429,14 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     dots: kBrands.map((b) => ({ left: b.x, top: b.y, label: b.name })),
     brands: kBrands.map((b) => ({ name: b.name, cls: b.cls, polish: b.polish, rice: b.rice, rating: b.rating.toFixed(1), pct: Math.round(b.rating / 5 * 100), click: () => st.openDetail(b.id) })),
     cups: kRecs.map((o) => {
-      const b = byId(o.rec.brandId) || ({} as any);
+      const b = byId(o.rec.brandId) || EMPTY_BRAND;
       return { name: b.name, date: o.rec.date, stars: starStr(o.rec.rating), memo: o.rec.memo || '(メモなし)', click: () => st.openPost({ src: 'mine', i: o.idx }) };
     }),
   };
 
   // mypage
   const myList = s.myRecords.map((x, i) => {
-    const b = byId(x.brandId) || ({} as any);
+    const b = byId(x.brandId) || EMPTY_BRAND;
     return { name: b.name, sub: b.brewery + ' / ' + b.pref, date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)', tags: x.temps.concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, click: () => st.openPost({ src: 'mine', i }) };
   });
   const wantList = s.wantIds.map((id) => byId(id)).filter((b): b is Brand => Boolean(b)).map((b) => ({ name: b.name, sub: b.brewery + ' / ' + b.pref, click: () => st.openDetail(b.id), buyUrl: 'https://search.rakuten.co.jp/search/mall/' + encodeURIComponent(b.name) + '/' }));
@@ -436,8 +448,8 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const nextTier = rankTiers[ti + 1];
   const rankPct = nextTier ? Math.min(100, Math.round((cupsN - rankTiers[ti].min) / (nextTier.min - rankTiers[ti].min) * 100)) : 100;
   // 制覇度バッジ
-  const prefSet2 = new Set(s.myRecords.map((x) => (byId(x.brandId) || ({} as any)).pref).filter(Boolean));
-  const kuraSet2 = new Set(s.myRecords.map((x) => (byId(x.brandId) || ({} as any)).brewery).filter(Boolean));
+  const prefSet2 = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).pref).filter(Boolean));
+  const kuraSet2 = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).brewery).filter(Boolean));
   const badgeDefs = [
     { icon: '初', label: 'はじめの一杯', on: cupsN >= 1 },
     { icon: '拾', label: '10盃達成', on: cupsN >= 10 },
@@ -453,13 +465,13 @@ export function useVals(route: RouteState, ref: ReferenceData) {
 
   // 飲める店マップ
   const isBars = s.mapMode === 'bars';
-  const barSel = bars.find((b) => b.id === s.barId) || bars[0] || ({} as any);
+  const barSel = bars.find((b) => b.id === s.barId) || bars[0] || EMPTY_BAR;
   const barList = bars.map((b) => ({ name: b.name, area: b.area, type: b.type, sel: b.id === barSel.id, bg: b.id === barSel.id ? '#32507C' : '#FFFFFF', color: b.id === barSel.id ? '#FDFBF5' : '#2E2A24', subColor: b.id === barSel.id ? 'rgba(253,251,245,0.7)' : '#8B8273', click: () => st.patch({ barId: b.id }) }));
   const barView = {
     name: barSel.name, area: barSel.area, type: barSel.type, note: barSel.note,
     mapSrc: 'https://www.google.com/maps?q=' + encodeURIComponent(barSel.venueQ) + '&output=embed&hl=ja&z=15',
     mapLink: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(barSel.venueQ),
-    brands: (barSel.brands || []).map((id: string) => { const br = byId(id) || ({} as any); return { label: br.name, click: () => st.openDetail(id) }; }),
+    brands: (barSel.brands || []).map((id: string) => { const br = byId(id) || EMPTY_BRAND; return { label: br.name, click: () => st.openDetail(id) }; }),
   };
 
   return {
