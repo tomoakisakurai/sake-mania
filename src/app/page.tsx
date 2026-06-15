@@ -1,4 +1,3 @@
-'use client';
-import { useV } from '@/components/Providers';
-import { Home } from '@/screens/Home';
-export default function Page() { return <Home v={useV()} />; }
+import { HomeClient } from '@/app/_screens';
+// ホームは root layout の既定 metadata(酒マニア — SAKE MANIA)を継承する
+export default function Page() { return <HomeClient />; }

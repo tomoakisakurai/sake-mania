@@ -1,4 +1,5 @@
-'use client';
-import { useV } from '@/components/Providers';
-import { Record } from '@/screens/Record';
-export default function Page() { return <Record v={useV()} />; }
+import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/meta';
+import { RecordClient } from '@/app/_screens';
+export const metadata: Metadata = pageMeta('利き酒を記録する', '飲んだ一杯を、味わいの座標と言葉で記録する。');
+export default function Page() { return <RecordClient />; }
