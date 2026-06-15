@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+'use client';
+import { useState } from 'react';
 
 export function Nav({ v }: { v: any }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 50, display: 'flex', alignItems: 'center', gap: 20, padding: '16px 32px', borderBottom: '1px solid #E3DBCB', background: '#FDFBF5' }}>
       <div onClick={v.goHome} style={{ display: 'flex', alignItems: 'baseline', gap: 10, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
@@ -22,12 +25,39 @@ export function Nav({ v }: { v: any }) {
           </>
         )}
         {v.loggedIn && (
-          <div onClick={v.goMy} style={{ width: 36, height: 36, borderRadius: '50%', background: '#DDD3BE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>{v.userAvatar}</div>
+          <>
+            <div onClick={v.goMy} style={{ width: 36, height: 36, borderRadius: '50%', background: '#DDD3BE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>{v.userAvatar}</div>
+            {v.isMobile && (
+              <div onClick={() => setMenuOpen(true)} className="flex h-9 w-9 shrink-0 cursor-pointer flex-col items-center justify-center gap-[5px]">
+                <span className="block h-[2px] w-5 rounded-[2px] bg-ink"></span>
+                <span className="block h-[2px] w-5 rounded-[2px] bg-ink"></span>
+                <span className="block h-[2px] w-5 rounded-[2px] bg-ink"></span>
+              </div>
+            )}
+          </>
         )}
         {v.loggedOut && (
           <div onClick={v.goLogin} style={{ border: '1px solid #32507C', color: '#32507C', borderRadius: 999, padding: '8px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>ログイン</div>
         )}
       </div>
+
+      {/* SP ハンバーガーメニュー（右スライドイン） */}
+      {menuOpen && (
+        <>
+          <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[70] animate-[fadeInOverlay_0.2s_ease_both] bg-[rgba(46,42,36,0.35)]"></div>
+          <div className="fixed bottom-0 right-0 top-0 z-[71] flex w-[78vw] max-w-[300px] animate-[slideInRight_0.25s_cubic-bezier(0.32,0.72,0,1)_both] flex-col bg-surface pb-8 shadow-[-4px_0_24px_rgba(46,42,36,0.18)]">
+            <div className="flex items-center justify-between border-b border-line px-[22px] py-[18px]">
+              <div className="font-serif text-[17px] font-bold tracking-[0.04em]">酒マニア</div>
+              <div onClick={() => setMenuOpen(false)} className="flex h-8 w-8 cursor-pointer items-center justify-center text-[20px] text-muted">✕</div>
+            </div>
+            <div className="flex-1 overflow-y-auto py-3">
+              {v.menuItems.map((mi: any, i: number) => (
+                <div key={i} onClick={() => { setMenuOpen(false); mi.click(); }} className="cursor-pointer border-b border-[#F6F1E7] px-6 py-4 text-[15px] font-medium">{mi.label}</div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

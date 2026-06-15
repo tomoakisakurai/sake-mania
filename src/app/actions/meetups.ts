@@ -15,6 +15,8 @@ export interface MeetupView {
   voteDeadline: string;
   goingCount: number;
   bringCount: number;
+  iGoing: boolean;
+  mvpBrandId: string | null;
 }
 
 export interface MeetupDetail {
@@ -70,18 +72,31 @@ export async function getMeetups(): Promise<MeetupView[]> {
   if (!db) return [];
   const events = await db.select().from(schema.meetupEvents).orderBy(desc(schema.meetupEvents.createdAt));
   if (!events.length) return [];
+  const user = await currentUser();
   const ids = events.map((e) => e.id);
-  const [profiles, attendees, brings] = await Promise.all([
+  const [profiles, attendees, brings, votes] = await Promise.all([
     db.select().from(schema.profiles),
     db.select().from(schema.meetupAttendees).where(inArray(schema.meetupAttendees.meetupId, ids)),
     db.select().from(schema.meetupBrings).where(inArray(schema.meetupBrings.meetupId, ids)),
+    db.select().from(schema.meetupVotes).where(inArray(schema.meetupVotes.meetupId, ids)),
   ]);
   const nameOf = (uid: string) => profiles.find((p) => p.id === uid)?.nickname || 'sake_user';
+  // 各MEETUPの最多得票の銘柄（結果確定カードのMVP表示用）
+  const mvpOf = (meetupId: string): string | null => {
+    const counts: Record<string, number> = {};
+    for (const v of votes) if (v.meetupId === meetupId) counts[v.brandId] = (counts[v.brandId] || 0) + 1;
+    let best: string | null = null;
+    let bestN = 0;
+    for (const [bid, n] of Object.entries(counts)) if (n > bestN) { best = bid; bestN = n; }
+    return best;
+  };
   return events.map((e) => ({
     id: e.id, name: e.name, dateLabel: e.dateLabel, place: e.place, theme: e.theme,
     hostName: nameOf(e.hostId), phase: e.phase, voteDeadline: e.voteDeadline || '',
     goingCount: attendees.filter((a) => a.meetupId === e.id).length,
     bringCount: brings.filter((b) => b.meetupId === e.id).length,
+    iGoing: !!user && attendees.some((a) => a.meetupId === e.id && a.userId === user.id),
+    mvpBrandId: mvpOf(e.id),
   }));
 }
 

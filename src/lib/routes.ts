@@ -24,6 +24,7 @@ export function routeStateFromPath(pathname: string): RouteState {
   if (p === '/feed') return { ...base, screen: 'feed' };
   if (p === '/map') return { ...base, screen: 'map' };
   if (p === '/zukan') return { ...base, screen: 'zukan' };
+  if (p === '/meetups') return { ...base, screen: 'meetups' };
   if (seg[0] === 'zukan' && seg[1]) return { ...base, screen: 'detail', detailId: decodeURIComponent(seg[1]) };
   if (seg[0] === 'post' && seg[1] && seg[2] != null) {
     const src = seg[1] === 'mine' ? 'mine' : seg[1] === 'public' ? 'public' : 'other';
@@ -44,6 +45,7 @@ export function pathForScreen(screen: Screen): string {
     case 'home': return '/';
     case 'login': return '/login';
     case 'zukan': return '/zukan';
+    case 'meetups': return '/meetups';
     case 'map': return '/map';
     case 'feed': return '/feed';
     case 'mypage': return '/mypage';

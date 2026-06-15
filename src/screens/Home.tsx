@@ -3,6 +3,28 @@ import { Fragment } from 'react';
 export function Home({ v }: { v: any }) {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: v.pagePad }}>
+      {/* SP専用: SAKE MEETUPを最上部に表示 */}
+      {v.isMobile && v.homeNext && (
+        <div onClick={v.homeNext.click} className="mb-[22px] cursor-pointer rounded-[14px] bg-primary p-[18px_20px] text-surface">
+          <div className="mb-[6px] font-mono text-[9px] tracking-[0.18em] opacity-70">次回のSAKE MEETUP</div>
+          <div className="font-serif text-[18px] font-bold leading-[1.45]">{v.homeNext.name}</div>
+          <div className="mt-1 text-[12px] opacity-85">{v.homeNext.dateLabel} ・ {v.homeNext.place}</div>
+          <div className="mt-[2px] text-[11px] opacity-70">テーマ: {v.homeNext.theme}</div>
+          <div className="mt-[10px] flex gap-[14px] font-mono text-[10px] opacity-85"><span>{v.homeNext.goingLabel}</span><span>{v.homeNext.bringLabel}</span></div>
+          <div className="mt-[10px] text-[11.5px] font-bold opacity-95">詳細・持ち寄りを宣言する →</div>
+        </div>
+      )}
+      {v.isMobile && v.hasVoting && (
+        <div onClick={v.homeVoting.click} className="mb-[22px] cursor-pointer rounded-xl border border-[#E8C9A8] bg-[#FBF0E6] p-[14px_16px]">
+          <div className="mb-1 flex items-center gap-2">
+            <span className="rounded-full bg-accent px-[10px] py-[2px] text-[10px] font-bold text-surface">MVP投票受付中</span>
+            <span className="text-[10.5px] text-accent-dark">締切 {v.homeVoting.deadline}</span>
+          </div>
+          <div className="font-serif text-[14px] font-bold text-ink">{v.homeVoting.name}</div>
+          <div className="mt-[3px] text-[11.5px] font-bold text-accent-dark">あなたの一本に投票する →</div>
+        </div>
+      )}
+
       {/* hero */}
       <div style={{ display: 'grid', gridTemplateColumns: v.heroCols, gap: 32, marginBottom: 36 }}>
         <div>
@@ -104,6 +126,8 @@ export function Home({ v }: { v: any }) {
           ))}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* 次回MEETUP/投票カードはPCの右カラムのみ（SPは最上部に表示し重複させない） */}
+          {v.isDesktopNav && (<>
           {v.homeNext ? (
             <div onClick={v.homeNext.click} style={{ background: '#32507C', borderRadius: 12, padding: '22px 24px', color: '#FDFBF5', cursor: 'pointer' }}>
               <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, letterSpacing: '0.16em', opacity: 0.7, marginBottom: 8 }}>次回のSAKE MEETUP</div>
@@ -129,6 +153,7 @@ export function Home({ v }: { v: any }) {
               <div style={{ fontSize: 12, color: '#9A5A20', fontWeight: 700, marginTop: 4 }}>あなたの一本に投票する →</div>
             </div>
           )}
+          </>)}
           <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 20px 6px' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#8B8273', marginBottom: 4 }}>過去のふりかえり</div>
             {v.homePast.map((hp: any, i: number) => (

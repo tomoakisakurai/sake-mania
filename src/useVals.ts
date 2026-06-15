@@ -25,7 +25,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     || (key === 'zukan' && route.screen === 'detail')
     || (key === 'feed' && route.screen === 'post')
     || (key === 'map' && (route.screen === 'kura' || route.screen === 'kuraReg'))
-    || (key === 'home' && (route.screen === 'meetup' || route.screen === 'declare' || route.screen === 'eventCreate'));
+    || (key === 'meetups' && (route.screen === 'meetup' || route.screen === 'declare' || route.screen === 'eventCreate'));
 
   const mkTab = (key: string, label: string) => {
     const active = screenActive(key);
@@ -34,7 +34,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
   const subOf = (b: any) => b.brewery + ' / ' + b.pref + ' — ' + b.cls;
 
   // nav
-  const navDef: [string, string][] = [['home', 'ホーム'], ['zukan', '図鑑'], ['map', '酒蔵マップ'], ['feed', 'みんなの利き酒帳'], ['mypage', 'マイページ']];
+  const navDef: [string, string][] = [['home', 'ホーム'], ['zukan', '図鑑'], ['meetups', 'MEETUP'], ['map', '酒蔵マップ'], ['feed', 'みんなの利き酒帳'], ['mypage', 'マイページ']];
   const navItems = navDef.map((d) => {
     const active = screenActive(d[0]);
     return { label: d[1], color: active ? '#2E2A24' : '#5C5547', weight: active ? 700 : 400, border: active ? '2px solid #32507C' : '2px solid transparent', click: () => { if (d[0] === 'mypage') { if (st.requireLogin()) st.nav('mypage'); } else st.nav(d[0] as any); } };
@@ -268,6 +268,25 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
   const votingMeet = list.find((m) => m.phase === 'voting');
   const homeVoting = votingMeet ? { name: votingMeet.name, deadline: votingMeet.voteDeadline || '', click: () => st.openMeetup(votingMeet.id) } : null;
 
+  // SAKE MEETUP 一覧（hub画面）。フェーズ別にバッジ・統計・CTAを出し分ける。
+  const meetupsList = list.map((m) => {
+    const mvp = m.mvpBrandId ? byId(m.mvpBrandId) : undefined;
+    return {
+      phaseLabel: m.phase === 'voting' ? '投票受付中' : m.phase === 'closed' ? '結果確定' : '開催前',
+      phaseBg: m.phase === 'voting' ? '#BC6A2D' : m.phase === 'closed' ? '#5C5547' : '#32507C',
+      name: m.name, dateLabel: m.dateLabel, place: m.place, theme: m.theme,
+      isUpcoming: m.phase === 'before', isVoting: m.phase === 'voting', isClosed: m.phase === 'closed',
+      goCount: m.goingCount, bringCount: m.bringCount,
+      goToggle: (e: any) => { e.stopPropagation(); st.toggleGoing(m.id); },
+      goLabel: m.iGoing ? '参加予定 ✓' : '参加する',
+      goLabelBg: m.iGoing ? '#32507C' : '#FDFBF5',
+      goLabelColor: m.iGoing ? '#FDFBF5' : '#32507C',
+      voteDeadline: m.voteDeadline || '',
+      hasMvp: !!mvp, mvpName: mvp ? mvp.name : '',
+      click: () => st.openMeetup(m.id),
+    };
+  });
+
   // 開いているMEETUPの詳細（route.meetupId に対応）
   const meId = md?.id || route.meetupId || '';
   const mePhase = md?.phase || 'before';
@@ -444,6 +463,14 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     goHome: () => st.nav('home'),
     goZukan: () => st.nav('zukan'),
     goMy: () => { if (st.requireLogin()) st.nav('mypage'); },
+    // SP ハンバーガーメニュー項目（タブバーから外れた導線をここで補う）
+    menuItems: [
+      { label: '酒蔵マップ', click: () => st.nav('map') },
+      { label: '飲める店', click: () => { st.patch({ mapMode: 'bars' }); st.nav('map'); } },
+      { label: 'みんなの利き酒帳', click: () => st.nav('feed') },
+      { label: 'イベントを立てる', click: () => st.openEventCreate() },
+      { label: '酒蔵を登録する', click: () => st.openKuraReg() },
+    ],
     // login
     isLogin: route.screen === 'login',
     showChrome: route.screen !== 'login',
@@ -463,8 +490,8 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     startRecordClick: () => st.startRecord(null),
     // responsive
     isMobile: mob && route.screen !== 'login', isDesktopNav: !mob,
-    tabLeft: [mkTab('home', 'ホーム'), mkTab('zukan', '銘柄図鑑')],
-    tabRight: [mkTab('map', '酒蔵マップ'), mkTab('mypage', 'マイページ')],
+    tabLeft: [mkTab('home', 'ホーム'), mkTab('meetups', 'MEETUP')],
+    tabRight: [mkTab('zukan', '図鑑'), mkTab('mypage', 'マイ')],
     pagePad: mob ? '28px 18px 130px' : '40px 40px 80px',
     pagePadTight: mob ? '20px 18px 130px' : '32px 40px 80px',
     heroCols: mob ? '1fr' : '1.5fr 1fr',
@@ -547,6 +574,7 @@ export function useVals(route: RouteState, ref: ReferenceData): any {
     ku,
     // SAKE MEETUP
     homeNext, homePast, homeVoting, hasVoting: !!homeVoting, meetup, declare, meetupCreate,
+    meetupsList, isMeetups: route.screen === 'meetups', goMeetups: () => st.nav('meetups'),
     isMeetup: route.screen === 'meetup', isDeclare: route.screen === 'declare',
     isMeetupCreate: route.screen === 'eventCreate',
     openMeetupCreate: () => st.openEventCreate(),

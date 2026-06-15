@@ -12,6 +12,7 @@ export type Screen =
   | 'map'
   | 'kura'
   | 'kuraReg'
+  | 'meetups'
   | 'meetup'
   | 'declare'
   | 'eventCreate';
