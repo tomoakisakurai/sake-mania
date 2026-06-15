@@ -4,7 +4,8 @@ import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 import { useStore } from './store';
 import type { RouteState } from '@/lib/routes';
 import type { ReferenceData } from '@/lib/getReferenceData';
-import type { Brand, Bar, Screen, PostRef } from '@/types';
+import type { Brand, Bar, PostRef } from '@/types';
+import { buildNavModel } from '@/lib/nav';
 
 // 入力系(input/textarea)のonChangeで使う共通イベント型
 type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
@@ -33,25 +34,10 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const memberOf = (name: string) =>
     members.find((m) => m.name === name) || { name, display: name, avatar: (name || '?').charAt(0), avatarBg: '#DDD3BE' };
 
-  const screenActive = (key: string) =>
-    route.screen === key
-    || (key === 'zukan' && route.screen === 'detail')
-    || (key === 'feed' && route.screen === 'post')
-    || (key === 'map' && (route.screen === 'kura' || route.screen === 'kuraReg'))
-    || (key === 'meetups' && (route.screen === 'meetup' || route.screen === 'declare' || route.screen === 'eventCreate'));
-
-  const mkTab = (key: Screen, label: string) => {
-    const active = screenActive(key);
-    return { label, color: active ? '#32507C' : '#8B8273', weight: active ? 700 : 500, click: () => { if (key === 'mypage') { if (st.requireLogin()) st.nav('mypage'); } else st.nav(key); } };
-  };
   const subOf = (b: Brand) => b.brewery + ' / ' + b.pref + ' — ' + b.cls;
 
-  // nav
-  const navDef: [Screen, string][] = [['home', 'ホーム'], ['zukan', '図鑑'], ['meetups', 'MEETUP'], ['map', '酒蔵マップ'], ['feed', 'みんなの利き酒帳'], ['mypage', 'マイページ']];
-  const navItems = navDef.map((d) => {
-    const active = screenActive(d[0]);
-    return { label: d[1], color: active ? '#2E2A24' : '#5C5547', weight: active ? 700 : 400, border: active ? '2px solid #32507C' : '2px solid transparent', click: () => { if (d[0] === 'mypage') { if (st.requireLogin()) st.nav('mypage'); } else st.nav(d[0]); } };
-  });
+  // nav / tab のビューモデル（lib/nav.ts に集約。Nav と TabBar が共有）
+  const { navItems, tabLeft, tabRight } = buildNavModel(route, st);
 
   // stats
   const uniqBrands = new Set(s.myRecords.map((x) => x.brandId));
@@ -507,8 +493,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     startRecordClick: () => st.startRecord(null),
     // responsive
     isMobile: mob && route.screen !== 'login', isDesktopNav: !mob,
-    tabLeft: [mkTab('home', 'ホーム'), mkTab('meetups', 'MEETUP')],
-    tabRight: [mkTab('zukan', '銘柄図鑑'), mkTab('mypage', 'マイページ')],
+    tabLeft, tabRight,
     pagePad: mob ? '28px 18px 130px' : '40px 40px 80px',
     pagePadTight: mob ? '20px 18px 130px' : '32px 40px 80px',
     heroCols: mob ? '1fr' : '1.5fr 1fr',
