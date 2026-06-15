@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 酒蔵マップモード: 47都道府県タイル + 凡例 と、選択県の蔵リスト(未選択時は県チップ)
 export function KuraMode({ v }: { v: Vals }) {
@@ -8,7 +7,7 @@ export function KuraMode({ v }: { v: Vals }) {
       <div style={{ display: 'grid', gridTemplateColumns: v.mapCols, gap: 24, alignItems: 'start' }}>
         <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: v.mapPanelPad }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gap: v.mapGap }}>
-            {v.prefTiles.map((p: any, i: number) => (
+            {v.prefTiles.map((p, i: number) => (
               <div key={i} onClick={p.click} style={{ gridColumn: p.col, gridRow: p.row, aspectRatio: 1, borderRadius: 6, background: p.bg, color: p.color, border: p.border, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, cursor: p.cursor }}>
                 <span style={{ fontSize: p.fs, fontWeight: 700, lineHeight: 1.1 }}>{p.name}</span>
                 {p.hasCount && (<span style={{ fontSize: p.fsSub, opacity: 0.85 }}>{p.countLabel}</span>)}
@@ -25,7 +24,7 @@ export function KuraMode({ v }: { v: Vals }) {
           {v.mapHasSel && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 19, fontWeight: 700, borderBottom: '1px solid #E3DBCB', paddingBottom: 10 }}>{v.mapSelPref}の蔵</div>
-              {v.mapKuras.map((k: any, i: number) => (
+              {v.mapKuras.map((k, i: number) => (
                 <div key={i} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '20px 22px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
                     <div onClick={k.nameClick} style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 17, fontWeight: 700, cursor: 'pointer' }}>{k.name} →</div>
@@ -36,7 +35,7 @@ export function KuraMode({ v }: { v: Vals }) {
                     <a href={k.gmapLink} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#32507C', fontWeight: 700, textDecoration: 'none' }}>Googleマップ →</a>
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {k.brands.map((kb: any, j: number) => (
+                    {k.brands.map((kb: { label: string; click: () => void }, j: number) => (
                       <span key={j} onClick={kb.click} style={{ cursor: 'pointer', background: '#F6F1E7', border: '1px solid #E3DBCB', borderRadius: 999, padding: '6px 14px', fontSize: 12, color: '#2E2A24', fontWeight: 500 }}>{kb.label} →</span>
                     ))}
                   </div>
@@ -50,7 +49,7 @@ export function KuraMode({ v }: { v: Vals }) {
                 <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 16, fontWeight: 700, marginBottom: 8 }}>蔵のある県</div>
                 <div style={{ fontSize: 12.5, color: '#8B8273', lineHeight: 1.8, marginBottom: 14 }}>マップの色つきの県、または下の県名をタップ。</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {v.prefChipList.map((pc: any, i: number) => (
+                  {v.prefChipList.map((pc, i: number) => (
                     <span key={i} onClick={pc.click} style={{ cursor: 'pointer', background: pc.bg, color: '#FDFBF5', borderRadius: 999, padding: '7px 16px', fontSize: 12.5, fontWeight: 700 }}>{pc.label}</span>
                   ))}
                 </div>

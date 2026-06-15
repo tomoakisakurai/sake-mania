@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // SP専用: ホーム最上部に表示する次回MEETUP / MVP投票カード。
 // PCでは右カラム(MeetupSidebar)に出すため、ここは isMobile のときだけ描画する。

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 import { FeedCard } from '@/components/shared/FeedCard';
 import { Hero } from './Hero';
@@ -20,7 +19,7 @@ export function Home({ v }: { v: Vals }) {
             <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700 }}>みんなの利き酒帳</div>
             <div onClick={v.goFeed} style={{ fontSize: 13, color: '#32507C', fontWeight: 700, cursor: 'pointer' }}>すべて見る →</div>
           </div>
-          {v.feedItems.map((f: any, i: number) => (
+          {v.feedItems.map((f, i: number) => (
             <FeedCard key={i} f={f} pad="20px 24px" />
           ))}
         </div>

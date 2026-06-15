@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // マイページ上部: アバター + 名前 + 利き酒師ランク + 統計 + ログアウト
 export function ProfileHeader({ v }: { v: Vals }) {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 酒蔵詳細: この蔵の銘柄グリッド
 export function BrandGrid({ v }: { v: Vals }) {
@@ -6,7 +5,7 @@ export function BrandGrid({ v }: { v: Vals }) {
     <div>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 16 }}>この蔵の銘柄</div>
       <div style={{ display: 'grid', gridTemplateColumns: v.kuraBrandCols, gap: 14 }}>
-        {v.ku.brands.map((kb: any, i: number) => (
+        {v.ku.brands.map((kb, i: number) => (
           <div key={i} onClick={kb.click} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 9, cursor: 'pointer' }}>
             <div style={{ height: 100, borderRadius: 8, background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#8B8273' }}>ボトル写真</span></div>
             <div><div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 15.5, fontWeight: 700, lineHeight: 1.4 }}>{kb.name}</div><div style={{ fontSize: 11, color: '#8B8273', marginTop: 3 }}>{kb.cls}</div></div>

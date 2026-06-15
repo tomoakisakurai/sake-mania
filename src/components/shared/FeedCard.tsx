@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // みんなの利き酒帳の投稿カード。ホーム(サイドの抜粋)とフィード一覧で共有する。
 // 見た目はプロトタイプ通り(インラインスタイル)。padはホーム=20px 24px / フィード=22px 26px。
@@ -31,7 +30,7 @@ export function FeedCard({ f, pad = '22px 26px' }: { f: Vals['feedAll'][number];
           <div style={{ fontSize: 12, color: '#8B8273' }}>{f.sub}</div>
           <div style={{ fontSize: 13, lineHeight: 1.8, color: '#5C5547' }}>{f.memo}</div>
           <div style={{ display: 'flex', gap: 8, marginTop: 2, flexWrap: 'wrap' }}>
-            {f.tags.map((t: any, i: number) => (
+            {f.tags.map((t: string, i: number) => (
               <span key={i} style={{ background: '#F6F1E7', borderRadius: 999, padding: '3px 12px', fontSize: 11, color: '#5C5547' }}>{t}</span>
             ))}
           </div>

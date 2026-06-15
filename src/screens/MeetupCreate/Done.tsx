@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // SAKE MEETUP作成: 作成完了画面
 export function Done({ v }: { v: Vals }) {

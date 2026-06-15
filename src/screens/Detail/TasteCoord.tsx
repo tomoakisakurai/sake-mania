@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 銘柄詳細の味わい座標(ミニマップ): みんなの平均 + あなたの打点
 export function TasteCoord({ v }: { v: Vals }) {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 投稿詳細の左カラム: 写真 + アクション(図鑑/記録/公開トグル)
 export function MediaColumn({ v }: { v: Vals }) {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 銘柄スペック表(精米歩合・酒米・酵母・日本酒度・アルコール・温度)
 function Cell({ label, value }: { label: string; value: string }) {

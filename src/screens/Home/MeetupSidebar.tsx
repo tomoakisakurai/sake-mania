@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // ホーム右カラム: 次回MEETUP/投票カード(PCのみ) + 過去のふりかえり + 今週の人気銘柄
 export function MeetupSidebar({ v }: { v: Vals }) {
@@ -38,7 +37,7 @@ export function MeetupSidebar({ v }: { v: Vals }) {
       {/* 過去のふりかえり */}
       <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 20px 6px' }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: '#8B8273', marginBottom: 4 }}>過去のふりかえり</div>
-        {v.homePast.map((hp: any, i: number) => (
+        {v.homePast.map((hp, i: number) => (
           <div key={i} onClick={hp.click} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #F0EADC', cursor: 'pointer' }}>
             <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10.5, color: '#BC6A2D', width: 40, flexShrink: 0, fontWeight: 500 }}>{hp.dateShort}</div>
             <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hp.name}</div><div style={{ fontSize: 10.5, color: '#8B8273', lineHeight: 1.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>テーマ:{hp.theme}</div></div>
@@ -54,7 +53,7 @@ export function MeetupSidebar({ v }: { v: Vals }) {
       {/* 今週の人気銘柄 */}
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: '1px solid #E3DBCB', paddingBottom: 10 }}>今週の人気銘柄</div>
       <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '8px 24px' }}>
-        {v.ranking.map((r: any, i: number) => (
+        {v.ranking.map((r, i: number) => (
           <div key={i} onClick={r.click} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 0', borderBottom: '1px solid #F0EADC', cursor: 'pointer' }}>
             <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 20, fontWeight: 700, width: 24, flexShrink: 0, color: r.color }}>{r.rank}</div>
             <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700, lineHeight: 1.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</div><div style={{ fontSize: 11, color: '#8B8273', lineHeight: 1.5 }}>{r.brewery}</div></div>

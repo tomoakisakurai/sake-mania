@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 import { Fragment } from 'react';
 
@@ -22,7 +21,7 @@ export function Sidebar({ v }: { v: Vals }) {
           <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', fontSize: 10, fontWeight: 700, color: '#8B8273', background: '#FFFFFF', padding: '0 6px' }}>穏やか</div>
           <div style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 10, fontWeight: 700, color: '#8B8273' }}>淡麗</div>
           <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 10, fontWeight: 700, color: '#8B8273' }}>濃醇</div>
-          {v.ku.dots.map((kd: any, i: number) => (
+          {v.ku.dots.map((kd, i: number) => (
             <Fragment key={i}>
               <div style={{ position: 'absolute', left: `${kd.left}%`, top: `${kd.top}%`, transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%', background: '#32507C' }}></div>
               <div style={{ position: 'absolute', left: `${kd.left}%`, top: `${kd.top}%`, transform: 'translate(10px, -6px)', fontSize: 10, color: '#5C5547', maxWidth: 130 }}>{kd.label}</div>
@@ -33,7 +32,7 @@ export function Sidebar({ v }: { v: Vals }) {
       {v.ku.hasCups && (
         <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '20px 22px' }}>
           <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 15, fontWeight: 700, marginBottom: 6 }}>この蔵でのわたしの盃</div>
-          {v.ku.cups.map((kc: any, i: number) => (
+          {v.ku.cups.map((kc, i: number) => (
             <div key={i} onClick={kc.click} style={{ padding: '12px 0', borderBottom: '1px solid #F0EADC', cursor: 'pointer' }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 4, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{kc.name}</span>

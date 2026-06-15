@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 import { Step1Brand } from './Step1Brand';
 import { Step2Taste } from './Step2Taste';
@@ -10,7 +9,7 @@ export function Record({ v }: { v: Vals }) {
     <div style={{ maxWidth: 680, margin: '0 auto', padding: v.pagePad }}>
       {/* progress */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
-        {v.recSteps.map((st: any, i: number) => (
+        {v.recSteps.map((st, i: number) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, background: st.bg, color: st.color, border: st.border }}>{st.n}</div>
             <span style={{ fontSize: 12, color: st.labelColor, fontWeight: st.weight }}>{st.label}</span>

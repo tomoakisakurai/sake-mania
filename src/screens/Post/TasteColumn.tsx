@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 投稿詳細の右カラム: 銘柄名 + 味わい座標 + 甘辛 + 飲み方/肴 + メモ
 export function TasteColumn({ v }: { v: Vals }) {

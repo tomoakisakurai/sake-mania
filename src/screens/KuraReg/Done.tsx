@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 酒蔵登録: 申請完了画面
 export function Done({ v }: { v: Vals }) {

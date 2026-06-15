@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // マイページ右カラム: 舌の地図(打点マップ) + 飲みたいリスト
 export function Sidebar({ v }: { v: Vals }) {
@@ -13,7 +12,7 @@ export function Sidebar({ v }: { v: Vals }) {
           <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', fontSize: 9.5, fontWeight: 700, color: '#8B8273', background: '#FFFFFF', padding: '0 6px' }}>穏やか</div>
           <div style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 9.5, fontWeight: 700, color: '#8B8273' }}>淡麗</div>
           <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 9.5, fontWeight: 700, color: '#8B8273' }}>濃醇</div>
-          {v.myDots.map((d: any, i: number) => (
+          {v.myDots.map((d, i: number) => (
             <div key={i} style={{ position: 'absolute', left: `${d.left}%`, top: `${d.top}%`, transform: 'translate(-50%, -50%)', width: d.size, height: d.size, borderRadius: '50%', background: d.bg }}></div>
           ))}
         </div>
@@ -21,7 +20,7 @@ export function Sidebar({ v }: { v: Vals }) {
       </div>
       <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '22px 24px' }}>
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 15, fontWeight: 700, marginBottom: 6 }}>飲みたいリスト</div>
-        {v.wantList.map((w: any, i: number) => (
+        {v.wantList.map((w, i: number) => (
           <div key={i} onClick={w.click} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #F0EADC', cursor: 'pointer' }}>
             <div style={{ width: 34, height: 46, flexShrink: 0, borderRadius: 3, background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)' }}></div>
             <div><div style={{ fontSize: 13.5, fontWeight: 700 }}>{w.name}</div><div style={{ fontSize: 11, color: '#8B8273' }}>{w.sub}</div></div>

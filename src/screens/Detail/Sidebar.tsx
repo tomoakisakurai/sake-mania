@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 銘柄詳細の左カラム: ボトル写真 + 記録/飲みたい + 「この銘柄を買う」導線
 export function Sidebar({ v }: { v: Vals }) {
@@ -11,7 +10,7 @@ export function Sidebar({ v }: { v: Vals }) {
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 14, fontWeight: 700, marginBottom: 4 }}>この銘柄を買う</div>
         <div style={{ fontSize: 11, color: "#8B8273", marginBottom: 12 }}>取扱店・通販で探す</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {v.dShop.map((sh: any, i: number) => (
+          {v.dShop.map((sh, i: number) => (
             <a key={i} href={sh.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 10, border: "1px solid #E3DBCB", borderRadius: 8, padding: "9px 12px", textDecoration: "none", background: "#FFFFFF" }}>
               <span style={{ width: 22, height: 22, flexShrink: 0, borderRadius: 5, background: sh.markColor, color: "#FFFFFF", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>{sh.mark}</span>
               <span style={{ fontSize: 12.5, fontWeight: 700, color: "#2E2A24" }}>{sh.label}</span>

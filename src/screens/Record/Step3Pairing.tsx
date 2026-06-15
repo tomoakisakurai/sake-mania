@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 import { useRef } from 'react';
 
@@ -11,7 +10,7 @@ export function Step3Pairing({ v }: { v: Vals }) {
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 10 }}>飲み方 <span style={{ fontWeight: 400, color: '#8B8273', fontSize: 12 }}>複数OK</span></div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {v.tempChips.map((tc: any, i: number) => (
+          {v.tempChips.map((tc, i: number) => (
             <span key={i} onClick={tc.click} style={{ cursor: 'pointer', borderRadius: 999, padding: '9px 22px', fontSize: 13, background: tc.bg, color: tc.color, border: tc.border }}>{tc.label}</span>
           ))}
         </div>

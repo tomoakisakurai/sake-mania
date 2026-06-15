@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 投票受付中 / 結果確定フェーズ: 投票バナー + MVPカード + 得票ランキング
 export function ReviewPhase({ v }: { v: Vals }) {
@@ -30,7 +29,7 @@ export function ReviewPhase({ v }: { v: Vals }) {
         <div style={{ fontSize: 11.5, color: '#A89D8A', marginBottom: 14 }}>この会の投票は締め切られ、MVPは確定しています。</div>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {m.lineup.map((lp: any, i: number) => (
+        {m.lineup.map((lp, i: number) => (
           <div key={i} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '18px 20px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
             <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, color: '#BC6A2D', width: 26, flexShrink: 0, textAlign: 'center' }}>{lp.rankLabel}</div>
             <div style={{ minWidth: 0, flex: 1 }}>

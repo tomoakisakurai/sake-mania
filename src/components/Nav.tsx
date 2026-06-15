@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Vals } from '@/useVals';
 'use client';
 import { useState } from 'react';
+import type { Vals } from '@/useVals';
 
 export function Nav({ v }: { v: Vals }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,7 +12,7 @@ export function Nav({ v }: { v: Vals }) {
       </div>
       {v.isDesktopNav && (
         <div style={{ display: 'flex', gap: 22, fontSize: 14, flexShrink: 0, whiteSpace: 'nowrap' }}>
-          {v.navItems.map((n: any, i: number) => (
+          {v.navItems.map((n, i: number) => (
             <span key={i} onClick={n.click} style={{ cursor: 'pointer', paddingBottom: 2, color: n.color, fontWeight: n.weight, borderBottom: n.border }}>{n.label}</span>
           ))}
         </div>
@@ -52,7 +51,7 @@ export function Nav({ v }: { v: Vals }) {
               <div onClick={() => setMenuOpen(false)} className="flex h-8 w-8 cursor-pointer items-center justify-center text-[20px] text-muted">✕</div>
             </div>
             <div className="flex-1 overflow-y-auto py-3">
-              {v.menuItems.map((mi: any, i: number) => (
+              {v.menuItems.map((mi, i: number) => (
                 <div key={i} onClick={() => { setMenuOpen(false); mi.click(); }} className="cursor-pointer border-b border-[#F6F1E7] px-6 py-4 text-[15px] font-medium">{mi.label}</div>
               ))}
             </div>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 持ち寄り宣言: 銘柄未選択(検索 + 候補一覧、かぶりはタグ表示)
 export function Search({ v }: { v: Vals }) {
@@ -9,7 +8,7 @@ export function Search({ v }: { v: Vals }) {
         <input type="text" value={d.query} onChange={d.onQuery} placeholder="銘柄・酒蔵で検索…" style={{ width: "100%", border: 0, background: "transparent", fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", outline: "none" }} />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {d.results.map((dr: any, i: number) => (
+        {d.results.map((dr, i: number) => (
           <div key={i} onClick={dr.click} style={{ background: "#FFFFFF", border: "1px solid #E3DBCB", borderRadius: 10, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 15, fontWeight: 700 }}>{dr.name}</div>

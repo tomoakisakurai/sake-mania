@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 記録ステップ4: メモ + まとめ + 公開トグル
 export function Step4Memo({ v }: { v: Vals }) {

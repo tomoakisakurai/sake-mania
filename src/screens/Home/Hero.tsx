@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // ホーム上部: コピー + 統計 と 「今日の一本」カード
 export function Hero({ v }: { v: Vals }) {

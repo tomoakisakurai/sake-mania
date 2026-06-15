@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 export function Login({ v }: { v: Vals }) {
   return (
@@ -11,7 +10,7 @@ export function Login({ v }: { v: Vals }) {
         </div>
         <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 16, padding: '28px 26px' }}>
           <div style={{ display: 'flex', borderBottom: '1px solid #E3DBCB', marginBottom: 24 }}>
-            {v.loginTabs.map((lt: any, i: number) => (
+            {v.loginTabs.map((lt, i: number) => (
               <div key={i} onClick={lt.click} style={{ flex: 1, textAlign: 'center', paddingBottom: 12, fontSize: 14, cursor: 'pointer', color: lt.color, fontWeight: lt.weight, borderBottom: lt.border, marginBottom: -1 }}>{lt.label}</div>
             ))}
           </div>

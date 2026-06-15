@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 投稿詳細フッタ: のみたいね + コメント一覧 + 投稿フォーム
 export function Comments({ v }: { v: Vals }) {
@@ -20,7 +19,7 @@ export function Comments({ v }: { v: Vals }) {
       </div>
       <div style={{ marginTop: 22 }}>
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 16, fontWeight: 700, marginBottom: 4 }}>コメント <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, fontWeight: 400, color: '#8B8273' }}>{v.post.commentCount}件</span></div>
-        {v.post.comments.map((cm: any, i: number) => (
+        {v.post.comments.map((cm: { avatar: string; avatarBg: string; user: string; time: string; canEdit: boolean; notEditing: boolean; isEditing: boolean; text: string; editClick: () => void; deleteClick: () => void }, i: number) => (
           <div key={i} style={{ display: 'flex', gap: 12, padding: '14px 0', borderBottom: '1px solid #F6F1E7' }}>
             <div style={{ width: 30, height: 30, flexShrink: 0, borderRadius: '50%', background: cm.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{cm.avatar}</div>
             <div style={{ minWidth: 0, flex: 1 }}>

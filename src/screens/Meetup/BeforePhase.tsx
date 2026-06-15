@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 開催前フェーズ: 出欠トグル + 持ち寄りラインナップ + あなたの一本 + 幹事メニュー
 export function BeforePhase({ v }: { v: Vals }) {
@@ -9,7 +8,7 @@ export function BeforePhase({ v }: { v: Vals }) {
         <div onClick={m.goToggle} style={{ border: '1.5px solid #32507C', borderRadius: 999, padding: '12px 30px', fontSize: 14.5, fontWeight: 700, cursor: 'pointer', background: m.goBg, color: m.goColor }}>{m.goLabel}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ display: 'flex' }}>
-            {m.goingAvatars.map((ga: any, i: number) => (
+            {m.goingAvatars.map((ga, i: number) => (
               <div key={i} style={{ width: 30, height: 30, borderRadius: '50%', background: ga.bg, border: '2px solid #E9E6DF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginLeft: -8 }}>{ga.avatar}</div>
             ))}
           </div>
@@ -30,7 +29,7 @@ export function BeforePhase({ v }: { v: Vals }) {
             </div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {m.bringList.map((bl: any, i: number) => (
+            {m.bringList.map((bl, i: number) => (
               <div key={i} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 18px', display: 'flex', gap: 14, alignItems: 'center' }}>
                 <div style={{ width: 38, height: 38, flexShrink: 0, borderRadius: '50%', background: bl.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{bl.avatar}</div>
                 <div style={{ minWidth: 0, flex: 1 }}>

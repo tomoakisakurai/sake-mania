@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 import { MeetupCard } from './MeetupCard';
 
@@ -11,7 +10,7 @@ export function Meetups({ v }: { v: Vals }) {
       </div>
 
       <div className="flex flex-col gap-4">
-        {v.meetupsList.map((ml: any, i: number) => (
+        {v.meetupsList.map((ml, i: number) => (
           <MeetupCard key={i} ml={ml} />
         ))}
       </div>

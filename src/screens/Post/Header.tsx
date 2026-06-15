@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 投稿詳細ヘッダ: 投稿者 + 評価(星)
 export function Header({ v }: { v: Vals }) {

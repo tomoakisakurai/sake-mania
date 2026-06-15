@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 持ち寄り宣言: 銘柄を選んだ状態(確認 + かぶり警告 + ひとこと + 宣言ボタン)
 export function Picked({ v }: { v: Vals }) {

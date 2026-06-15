@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 import { Fragment } from 'react';
 
@@ -17,7 +16,7 @@ export function TasteMap({ v }: { v: Vals }) {
         <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', fontSize: 11, fontWeight: 700, color: '#8B8273', background: '#FFFFFF', padding: '0 8px' }}>穏やか</div>
         <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 11, fontWeight: 700, color: '#8B8273', background: '#FFFFFF', padding: '4px 0' }}>淡麗</div>
         <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 11, fontWeight: 700, color: '#8B8273', background: '#FFFFFF', padding: '4px 0' }}>濃醇</div>
-        {v.myDots.map((d: any, i: number) => (
+        {v.myDots.map((d, i: number) => (
           <Fragment key={i}>
             <div style={{ position: 'absolute', left: `${d.left}%`, top: `${d.top}%`, transform: 'translate(-50%, -50%)', width: `${d.size}px`, height: `${d.size}px`, borderRadius: '50%', background: d.bg }}></div>
             <div style={{ position: 'absolute', left: `${d.left}%`, top: `${d.top}%`, transform: 'translate(11px, -7px)', fontSize: 11, color: '#5C5547' }}>{d.label}</div>

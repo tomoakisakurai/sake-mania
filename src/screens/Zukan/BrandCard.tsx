@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 図鑑の銘柄カード(ボトル + 名前 + 蔵/産地 + 評価バー)
 export function BrandCard({ b }: { b: Vals['filteredBrands'][number] }) {

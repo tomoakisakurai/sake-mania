@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 import { KuraMode } from './KuraMode';
 import { BarsMode } from './BarsMode';

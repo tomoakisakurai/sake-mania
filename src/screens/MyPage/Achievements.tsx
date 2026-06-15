@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // マイページ: 利き酒師ランク + 制覇状況 + 実績バッジ
 export function Achievements({ v }: { v: Vals }) {
@@ -24,7 +23,7 @@ export function Achievements({ v }: { v: Vals }) {
       </div>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 16 }}>実績バッジ</div>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 36 }}>
-        {v.badges.map((bdg: any, i: number) => (
+        {v.badges.map((bdg, i: number) => (
           <div key={i} style={{ width: 92, textAlign: 'center' }}>
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: bdg.bg, color: bdg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Shippori Mincho', serif", fontSize: 26, fontWeight: 700, margin: '0 auto 8px' }}>{bdg.icon}</div>
             <div style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.4, color: bdg.labelColor }}>{bdg.label}</div>

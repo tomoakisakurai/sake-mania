@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 // 記録ステップ2: 味わいの座標(打点) + 甘辛 + 総合評価
 export function Step2Taste({ v }: { v: Vals }) {
@@ -17,7 +16,7 @@ export function Step2Taste({ v }: { v: Vals }) {
         <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', fontSize: 10.5, fontWeight: 700, color: '#8B8273', background: '#FFFFFF', padding: '0 6px' }}>穏やか</div>
         <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 10.5, fontWeight: 700, color: '#8B8273' }}>淡麗</div>
         <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 10.5, fontWeight: 700, color: '#8B8273' }}>濃醇</div>
-        {v.recGhostDots.map((g: any, i: number) => (
+        {v.recGhostDots.map((g, i: number) => (
           <div key={i} style={{ position: 'absolute', left: `${g.left}%`, top: `${g.top}%`, transform: 'translate(-50%, -50%)', width: 8, height: 8, borderRadius: '50%', background: '#D9D0BC' }} />
         ))}
         {v.recHasPoint && (
@@ -37,7 +36,7 @@ export function Step2Taste({ v }: { v: Vals }) {
       <div style={{ marginBottom: 8 }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>総合評価</div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          {v.recStars.map((sr: any, i: number) => (
+          {v.recStars.map((sr, i: number) => (
             <span key={i} onClick={sr.click} style={{ fontSize: 30, cursor: 'pointer', color: sr.color, lineHeight: 1 }}>★</span>
           ))}
           <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 14, color: '#8B8273', marginLeft: 8 }}>{v.recRatingLabel}</span>

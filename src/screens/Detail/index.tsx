@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Vals } from '@/useVals';
 import { Sidebar } from './Sidebar';
 import { Specs } from './Specs';
