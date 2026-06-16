@@ -8,19 +8,21 @@ import { Done } from './Done';
 export function MeetupCreate({ vals }: { vals: Vals }) {
   const st = useStore();
   const [name, setName] = useState('');
+  const [eventDate, setEventDate] = useState('');
   const [date, setDate] = useState('');
   const [place, setPlace] = useState('');
   const [desc, setDesc] = useState('');
   const [done, setDone] = useState(false);
 
   const handleSubmit = async () => {
-    if (!name.trim() || !date.trim() || !place.trim()) { st.flash('会の名前・日時・会場は必須です'); return; }
-    const id = await createMeetup({ name: name.trim(), dateLabel: date.trim(), place: place.trim(), theme: desc.trim() });
+    if (!name.trim() || !eventDate || !place.trim()) { st.flash('会の名前・開催日・会場は必須です'); return; }
+    const dateLabel = date.trim() || eventDate;
+    const id = await createMeetup({ name: name.trim(), dateLabel, place: place.trim(), theme: desc.trim(), eventDate });
     if (!id) { st.flash('作成に失敗しました（ログインが必要です）'); return; }
     await st.loadMeetups();
     setDone(true);
   };
-  const handleAnother = () => { setName(''); setDate(''); setPlace(''); setDesc(''); setDone(false); };
+  const handleAnother = () => { setName(''); setEventDate(''); setDate(''); setPlace(''); setDesc(''); setDone(false); };
 
   return (
     <div style={{ maxWidth: 620, margin: "0 auto", padding: vals.pagePadTight }}>
@@ -34,7 +36,10 @@ export function MeetupCreate({ vals }: { vals: Vals }) {
           <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>会の名前 <span style={{ color: "#BC6A2D" }}>必須</span></div>
           <input type="text" value={name} onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)} placeholder="例: 7月のSAKE MEETUP" style={{ width: "100%", background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 10, padding: "12px 16px", fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", marginBottom: 18 }} />
 
-          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>日時 <span style={{ color: "#BC6A2D" }}>必須</span></div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>開催日 <span style={{ color: "#BC6A2D" }}>必須</span></div>
+          <input type="date" value={eventDate} onChange={(e: ChangeEvent<HTMLInputElement>) => setEventDate(e.target.value)} style={{ width: "100%", background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 10, padding: "12px 16px", fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", marginBottom: 18 }} />
+
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>日時テキスト <span style={{ color: "#A89D8A", fontWeight: 400 }}>(表示用・任意)</span></div>
           <input type="text" value={date} onChange={(e: ChangeEvent<HTMLInputElement>) => setDate(e.target.value)} placeholder="例: 7月18日(金) 19:00〜" style={{ width: "100%", background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 10, padding: "12px 16px", fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", marginBottom: 18 }} />
 
           <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>会場 <span style={{ color: "#BC6A2D" }}>必須</span></div>

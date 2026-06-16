@@ -231,7 +231,14 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const list = store.meetupList;
   const md = store.meetupDetail;
   const shortOf = (dl: string) => (dl || '').split('(')[0].split(' ')[0];
-  const nextMeet = list.find((m) => m.phase === 'before');
+  const nextMeet = list
+    .filter((m) => m.phase === 'before')
+    .sort((a, b) => {
+      if (!a.eventDate && !b.eventDate) return 0;
+      if (!a.eventDate) return 1;
+      if (!b.eventDate) return -1;
+      return a.eventDate < b.eventDate ? -1 : a.eventDate > b.eventDate ? 1 : 0;
+    })[0] ?? null;
   const homeNext = nextMeet ? {
     name: nextMeet.name, dateLabel: nextMeet.dateLabel, place: nextMeet.place, theme: nextMeet.theme,
     goingLabel: nextMeet.goingCount + '人が参加予定',

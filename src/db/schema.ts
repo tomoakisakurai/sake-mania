@@ -1,4 +1,4 @@
-import { pgTable, text, integer, real, jsonb, uuid, timestamp, boolean, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real, jsonb, uuid, timestamp, boolean, primaryKey, date } from 'drizzle-orm/pg-core';
 import type { Comment, MeetupBring, MeetupLineup } from '../types';
 
 // Reference / content tables. Nested arrays are stored as jsonb to keep the
@@ -156,6 +156,7 @@ export const meetupEvents = pgTable('meetup_events', {
   hostId: uuid('host_id').notNull(),
   phase: text('phase').notNull().default('before'), // before | voting | closed
   voteDeadline: text('vote_deadline'),
+  eventDate: date('event_date'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

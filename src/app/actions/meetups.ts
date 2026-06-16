@@ -8,6 +8,7 @@ export interface MeetupView {
   id: string;
   name: string;
   dateLabel: string;
+  eventDate: string | null;
   place: string;
   theme: string;
   hostName: string;
@@ -54,13 +55,14 @@ async function ensureProfile(userId: string, meta: { nickname?: string }, email?
     .onConflictDoUpdate({ target: schema.profiles.id, set: { nickname, avatar: nickname.charAt(0) || '酒' } });
 }
 
-export async function createMeetup(input: { name: string; dateLabel: string; place: string; theme: string }): Promise<string | null> {
+export async function createMeetup(input: { name: string; dateLabel: string; place: string; theme: string; eventDate?: string }): Promise<string | null> {
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return null;
   await ensureProfile(user.id, (user.user_metadata || {}) as { nickname?: string }, user.email);
   const [row] = await db.insert(schema.meetupEvents).values({
-    name: input.name, dateLabel: input.dateLabel, place: input.place, theme: input.theme, hostId: user.id, phase: 'before',
+    name: input.name, dateLabel: input.dateLabel, place: input.place, theme: input.theme,
+    eventDate: input.eventDate || null, hostId: user.id, phase: 'before',
   }).returning({ id: schema.meetupEvents.id });
   // host auto-attends
   await db.insert(schema.meetupAttendees).values({ meetupId: row.id, userId: user.id }).onConflictDoNothing();
@@ -98,7 +100,7 @@ export async function getMeetups(): Promise<MeetupView[]> {
     return best;
   };
   return events.map((e) => ({
-    id: e.id, name: e.name, dateLabel: e.dateLabel, place: e.place, theme: e.theme,
+    id: e.id, name: e.name, dateLabel: e.dateLabel, eventDate: e.eventDate ?? null, place: e.place, theme: e.theme,
     hostName: nameOf(e.hostId), phase: e.phase, voteDeadline: e.voteDeadline || '',
     goingCount: attendees.filter((a) => a.meetupId === e.id).length,
     bringCount: brings.filter((b) => b.meetupId === e.id).length,
