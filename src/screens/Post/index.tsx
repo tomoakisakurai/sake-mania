@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
+import { editComment as editCommentAction } from '@/app/actions/social';
 import { Header } from './Header';
 import { MediaColumn } from './MediaColumn';
 import { TasteColumn } from './TasteColumn';
@@ -27,7 +28,9 @@ export function Post({ vals }: { vals: Vals }) {
   const cancelEdit = () => { setEditingId(null); setEditDraft(''); };
   const saveEdit = async () => {
     if (!editingId || !editDraft.trim()) return;
-    await st.saveEditComment(editingId, editDraft.trim());
+    const ok = await editCommentAction(editingId, editDraft.trim());
+    if (ok) await st.loadSocial();
+    else st.flash('編集に失敗しました');
     setEditingId(null);
     setEditDraft('');
   };

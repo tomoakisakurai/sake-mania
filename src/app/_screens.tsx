@@ -25,7 +25,7 @@ export const DetailClient = () => <Detail vals={useV()} />;
 export const MapClient = () => <Map vals={useV()} />;
 export const FeedClient = () => <Feed vals={useV()} />;
 export const MyPageClient = () => <MyPage vals={useV()} />;
-export const LoginClient = () => <Login vals={useV()} />;
+export const LoginClient = () => <Login />;
 export const RecordClient = () => <Record vals={useV()} />;
 export const MeetupsClient = () => <Meetups vals={useV()} />;
 export const MeetupClient = () => <Meetup vals={useV()} />;

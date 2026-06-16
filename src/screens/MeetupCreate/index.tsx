@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ChangeEvent } from 'react';
 import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
+import { createMeetup } from '@/app/actions/meetups';
 import { Done } from './Done';
 
 export function MeetupCreate({ vals }: { vals: Vals }) {
@@ -13,8 +14,11 @@ export function MeetupCreate({ vals }: { vals: Vals }) {
   const [done, setDone] = useState(false);
 
   const handleSubmit = async () => {
-    const ok = await st.submitEventCreate({ name, date, place, desc });
-    if (ok) setDone(true);
+    if (!name.trim() || !date.trim() || !place.trim()) { st.flash('会の名前・日時・会場は必須です'); return; }
+    const id = await createMeetup({ name: name.trim(), dateLabel: date.trim(), place: place.trim(), theme: desc.trim() });
+    if (!id) { st.flash('作成に失敗しました（ログインが必要です）'); return; }
+    await st.loadMeetups();
+    setDone(true);
   };
   const handleAnother = () => { setName(''); setDate(''); setPlace(''); setDesc(''); setDone(false); };
 

@@ -6,6 +6,9 @@ import type { RouteState } from '@/lib/routes';
 import type { ReferenceData } from '@/lib/getReferenceData';
 import type { Brand, Bar, PostRef, MyRec, PublicRec, OtherRec, PostVM } from '@/types';
 import { buildNavModel } from '@/lib/nav';
+import { addComment as addCommentAction, deleteComment as deleteCommentAction } from '@/app/actions/social';
+import { declareBring, cancelBring } from '@/app/actions/meetups';
+import { setRecordPublic as setRecordPublicAction } from '@/app/actions/records';
 
 // 入力系(input/textarea)のonChangeで使う共通イベント型
 type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
@@ -119,7 +122,13 @@ export function useVals(route: RouteState, ref: ReferenceData) {
         timePlace: pxTimePlace,
         canPublish: isOwnDbRecord, isPublic: recPublicNow,
         publishLabel: recPublicNow ? '公開中 — 非公開にする' : 'みんなの利き酒帳に公開する',
-        publishToggle: () => store.setRecordPublic(px.rid, !recPublicNow),
+        publishToggle: async () => {
+          const ok = await setRecordPublicAction(px.rid, !recPublicNow);
+          if (!ok) { store.flash('変更に失敗しました'); return; }
+          await Promise.all([store.loadMyRecords(), store.loadPublicRecords()]);
+          await store.loadSocial();
+          store.flash(!recPublicNow ? 'みんなの利き酒帳に公開しました' : '公開を取り消しました');
+        },
         brandName: pb.name, brewery: pb.brewery, brandSubRest: pb.pref + ' — ' + pb.cls,
         kuraClick: () => store.openKura(pb.brewery), stars: starStr(px.rating), ratingNum: px.rating.toFixed(1),
         x: pxX, y: pxY, bx: pb.x, by: pb.y,
@@ -141,10 +150,17 @@ export function useVals(route: RouteState, ref: ReferenceData) {
           time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
           canEdit: c.mine,
           initEditDraft: c.text,
-          deleteClick: () => store.deleteComment(c.id),
+          deleteClick: async () => { const ok = await deleteCommentAction(c.id); if (ok) await store.loadSocial(); },
         })),
         commentCount: pso.commentCount, hasComments: pso.commentCount > 0,
-        commentSend: (draft: string) => store.addComment(px.rid, draft),
+        commentSend: async (draft: string) => {
+          const t = draft.trim();
+          if (!t) return;
+          if (!store.requireLogin()) return;
+          const ok = await addCommentAction(px.rid, t);
+          if (!ok) { store.flash('コメントの送信に失敗しました'); return; }
+          await store.loadSocial();
+        },
       };
     }
   }
@@ -294,7 +310,10 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     myDeclared: !!md?.myBringBrandId, notMyDeclared: !md?.myBringBrandId,
     declareClick: () => store.openDeclare(meId),
     declareLabel: md?.myBringBrandId ? '持ち寄りを変更する' : '自分の一本を宣言する',
-    cancelDeclare: () => store.cancelDeclare(meId),
+    cancelDeclare: async () => {
+      await cancelBring(meId);
+      await Promise.all([store.loadMeetupDetail(meId), store.loadMeetups()]);
+    },
     backHome: () => store.nav('home'),
     totalVotesLabel: totalVotes + '票',
     myVoted: !!myVote,
@@ -317,7 +336,15 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     changeBrand: () => store.patch({ declareBrandId: null }),
     dupWarn: !!dTaken, dupWarnLabel: dTaken ? (dTaken.memberName + 'さんが既に持ち寄り予定です。かぶってもOKですが、変えると喜ばれるかも。') : '',
     canSubmit: !!dBrand,
-    submit: (note: string) => store.submitDeclare(meId, note),
+    submit: async (note: string) => {
+      const brandId = store.declareBrandId;
+      if (!brandId) { store.flash('持ち寄る一本を選んでください'); return; }
+      const ok = await declareBring(meId, brandId, note);
+      if (!ok) { store.flash('宣言に失敗しました（ログインが必要です）'); return; }
+      await Promise.all([store.loadMeetupDetail(meId), store.loadMeetups()]);
+      store.openMeetup(meId);
+      store.flash('持ち寄りを宣言しました');
+    },
     notPicked: !dBrand,
     cancel: () => store.openMeetup(meId),
   };
@@ -397,8 +424,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     userAvatar: currentUser.avatar, userName: currentUser.name,
     goLogin: () => store.nav('login'),
     doLogout: () => store.logout(),
-    githubLogin: () => store.loginGithub(),
-    guestClick: () => store.nav('home'),
     startRecordClick: () => store.startRecord(null),
     // responsive
     isMobile: isMobile && route.screen !== 'login', isDesktopNav: !isMobile,
