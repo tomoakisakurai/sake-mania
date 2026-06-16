@@ -4,7 +4,7 @@ import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 import { useStore } from './store';
 import type { RouteState } from '@/lib/routes';
 import type { ReferenceData } from '@/lib/getReferenceData';
-import type { Brand, Bar, PostRef } from '@/types';
+import type { Brand, Bar, PostRef, MyRec, PublicRec, OtherRec, PostVM } from '@/types';
 import { buildNavModel } from '@/lib/nav';
 
 // 入力系(input/textarea)のonChangeで使う共通イベント型
@@ -13,6 +13,22 @@ type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 // byId/bars.find が見つからない場合のフォールバック（プロトタイプ移植時のnull回避を型安全に）
 const EMPTY_BRAND: Brand = { id: '', name: '', brewery: '', pref: '', cls: '', polish: '', rice: '', yeast: '', smv: '', abv: '', temp: '', x: 0, y: 0, rating: 0, count: 0, tags: [], desc: '' };
 const EMPTY_BAR: Bar = { id: '', name: '', area: '', type: '', venueQ: '', brands: [], note: '' };
+const noop = () => {};
+const EMPTY_POST: PostVM = {
+  user: '', mine: '', avatar: '', avatarBg: '', timePlace: '',
+  canPublish: false, isPublic: false, publishLabel: '', publishToggle: noop,
+  brandName: '', brewery: '', brandSubRest: '',
+  kuraClick: noop, stars: '', ratingNum: '',
+  x: null, y: null, bx: 0, by: 0,
+  sweet: 50, sweetLabel: '', tasteLabel: '',
+  temps: '', pairing: '', memo: '',
+  photo: '', hasPhoto: false, noPhoto: true,
+  brandClick: noop, recordClick: noop,
+  canNomi: false, cantNomi: true,
+  nomiCount: 0, nomiBg: '', nomiColor: '', nomiClick: noop,
+  comments: [], commentCount: 0, hasComments: false,
+  commentSend: noop, onCommentKey: noop,
+};
 
 // socialOf/mkFeed が読む記録のフィールド（PublicRec/MyRec/OtherRec が満たす最小構造）
 type SocialRec = { rid: string; nomi?: number; liked?: boolean; commentCount?: number };
@@ -82,63 +98,69 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     mkFeed(pr, { user: pr.user, mine: pr.mine ? '(あなた)' : '', avatar: pr.avatar, avatarBg: pr.avatarBg }, pr.date, { src: 'public', i }));
 
   // post detail
-  // post/px は mine/public/other の3レコードを prf.src で出し分ける判別union seam。
-  // 型付けには実行時ナローイングが要り(px.x が number|null 等)、移植の挙動を保つため
-  // ここだけ any を許容する。
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let post: any = null;
+  let post: PostVM | null = null;
   const prf = route.postRef;
   if (prf) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const px: any = prf.src === 'mine' ? s.myRecords[prf.i] : prf.src === 'public' ? s.publicRecords[prf.i] : others[prf.i];
-    const isMine = prf.src === 'mine' || (prf.src === 'public' && !!px && px.mine);
+    const px: MyRec | PublicRec | OtherRec =
+      prf.src === 'mine' ? s.myRecords[prf.i]
+      : prf.src === 'public' ? s.publicRecords[prf.i]
+      : others[prf.i];
     if (px) {
       const pb = byId(px.brandId) || EMPTY_BRAND;
-      // この記録は本人のもの＝公開トグル可能（DBレコードのみ。シードのothersは不可）
-      const isOwnDbRecord = prf.src === 'mine' || (prf.src === 'public' && px.mine);
-      const recPublicNow = prf.src === 'public' ? true : !!px.isPublic;
+      const pxMine = prf.src === 'public' && (px as PublicRec).mine;
+      const isMine = prf.src === 'mine' || pxMine;
+      // 公開トグル可能なのは本人のDBレコードのみ（シードのothersは不可）
+      const isOwnDbRecord = isMine;
+      const recPublicNow = prf.src === 'public' ? true : (prf.src === 'mine' ? !!(px as MyRec).isPublic : false);
+      const pxX = px.x;
+      const pxY = px.y;
+      const pxPhoto = 'photo' in px ? (px.photo ?? '') : '';
+      const pxUser = prf.src !== 'mine' ? (px as PublicRec | OtherRec).user : '';
+      const pxAvatar = prf.src !== 'mine' ? (px as PublicRec | OtherRec).avatar : '';
+      const pxAvatarBg = prf.src !== 'mine' ? (px as PublicRec | OtherRec).avatarBg : '';
+      const pxTimePlace = prf.src === 'mine'
+        ? px.date + ' ・ 自分の記録'
+        : prf.src === 'public'
+          ? px.date + ' ・ ' + pxUser + ' さんの記録'
+          : (px as OtherRec).time + ' ・ ' + (px as OtherRec).place;
+      const pso = socialOf(px);
+      const ed = s.editingComment;
       post = {
-        user: isMine ? yuuWho.user : px.user, mine: isMine ? '(あなた)' : '',
-        avatar: isMine ? yuuWho.avatar : px.avatar, avatarBg: isMine ? yuuWho.avatarBg : px.avatarBg,
-        timePlace: isMine ? px.date + ' ・ 自分の記録' : (prf.src === 'public' ? px.date + ' ・ ' + px.user + ' さんの記録' : px.time + ' ・ ' + px.place),
-        canPublish: isOwnDbRecord,
-        isPublic: recPublicNow,
+        user: isMine ? yuuWho.user : pxUser, mine: isMine ? '(あなた)' : '',
+        avatar: isMine ? yuuWho.avatar : pxAvatar, avatarBg: isMine ? yuuWho.avatarBg : pxAvatarBg,
+        timePlace: pxTimePlace,
+        canPublish: isOwnDbRecord, isPublic: recPublicNow,
         publishLabel: recPublicNow ? '公開中 — 非公開にする' : 'みんなの利き酒帳に公開する',
         publishToggle: () => st.setRecordPublic(px.rid, !recPublicNow),
         brandName: pb.name, brewery: pb.brewery, brandSubRest: pb.pref + ' — ' + pb.cls,
         kuraClick: () => st.openKura(pb.brewery), stars: starStr(px.rating), ratingNum: px.rating.toFixed(1),
-        x: px.x, y: px.y, bx: pb.x, by: pb.y,
+        x: pxX, y: pxY, bx: pb.x, by: pb.y,
         sweet: px.sweet, sweetLabel: px.sweet < 35 ? '甘口寄り' : px.sweet > 65 ? '辛口寄り' : '中口',
-        tasteLabel: (px.x > 58 ? '濃醇' : px.x < 42 ? '淡麗' : '中庸') + '・' + (px.y < 42 ? '香り高い' : px.y > 58 ? '穏やか' : 'バランス型'),
+        tasteLabel: ((pxX ?? 50) > 58 ? '濃醇' : (pxX ?? 50) < 42 ? '淡麗' : '中庸') + '・' + ((pxY ?? 50) < 42 ? '香り高い' : (pxY ?? 50) > 58 ? '穏やか' : 'バランス型'),
         temps: (px.temps && px.temps.length) ? px.temps.join('・') : '未記入',
-        pairing: px.pairing || '未記入',
-        memo: px.memo || '(メモなし)',
-        photo: px.photo || '', hasPhoto: !!px.photo, noPhoto: !px.photo,
+        pairing: px.pairing || '未記入', memo: px.memo || '(メモなし)',
+        photo: pxPhoto, hasPhoto: !!pxPhoto, noPhoto: !pxPhoto,
         brandClick: () => st.openDetail(pb.id),
         recordClick: () => { st.patch({ fromDetail: false }); st.startRecord(pb.id); },
+        canNomi: !isMine, cantNomi: isMine,
+        nomiCount: pso.nomi,
+        nomiBg: pso.liked ? '#BC6A2D' : '#FDFBF5',
+        nomiColor: pso.liked ? '#FDFBF5' : '#BC6A2D',
+        nomiClick: () => st.toggleNomi(px.rid),
+        comments: (s.commentsByRid[px.rid] || []).map((c) => {
+          const editing = ed === c.id;
+          return {
+            user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
+            time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
+            canEdit: c.mine && !editing, isEditing: editing, notEditing: !editing,
+            editClick: () => st.patch({ editingComment: c.id, editDraft: c.text }),
+            deleteClick: () => st.deleteComment(c.id),
+          };
+        }),
+        commentCount: pso.commentCount, hasComments: pso.commentCount > 0,
+        commentSend: () => st.addComment(px.rid),
+        onCommentKey: (e: KeyboardEvent) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !(e.nativeEvent && e.nativeEvent.isComposing) && e.keyCode !== 229) { e.preventDefault(); st.addComment(px.rid); } },
       };
-      const pso = socialOf(px);
-      post.canNomi = !isMine;
-      post.cantNomi = isMine;
-      post.nomiCount = pso.nomi;
-      post.nomiBg = pso.liked ? '#BC6A2D' : '#FDFBF5';
-      post.nomiColor = pso.liked ? '#FDFBF5' : '#BC6A2D';
-      post.nomiClick = () => st.toggleNomi(px.rid);
-      const ed = s.editingComment;
-      post.comments = (s.commentsByRid[px.rid] || []).map((c) => {
-        const editing = ed === c.id;
-        return {
-          user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
-          time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
-          canEdit: c.mine && !editing, isEditing: editing, notEditing: !editing,
-          editClick: () => st.patch({ editingComment: c.id, editDraft: c.text }),
-          deleteClick: () => st.deleteComment(c.id),
-        };
-      });
-      post.commentCount = pso.commentCount;
-      post.hasComments = pso.commentCount > 0;
-      post.commentSend = () => st.addComment(px.rid);
-      post.onCommentKey = (e: KeyboardEvent) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !(e.nativeEvent && e.nativeEvent.isComposing) && e.keyCode !== 229) { e.preventDefault(); st.addComment(px.rid); } };
     }
   }
 
@@ -512,7 +534,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     statCups: s.myRecords.length, statBrands: uniqBrands.size, statKura: uniqKura.size,
     today: { name: today.name, sub: subOf(today) },
     todayClick: () => st.openDetail(today.id),
-    myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => st.nav('feed'), post: post || { comments: [] }, ranking,
+    myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => st.nav('feed'), post: post ?? EMPTY_POST, ranking,
     // zukan
     searchQuery: s.searchQuery,
     onSearch: (e: ChangeEv) => st.patch({ searchQuery: e.target.value }),

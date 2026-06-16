@@ -1,4 +1,5 @@
 // Types mirror the Claude Design prototype data shapes exactly.
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 
 export type Screen =
   | 'login'
@@ -194,4 +195,61 @@ export interface Rec {
 export interface EditingComment {
   rid: string;
   i: number;
+}
+
+export interface CommentVM {
+  user: string;
+  avatar: string;
+  avatarBg: string;
+  time: string;
+  text: string;
+  canEdit: boolean;
+  isEditing: boolean;
+  notEditing: boolean;
+  editClick: () => void;
+  deleteClick: () => void;
+}
+
+export interface PostVM {
+  user: string;
+  mine: string;
+  avatar: string;
+  avatarBg: string;
+  timePlace: string;
+  canPublish: boolean;
+  isPublic: boolean;
+  publishLabel: string;
+  publishToggle: () => void;
+  brandName: string;
+  brewery: string;
+  brandSubRest: string;
+  kuraClick: () => void;
+  stars: string;
+  ratingNum: string;
+  x: number | null;
+  y: number | null;
+  bx: number;
+  by: number;
+  sweet: number;
+  sweetLabel: string;
+  tasteLabel: string;
+  temps: string;
+  pairing: string;
+  memo: string;
+  photo: string;
+  hasPhoto: boolean;
+  noPhoto: boolean;
+  brandClick: () => void;
+  recordClick: () => void;
+  canNomi: boolean;
+  cantNomi: boolean;
+  nomiCount: number;
+  nomiBg: string;
+  nomiColor: string;
+  nomiClick: () => void;
+  comments: CommentVM[];
+  commentCount: number;
+  hasComments: boolean;
+  commentSend: () => void;
+  onCommentKey: (e: ReactKeyboardEvent) => void;
 }
