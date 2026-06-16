@@ -1,5 +1,5 @@
 'use server';
-import { eq, and, inArray, desc } from 'drizzle-orm';
+import { eq, and, inArray, desc, asc } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
@@ -73,7 +73,7 @@ export async function getMeetups(): Promise<MeetupView[]> {
   const db = getDb();
   if (!db) return [];
   // currentUser()はSupabase Authへの往復を伴うため、events取得と並行させる。
-  const eventsPromise = db.select().from(schema.meetupEvents).orderBy(desc(schema.meetupEvents.createdAt));
+  const eventsPromise = db.select().from(schema.meetupEvents).orderBy(asc(schema.meetupEvents.eventDate));
   const userPromise = currentUser();
   const events = await eventsPromise;
   if (!events.length) return [];
