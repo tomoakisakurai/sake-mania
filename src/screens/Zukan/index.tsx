@@ -5,20 +5,20 @@ import { BrandCard } from './BrandCard';
 
 const TAGS = ['フルーティ', '辛口', '生酒', 'ガス感', '燗映え', 'ジューシー'];
 
-export function Zukan({ v }: { v: Vals }) {
+export function Zukan({ vals }: { vals: Vals }) {
   const [query, setQuery] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const filteredBrands = useMemo(() => {
     const q = query.trim();
-    let fb = v.allBrands.filter((b) => !q || (b.name + b.brewery + b.rice + b.pref).indexOf(q) !== -1);
+    let fb = vals.allBrands.filter((b) => !q || (b.name + b.brewery + b.rice + b.pref).indexOf(q) !== -1);
     if (activeTag) fb = fb.filter((b) => b.tags.indexOf(activeTag) !== -1);
     return fb.map((b) => ({
       name: b.name, brewery: b.brewery, pref: b.pref, polish: b.polish, rice: b.rice,
       rating: b.rating.toFixed(1), pct: Math.round(b.rating / 5 * 100),
-      click: () => v.openDetail(b.id),
+      click: () => vals.openDetail(b.id),
     }));
-  }, [query, activeTag, v.allBrands, v.openDetail]);
+  }, [query, activeTag, vals.allBrands, vals.openDetail]);
 
   const tagChips = TAGS.map((t) => {
     const a = activeTag === t;
@@ -26,7 +26,7 @@ export function Zukan({ v }: { v: Vals }) {
   });
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: v.pagePad }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: vals.pagePad }}>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, marginBottom: 20 }}>銘柄図鑑</div>
       <input type="text" value={query} onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)} placeholder="銘柄名・酒蔵・酒米・産地でさがす" style={{ width: '100%', maxWidth: 640, background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 999, padding: '14px 24px', fontSize: 14.5, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'block', marginBottom: 16 }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
@@ -35,9 +35,9 @@ export function Zukan({ v }: { v: Vals }) {
         ))}
       </div>
       <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 14 }}>{filteredBrands.length}件の銘柄</div>
-      <div style={{ display: 'grid', gridTemplateColumns: v.zukanCols, gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: vals.zukanCols, gap: 16 }}>
         {filteredBrands.map((b, i: number) => (
-          <BrandCard key={i} b={b} />
+          <BrandCard key={i} brand={b} />
         ))}
       </div>
     </div>

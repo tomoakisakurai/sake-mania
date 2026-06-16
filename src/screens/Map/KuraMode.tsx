@@ -2,13 +2,13 @@ import type { Vals } from '@/useVals';
 import type { MapVM } from './useMapState';
 
 // 酒蔵マップモード: 47都道府県タイル + 凡例 と、選択県の蔵リスト(未選択時は県チップ)
-export function KuraMode({ v, map }: { v: Vals; map: MapVM }) {
+export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
   return (
     <>
       <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 24 }}>色のついた県をタップすると、その県の蔵が見られます。呑んだ蔵のある県は朱に染まります。</div>
-      <div style={{ display: 'grid', gridTemplateColumns: v.mapCols, gap: 24, alignItems: 'start' }}>
-        <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: v.mapPanelPad }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gap: v.mapGap }}>
+      <div style={{ display: 'grid', gridTemplateColumns: vals.mapCols, gap: 24, alignItems: 'start' }}>
+        <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: vals.mapPanelPad }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gap: vals.mapGap }}>
             {map.prefTiles.map((p, i: number) => (
               <div key={i} onClick={p.click} style={{ gridColumn: p.col, gridRow: p.row, aspectRatio: 1, borderRadius: 6, background: p.bg, color: p.color, border: p.border, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, cursor: p.cursor }}>
                 <span style={{ fontSize: p.fs, fontWeight: 700, lineHeight: 1.1 }}>{p.name}</span>
@@ -56,7 +56,7 @@ export function KuraMode({ v, map }: { v: Vals; map: MapVM }) {
                   ))}
                 </div>
               </div>
-              <div onClick={v.openKuraReg} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '18px 22px', marginTop: 14, cursor: 'pointer' }}>
+              <div onClick={vals.openKuraReg} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '18px 22px', marginTop: 14, cursor: 'pointer' }}>
                 <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 14.5, fontWeight: 700, marginBottom: 4 }}>載っていない蔵がありますか?</div>
                 <div style={{ fontSize: 12, color: '#8B8273', lineHeight: 1.7 }}>あなたの好きな酒蔵を図鑑に追加申請できます <span style={{ color: '#32507C', fontWeight: 700 }}>→ 蔵を登録する</span></div>
               </div>

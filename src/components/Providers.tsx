@@ -25,7 +25,7 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
   // SSR取得のcore(brands/members) と クライアント後追いのdeferred を合成。
   const deferredRef = useStore((s) => s.deferredRef);
   const ref: ReferenceData = { ...initialData, ...(deferredRef ?? EMPTY_DEFERRED) };
-  const v = useVals(route, ref);
+  const vals = useVals(route, ref);
 
   // Bridge store navigation to the Next.js router.
   useEffect(() => {
@@ -103,12 +103,12 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
   }, []);
 
   return (
-    <ValsContext.Provider value={v}>
+    <ValsContext.Provider value={vals}>
       <div style={{ minHeight: '100vh', background: '#F6F1E7', fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24' }}>
-        {v.showChrome && <Nav v={v} />}
+        {vals.showChrome && <Nav vals={vals} />}
         {children}
-        {v.isMobile && <TabBar v={v} />}
-        {v.toastVisible && <Toast message={v.toastMsg} />}
+        {vals.isMobile && <TabBar vals={vals} />}
+        {vals.toastVisible && <Toast message={vals.toastMsg} />}
       </div>
     </ValsContext.Provider>
   );

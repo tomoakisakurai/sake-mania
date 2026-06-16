@@ -2,11 +2,11 @@ import type { Vals } from '@/useVals';
 import type { MapVM } from './useMapState';
 
 // 飲める店モード: 店リスト + 選択店の詳細(地図埋め込み + 提供銘柄)
-export function BarsMode({ v, map }: { v: Vals; map: MapVM }) {
+export function BarsMode({ vals, map }: { vals: Vals; map: MapVM }) {
   return (
     <>
       <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 24 }}>銘酒を飲める居酒屋・角打ちを集めました。店をタップすると地図と提供銘柄が見られます。</div>
-      <div style={{ display: 'grid', gridTemplateColumns: v.mapCols, gap: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: vals.mapCols, gap: 24, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {map.barList.map((bar, i: number) => (
             <div key={i} onClick={bar.click} style={{ border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 18px', cursor: 'pointer', background: bar.bg, color: bar.color }}>

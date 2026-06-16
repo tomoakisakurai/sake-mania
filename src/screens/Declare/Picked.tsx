@@ -2,8 +2,8 @@ import type { ChangeEvent } from 'react';
 import type { Vals } from '@/useVals';
 
 // 持ち寄り宣言: 銘柄を選んだ状態(確認 + かぶり警告 + ひとこと + 宣言ボタン)
-export function Picked({ v, note, setNote }: { v: Vals; note: string; setNote: (n: string) => void }) {
-  const d = v.declare;
+export function Picked({ vals, note, setNote }: { vals: Vals; note: string; setNote: (n: string) => void }) {
+  const d = vals.declare;
   return (
     <>
       <div style={{ background: "#FFFFFF", border: "1px solid #32507C", borderRadius: 12, padding: "16px 18px", display: "flex", gap: 14, alignItems: "center", marginBottom: 16 }}>

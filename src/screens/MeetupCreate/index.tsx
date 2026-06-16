@@ -4,7 +4,7 @@ import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
 import { Done } from './Done';
 
-export function MeetupCreate({ v }: { v: Vals }) {
+export function MeetupCreate({ vals }: { vals: Vals }) {
   const st = useStore();
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
@@ -19,7 +19,7 @@ export function MeetupCreate({ v }: { v: Vals }) {
   const handleAnother = () => { setName(''); setDate(''); setPlace(''); setDesc(''); setDone(false); };
 
   return (
-    <div style={{ maxWidth: 620, margin: "0 auto", padding: v.pagePadTight }}>
+    <div style={{ maxWidth: 620, margin: "0 auto", padding: vals.pagePadTight }}>
       {!done && (
         <>
           <div onClick={() => st.nav('home')} style={{ fontSize: 13, color: "#8B8273", cursor: "pointer", marginBottom: 24 }}>← ホームにもどる</div>

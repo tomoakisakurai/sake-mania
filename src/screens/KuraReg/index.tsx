@@ -4,7 +4,7 @@ import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
 import { Done } from './Done';
 
-export function KuraReg({ v }: { v: Vals }) {
+export function KuraReg({ vals }: { vals: Vals }) {
   const st = useStore();
   const [name, setName] = useState('');
   const [pref, setPref] = useState('');
@@ -23,7 +23,7 @@ export function KuraReg({ v }: { v: Vals }) {
   };
 
   return (
-    <div style={{ maxWidth: 620, margin: '0 auto', padding: v.pagePadTight }}>
+    <div style={{ maxWidth: 620, margin: '0 auto', padding: vals.pagePadTight }}>
       {!done && (
         <>
           <div onClick={() => st.nav('map')} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 24 }}>← 酒蔵マップにもどる</div>

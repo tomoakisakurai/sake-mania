@@ -41,10 +41,9 @@ const starStr = (n: number) => {
 };
 
 export function useVals(route: RouteState, ref: ReferenceData) {
-  const st = useStore();
-  const s = st;
-  const r = s.rec;
-  const mob = s.vw < 760;
+  const store = useStore();
+  const rec = store.rec;
+  const isMobile = store.vw < 760;
   const { brands, others, members, meetups, bars, prefGrid, kuraMeta } = ref;
   const byId = (id: string | null | undefined) => brands.find((b) => b.id === id);
   const memberOf = (name: string) =>
@@ -53,27 +52,27 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const subOf = (b: Brand) => b.brewery + ' / ' + b.pref + ' — ' + b.cls;
 
   // nav / tab のビューモデル（lib/nav.ts に集約。Nav と TabBar が共有）
-  const { navItems, tabLeft, tabRight } = buildNavModel(route, st);
+  const { navItems, tabLeft, tabRight } = buildNavModel(route, store);
 
   // stats
-  const uniqBrands = new Set(s.myRecords.map((x) => x.brandId));
-  const uniqKura = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).brewery));
+  const uniqBrands = new Set(store.myRecords.map((x) => x.brandId));
+  const uniqKura = new Set(store.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).brewery));
 
   // map dots
-  const myDots = s.myRecords.map((x) => {
+  const myDots = store.myRecords.map((x) => {
     const b = byId(x.brandId) || EMPTY_BRAND;
     return { left: x.x, top: x.y, size: x.rating >= 5 ? 15 : 10, bg: x.rating >= 5 ? '#BC6A2D' : '#32507C', label: (b.name || '').split(' ')[0] };
   });
 
   // feed
-  const u = s.user || { name: 'yuu_sake_log', avatar: '悠' };
-  const yuuWho = { user: u.name, mine: '(あなた)', avatar: u.avatar, avatarBg: '#DDD3BE' };
+  const currentUser = store.user || { name: 'yuu_sake_log', avatar: '悠' };
+  const yuuWho = { user: currentUser.name, mine: '(あなた)', avatar: currentUser.avatar, avatarBg: '#DDD3BE' };
 
   const socialOf = (x: SocialRec) => {
     // 押下後はストアのマップを優先、未取得時はレコード同梱の値（=フィードの数字が遅れない）
-    const liked = (x.rid in s.myNomi) ? s.myNomi[x.rid] : !!x.liked;
-    const nomi = (x.rid in s.nomiCounts) ? s.nomiCounts[x.rid] : (x.nomi || 0);
-    const loaded = s.commentsByRid[x.rid];
+    const liked = (x.rid in store.myNomi) ? store.myNomi[x.rid] : !!x.liked;
+    const nomi = (x.rid in store.nomiCounts) ? store.nomiCounts[x.rid] : (x.nomi || 0);
+    const loaded = store.commentsByRid[x.rid];
     const commentCount = loaded ? loaded.length : (x.commentCount || 0);
     return { liked, nomi, comments: loaded || [], commentCount };
   };
@@ -81,10 +80,10 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     const b = byId(x.brandId) || EMPTY_BRAND;
     const so = socialOf(x);
     const isOther = who.user !== yuuWho.user;
-    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: MouseEvent) => { e.stopPropagation(); st.toggleNomi(x.rid); }, click: () => st.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); st.openDetail(b.id); } };
+    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: MouseEvent) => { e.stopPropagation(); store.toggleNomi(x.rid); }, click: () => store.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); store.openDetail(b.id); } };
   };
   // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。サンプル投稿(others)は出さない。
-  const allFeed = s.publicRecords.map((pr, i) =>
+  const allFeed = store.publicRecords.map((pr, i) =>
     mkFeed(pr, { user: pr.user, mine: pr.mine ? '(あなた)' : '', avatar: pr.avatar, avatarBg: pr.avatarBg }, pr.date, { src: 'public', i }));
 
   // post detail
@@ -92,8 +91,8 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const prf = route.postRef;
   if (prf) {
     const px: MyRec | PublicRec | OtherRec =
-      prf.src === 'mine' ? s.myRecords[prf.i]
-      : prf.src === 'public' ? s.publicRecords[prf.i]
+      prf.src === 'mine' ? store.myRecords[prf.i]
+      : prf.src === 'public' ? store.publicRecords[prf.i]
       : others[prf.i];
     if (px) {
       const pb = byId(px.brandId) || EMPTY_BRAND;
@@ -120,47 +119,47 @@ export function useVals(route: RouteState, ref: ReferenceData) {
         timePlace: pxTimePlace,
         canPublish: isOwnDbRecord, isPublic: recPublicNow,
         publishLabel: recPublicNow ? '公開中 — 非公開にする' : 'みんなの利き酒帳に公開する',
-        publishToggle: () => st.setRecordPublic(px.rid, !recPublicNow),
+        publishToggle: () => store.setRecordPublic(px.rid, !recPublicNow),
         brandName: pb.name, brewery: pb.brewery, brandSubRest: pb.pref + ' — ' + pb.cls,
-        kuraClick: () => st.openKura(pb.brewery), stars: starStr(px.rating), ratingNum: px.rating.toFixed(1),
+        kuraClick: () => store.openKura(pb.brewery), stars: starStr(px.rating), ratingNum: px.rating.toFixed(1),
         x: pxX, y: pxY, bx: pb.x, by: pb.y,
         sweet: px.sweet, sweetLabel: px.sweet < 35 ? '甘口寄り' : px.sweet > 65 ? '辛口寄り' : '中口',
         tasteLabel: ((pxX ?? 50) > 58 ? '濃醇' : (pxX ?? 50) < 42 ? '淡麗' : '中庸') + '・' + ((pxY ?? 50) < 42 ? '香り高い' : (pxY ?? 50) > 58 ? '穏やか' : 'バランス型'),
         temps: (px.temps && px.temps.length) ? px.temps.join('・') : '未記入',
         pairing: px.pairing || '未記入', memo: px.memo || '(メモなし)',
         photo: pxPhoto, hasPhoto: !!pxPhoto, noPhoto: !pxPhoto,
-        brandClick: () => st.openDetail(pb.id),
-        recordClick: () => { st.patch({ fromDetail: false }); st.startRecord(pb.id); },
+        brandClick: () => store.openDetail(pb.id),
+        recordClick: () => { store.patch({ fromDetail: false }); store.startRecord(pb.id); },
         canNomi: !isMine, cantNomi: isMine,
         nomiCount: pso.nomi,
         nomiBg: pso.liked ? '#BC6A2D' : '#FDFBF5',
         nomiColor: pso.liked ? '#FDFBF5' : '#BC6A2D',
-        nomiClick: () => st.toggleNomi(px.rid),
-        comments: (s.commentsByRid[px.rid] || []).map((c) => ({
+        nomiClick: () => store.toggleNomi(px.rid),
+        comments: (store.commentsByRid[px.rid] || []).map((c) => ({
           id: c.id,
           user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
           time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
           canEdit: c.mine,
           initEditDraft: c.text,
-          deleteClick: () => st.deleteComment(c.id),
+          deleteClick: () => store.deleteComment(c.id),
         })),
         commentCount: pso.commentCount, hasComments: pso.commentCount > 0,
-        commentSend: (draft: string) => st.addComment(px.rid, draft),
+        commentSend: (draft: string) => store.addComment(px.rid, draft),
       };
     }
   }
 
   // ranking
-  const ranking = brands.slice().sort((a, b) => b.count - a.count).slice(0, 4).map((b, i) => ({ rank: ['壱', '弐', '参', '四'][i], color: i === 0 ? '#BC6A2D' : '#8B8273', name: b.name, brewery: b.brewery + ' / ' + b.pref, count: b.count + '記録', click: () => st.openDetail(b.id) }));
+  const ranking = brands.slice().sort((a, b) => b.count - a.count).slice(0, 4).map((b, i) => ({ rank: ['壱', '弐', '参', '四'][i], color: i === 0 ? '#BC6A2D' : '#8B8273', name: b.name, brewery: b.brewery + ' / ' + b.pref, count: b.count + '記録', click: () => store.openDetail(b.id) }));
 
   const today = byId('kuheiji') || brands[0] || EMPTY_BRAND;
 
   // detail
   const d = byId(route.detailId) || brands[0];
-  const myRecForD = s.myRecords.find((x) => x.brandId === d.id);
-  const dReviews = s.myRecords.filter((x) => x.brandId === d.id).map((x) => ({ user: 'あなた', date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)' }))
+  const myRecForD = store.myRecords.find((x) => x.brandId === d.id);
+  const dReviews = store.myRecords.filter((x) => x.brandId === d.id).map((x) => ({ user: 'あなた', date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)' }))
     .concat(others.filter((o) => o.brandId === d.id).map((o) => ({ user: o.user, date: o.date, stars: starStr(o.rating), memo: o.memo })));
-  const wanted = s.wantIds.indexOf(d.id) !== -1;
+  const wanted = store.wantIds.indexOf(d.id) !== -1;
   const shopQ = encodeURIComponent(d.name);
   const dShop = [
     { label: '楽天市場', mark: 'R', markColor: '#BF0000', url: 'https://search.rakuten.co.jp/search/mall/' + shopQ + '/' },
@@ -170,14 +169,14 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   ];
 
   // record flow
-  const rq = (r.query || '').trim();
+  const rq = (rec.query || '').trim();
   const recResults = brands.filter((b) => !rq || (b.name + b.brewery + b.pref).indexOf(rq) !== -1).slice(0, 6)
-    .map((b) => ({ name: b.name, sub: b.brewery + ' / ' + b.pref + ' — ' + b.cls, click: () => st.setRec({ brandId: b.id, step: 2 }) }));
-  const recBrand = byId(r.brandId);
+    .map((b) => ({ name: b.name, sub: b.brewery + ' / ' + b.pref + ' — ' + b.cls, click: () => store.setRec({ brandId: b.id, step: 2 }) }));
+  const recBrand = byId(rec.brandId);
   const stepLabels = ['銘柄', '味わい', '合わせ', 'メモ'];
   const recSteps = stepLabels.map((lb, i) => {
     const n = i + 1;
-    const done = r.step > n, cur = r.step === n;
+    const done = rec.step > n, cur = rec.step === n;
     return { n, label: lb, bg: cur ? '#32507C' : done ? '#DDD3BE' : '#FDFBF5', color: cur ? '#FDFBF5' : done ? '#5C5547' : '#A89D8A', border: cur || done ? '1px solid transparent' : '1px solid #E3DBCB', labelColor: cur ? '#2E2A24' : '#A89D8A', weight: cur ? 700 : 400 };
   });
   const titles = [
@@ -186,21 +185,21 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     ['どう楽しみましたか?', '飲み方・肴・写真 — すべて任意です'],
     ['ひとことメモ', 'あとから読み返す、自分への手紙'],
   ];
-  const tasteX = r.x == null ? '' : r.x > 58 ? '濃醇' : r.x < 42 ? '淡麗' : '中庸';
-  const tasteY = r.y == null ? '' : r.y < 42 ? '香り高い' : r.y > 58 ? '穏やか' : 'バランス型';
-  const recTasteLabel = r.x == null ? 'まだ打点がありません' : tasteX + '・' + tasteY;
-  const recSweetLabel = r.sweet < 35 ? '甘口寄り' : r.sweet > 65 ? '辛口寄り' : '中口';
-  const recStars = [1, 2, 3, 4, 5].map((n) => ({ color: n <= r.rating ? '#BC6A2D' : '#DDD3BE', click: () => st.setRec({ rating: n }) }));
+  const tasteX = rec.x == null ? '' : rec.x > 58 ? '濃醇' : rec.x < 42 ? '淡麗' : '中庸';
+  const tasteY = rec.y == null ? '' : rec.y < 42 ? '香り高い' : rec.y > 58 ? '穏やか' : 'バランス型';
+  const recTasteLabel = rec.x == null ? 'まだ打点がありません' : tasteX + '・' + tasteY;
+  const recSweetLabel = rec.sweet < 35 ? '甘口寄り' : rec.sweet > 65 ? '辛口寄り' : '中口';
+  const recStars = [1, 2, 3, 4, 5].map((n) => ({ color: n <= rec.rating ? '#BC6A2D' : '#DDD3BE', click: () => store.setRec({ rating: n }) }));
   const tempChips = ['冷酒', '常温', 'ぬる燗', '熱燗'].map((t) => {
-    const a = r.temps.indexOf(t) !== -1;
-    return { label: t, bg: a ? '#32507C' : '#FDFBF5', color: a ? '#FDFBF5' : '#5C5547', border: a ? '1px solid #32507C' : '1px solid #E3DBCB', click: () => st.setRec({ temps: a ? r.temps.filter((x) => x !== t) : r.temps.concat([t]) }) };
+    const a = rec.temps.indexOf(t) !== -1;
+    return { label: t, bg: a ? '#32507C' : '#FDFBF5', color: a ? '#FDFBF5' : '#5C5547', border: a ? '1px solid #32507C' : '1px solid #E3DBCB', click: () => store.setRec({ temps: a ? rec.temps.filter((x) => x !== t) : rec.temps.concat([t]) }) };
   });
-  const step2Valid = r.x != null && r.rating > 0;
-  const nextOk = r.step === 2 ? step2Valid : true;
-  const recNext = () => { if (!nextOk) return; if (r.step === 4) st.saveRecord(); else st.setRec({ step: r.step + 1 }); };
-  const recBack = () => { if (r.step <= 1 || (r.step === 2 && s.fromDetail)) st.nav('home'); else st.setRec({ step: r.step - 1 }); };
-  const recGhostDots = s.myRecords.map((x) => ({ left: x.x, top: x.y }));
-  const enjoyParts = (r.temps.length ? r.temps.join('・') : '未記入') + (r.pairing ? ' / 肴: ' + r.pairing : '');
+  const step2Valid = rec.x != null && rec.rating > 0;
+  const nextOk = rec.step === 2 ? step2Valid : true;
+  const recNext = () => { if (!nextOk) return; if (rec.step === 4) store.saveRecord(); else store.setRec({ step: rec.step + 1 }); };
+  const recBack = () => { if (rec.step <= 1 || (rec.step === 2 && store.fromDetail)) store.nav('home'); else store.setRec({ step: rec.step - 1 }); };
+  const recGhostDots = store.myRecords.map((x) => ({ left: x.x, top: x.y }));
+  const enjoyParts = (rec.temps.length ? rec.temps.join('・') : '未記入') + (rec.pairing ? ' / 肴: ' + rec.pairing : '');
 
   // kura map
   const kuraByPref: Record<string, Record<string, Brand[]>> = {};
@@ -209,27 +208,27 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     if (!kuraByPref[b.pref][b.brewery]) kuraByPref[b.pref][b.brewery] = [];
     kuraByPref[b.pref][b.brewery].push(b);
   });
-  const drunkPrefs = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).pref).filter(Boolean));
+  const drunkPrefs = new Set(store.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).pref).filter(Boolean));
   const mapStats = '蔵のある県 ' + Object.keys(kuraByPref).length + ' ・ 呑んだ県 ' + drunkPrefs.size + ' / 47';
 
   // ===== SAKE MEETUP（DB由来） =====
-  const list = s.meetupList;
-  const md = s.meetupDetail;
+  const list = store.meetupList;
+  const md = store.meetupDetail;
   const shortOf = (dl: string) => (dl || '').split('(')[0].split(' ')[0];
   const nextMeet = list.find((m) => m.phase === 'before');
   const homeNext = nextMeet ? {
     name: nextMeet.name, dateLabel: nextMeet.dateLabel, place: nextMeet.place, theme: nextMeet.theme,
     goingLabel: nextMeet.goingCount + '人が参加予定',
     bringLabel: nextMeet.bringCount + '本が宣言済み',
-    click: () => st.openMeetup(nextMeet.id),
+    click: () => store.openMeetup(nextMeet.id),
   } : null;
   const homePast = list.filter((m) => m.phase === 'voting' || m.phase === 'closed').map((m) => ({
     name: m.name, dateShort: shortOf(m.dateLabel), theme: m.theme,
     isVoting: m.phase === 'voting', notVoting: m.phase !== 'voting',
-    click: () => st.openMeetup(m.id),
+    click: () => store.openMeetup(m.id),
   }));
   const votingMeet = list.find((m) => m.phase === 'voting');
-  const homeVoting = votingMeet ? { name: votingMeet.name, deadline: votingMeet.voteDeadline || '', click: () => st.openMeetup(votingMeet.id) } : null;
+  const homeVoting = votingMeet ? { name: votingMeet.name, deadline: votingMeet.voteDeadline || '', click: () => store.openMeetup(votingMeet.id) } : null;
 
   // SAKE MEETUP 一覧（hub画面）。フェーズ別にバッジ・統計・CTAを出し分ける。
   const meetupsList = list.map((m) => {
@@ -240,13 +239,13 @@ export function useVals(route: RouteState, ref: ReferenceData) {
       name: m.name, dateLabel: m.dateLabel, place: m.place, theme: m.theme,
       isUpcoming: m.phase === 'before', isVoting: m.phase === 'voting', isClosed: m.phase === 'closed',
       goCount: m.goingCount, bringCount: m.bringCount,
-      goToggle: (e: MouseEvent) => { e.stopPropagation(); st.toggleGoing(m.id); },
+      goToggle: (e: MouseEvent) => { e.stopPropagation(); store.toggleGoing(m.id); },
       goLabel: m.iGoing ? '参加予定 ✓' : '参加する',
       goLabelBg: m.iGoing ? '#32507C' : '#FDFBF5',
       goLabelColor: m.iGoing ? '#FDFBF5' : '#32507C',
       voteDeadline: m.voteDeadline || '',
       hasMvp: !!mvp, mvpName: mvp ? mvp.name : '',
-      click: () => st.openMeetup(m.id),
+      click: () => store.openMeetup(m.id),
     };
   });
 
@@ -265,7 +264,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   allBring.forEach((b) => { brandCounts[b.brandId] = (brandCounts[b.brandId] || 0) + 1; });
   const bringList = allBring.map((b) => {
     const br = byId(b.brandId) || EMPTY_BRAND;
-    return { brandId: b.brandId, memberName: b.memberName, avatar: b.avatar, avatarBg: b.avatarBg, mine: !!b.mine, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, note: b.note || '', dup: brandCounts[b.brandId] > 1, brandClick: () => st.openDetail(b.brandId) };
+    return { brandId: b.brandId, memberName: b.memberName, avatar: b.avatar, avatarBg: b.avatarBg, mine: !!b.mine, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, note: b.note || '', dup: brandCounts[b.brandId] > 1, brandClick: () => store.openDetail(b.brandId) };
   });
   const voteCounts: Record<string, number> = md?.voteCounts || {};
   const myVote = md?.myVoteBrandId || null;
@@ -278,25 +277,25 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     hostName: md?.hostName || '',
     isBefore, isVoting, isClosed, showLineup,
     isHost, hostCanStart: isBefore && isHost, hostCanClose: isVoting && isHost,
-    startVoting: () => st.setPhase(meId, 'voting'),
-    closeVoting: () => st.setPhase(meId, 'closed'),
+    startVoting: () => store.setPhase(meId, 'voting'),
+    closeVoting: () => store.setPhase(meId, 'closed'),
     voteDeadline: md?.voteDeadline || '',
     phaseLabel: isVoting ? '投票受付中' : isClosed ? '結果確定' : '開催前',
     phaseBg: isVoting ? '#BC6A2D' : isClosed ? '#5C5547' : '#32507C',
     mvpLabel: isVoting ? '★ 暫定トップ（投票受付中）' : '★ その日のMVP酒 — 最多得票',
     iGo, goCount: md?.goingCount || 0, attendees: md?.goingCount || 0,
     goingAvatars,
-    goToggle: () => st.toggleGoing(meId),
+    goToggle: () => store.toggleGoing(meId),
     goLabel: iGo ? '参加予定です ✓' : '参加する',
     goBg: iGo ? '#32507C' : '#FDFBF5', goColor: iGo ? '#FDFBF5' : '#32507C',
     bringList, bringCount: allBring.length,
     hasBring: allBring.length > 0,
     hasDup: Object.keys(brandCounts).some((k) => brandCounts[k] > 1),
     myDeclared: !!md?.myBringBrandId, notMyDeclared: !md?.myBringBrandId,
-    declareClick: () => st.openDeclare(meId),
+    declareClick: () => store.openDeclare(meId),
     declareLabel: md?.myBringBrandId ? '持ち寄りを変更する' : '自分の一本を宣言する',
-    cancelDeclare: () => st.cancelDeclare(meId),
-    backHome: () => st.nav('home'),
+    cancelDeclare: () => store.cancelDeclare(meId),
+    backHome: () => store.nav('home'),
     totalVotesLabel: totalVotes + '票',
     myVoted: !!myVote,
     canVote: isVoting,
@@ -304,23 +303,23 @@ export function useVals(route: RouteState, ref: ReferenceData) {
       const br = byId(l.brandId) || EMPTY_BRAND;
       const vc = voteCounts[l.brandId] || 0;
       const voted = myVote === l.brandId;
-      return { rank: i + 1, rankLabel: ['壱', '弐', '参', '四', '五'][i] || (i + 1), isMvp: mvpBrandId === l.brandId, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: l.memberName, avatar: l.avatar, avatarBg: l.avatarBg, score: '', stars: '', votes: vc + '票', comment: l.note || '', brandClick: () => st.openDetail(l.brandId), canVote: isVoting, voted, voteLabel: voted ? '投票済み ✓' : 'MVPに投票', voteBg: voted ? '#BC6A2D' : '#FDFBF5', voteColor: voted ? '#FDFBF5' : '#BC6A2D', voteClick: () => st.voteMvp(meId, l.brandId) };
+      return { rank: i + 1, rankLabel: ['壱', '弐', '参', '四', '五'][i] || (i + 1), isMvp: mvpBrandId === l.brandId, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: l.memberName, avatar: l.avatar, avatarBg: l.avatarBg, score: '', stars: '', votes: vc + '票', comment: l.note || '', brandClick: () => store.openDetail(l.brandId), canVote: isVoting, voted, voteLabel: voted ? '投票済み ✓' : 'MVPに投票', voteBg: voted ? '#BC6A2D' : '#FDFBF5', voteColor: voted ? '#FDFBF5' : '#BC6A2D', voteClick: () => store.voteMvp(meId, l.brandId) };
     }),
-    mvp: showLineup && mvpBrandId ? (() => { const br = byId(mvpBrandId) || EMPTY_BRAND; const lp = allBring.find((x) => x.brandId === mvpBrandId); return { brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: lp?.memberName || '', votesLabel: (voteCounts[mvpBrandId] || 0) + '票', comment: lp?.note || '', brandClick: () => st.openDetail(mvpBrandId) }; })() : { brandName: '', brandSub: '', broughtBy: '', votesLabel: '', comment: '', brandClick: () => {} },
+    mvp: showLineup && mvpBrandId ? (() => { const br = byId(mvpBrandId) || EMPTY_BRAND; const lp = allBring.find((x) => x.brandId === mvpBrandId); return { brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: lp?.memberName || '', votesLabel: (voteCounts[mvpBrandId] || 0) + '票', comment: lp?.note || '', brandClick: () => store.openDetail(mvpBrandId) }; })() : { brandName: '', brandSub: '', broughtBy: '', votesLabel: '', comment: '', brandClick: () => {} },
   };
 
   // declare flow（かぶり判定は現在の宣言一覧から）
-  const dBrand = byId(s.declareBrandId);
+  const dBrand = byId(store.declareBrandId);
   const dTaken = dBrand ? allBring.find((x) => x.brandId === dBrand.id && !x.mine) : null;
   const declare = {
     meetName: md?.name || '',
     picked: !!dBrand, pickedName: dBrand ? dBrand.name : '', pickedSub: dBrand ? (dBrand.brewery + ' / ' + dBrand.pref) : '',
-    changeBrand: () => st.patch({ declareBrandId: null }),
+    changeBrand: () => store.patch({ declareBrandId: null }),
     dupWarn: !!dTaken, dupWarnLabel: dTaken ? (dTaken.memberName + 'さんが既に持ち寄り予定です。かぶってもOKですが、変えると喜ばれるかも。') : '',
     canSubmit: !!dBrand,
-    submit: (note: string) => st.submitDeclare(meId, note),
+    submit: (note: string) => store.submitDeclare(meId, note),
     notPicked: !dBrand,
-    cancel: () => st.openMeetup(meId),
+    cancel: () => store.openMeetup(meId),
   };
 
   // kura detail
@@ -328,7 +327,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const kmeta = kn0 ? kuraMeta[kn0] : undefined;
   const kBrands = brands.filter((b) => b.brewery === kn0);
   const kPref = kBrands.length ? kBrands[0].pref : '';
-  const kRecs = s.myRecords.map((x, i) => ({ rec: x, idx: i })).filter((o) => kBrands.some((b) => b.id === o.rec.brandId));
+  const kRecs = store.myRecords.map((x, i) => ({ rec: x, idx: i })).filter((o) => kBrands.some((b) => b.id === o.rec.brandId));
   const kQuery = encodeURIComponent((kn0 || '') + ' ' + (kmeta?.city || '') + ' ' + kPref);
   const ku = {
     name: kn0 || '',
@@ -341,37 +340,37 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     myCupCount: kRecs.length,
     hasCups: kRecs.length > 0,
     dots: kBrands.map((b) => ({ left: b.x, top: b.y, label: b.name })),
-    brands: kBrands.map((b) => ({ name: b.name, cls: b.cls, polish: b.polish, rice: b.rice, rating: b.rating.toFixed(1), pct: Math.round(b.rating / 5 * 100), click: () => st.openDetail(b.id) })),
+    brands: kBrands.map((b) => ({ name: b.name, cls: b.cls, polish: b.polish, rice: b.rice, rating: b.rating.toFixed(1), pct: Math.round(b.rating / 5 * 100), click: () => store.openDetail(b.id) })),
     cups: kRecs.map((o) => {
       const b = byId(o.rec.brandId) || EMPTY_BRAND;
-      return { name: b.name, date: o.rec.date, stars: starStr(o.rec.rating), memo: o.rec.memo || '(メモなし)', click: () => st.openPost({ src: 'mine', i: o.idx }) };
+      return { name: b.name, date: o.rec.date, stars: starStr(o.rec.rating), memo: o.rec.memo || '(メモなし)', click: () => store.openPost({ src: 'mine', i: o.idx }) };
     }),
   };
 
   // mypage
-  const myList = s.myRecords.map((x, i) => {
+  const myList = store.myRecords.map((x, i) => {
     const b = byId(x.brandId) || EMPTY_BRAND;
-    return { name: b.name, sub: b.brewery + ' / ' + b.pref, date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)', tags: x.temps.concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, click: () => st.openPost({ src: 'mine', i }) };
+    return { name: b.name, sub: b.brewery + ' / ' + b.pref, date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)', tags: x.temps.concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, click: () => store.openPost({ src: 'mine', i }) };
   });
-  const wantList = s.wantIds.map((id) => byId(id)).filter((b): b is Brand => Boolean(b)).map((b) => ({ name: b.name, sub: b.brewery + ' / ' + b.pref, click: () => st.openDetail(b.id), buyUrl: 'https://search.rakuten.co.jp/search/mall/' + encodeURIComponent(b.name) + '/' }));
+  const wantList = store.wantIds.map((id) => byId(id)).filter((b): b is Brand => Boolean(b)).map((b) => ({ name: b.name, sub: b.brewery + ' / ' + b.pref, click: () => store.openDetail(b.id), buyUrl: 'https://search.rakuten.co.jp/search/mall/' + encodeURIComponent(b.name) + '/' }));
 
   // 利き酒師ランク
-  const cupsN = s.myRecords.length;
+  const cupsN = store.myRecords.length;
   const rankTiers = [{ min: 0, name: '見習い' }, { min: 1, name: '利き酒入門' }, { min: 5, name: '利き酒人' }, { min: 15, name: '利き酒師' }, { min: 30, name: '利き酒名人' }, { min: 60, name: '酒仙' }];
   let ti = 0; rankTiers.forEach((t, i) => { if (cupsN >= t.min) ti = i; });
   const nextTier = rankTiers[ti + 1];
   const rankPct = nextTier ? Math.min(100, Math.round((cupsN - rankTiers[ti].min) / (nextTier.min - rankTiers[ti].min) * 100)) : 100;
   // 制覇度バッジ
-  const prefSet2 = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).pref).filter(Boolean));
-  const kuraSet2 = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).brewery).filter(Boolean));
+  const prefSet2 = new Set(store.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).pref).filter(Boolean));
+  const kuraSet2 = new Set(store.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).brewery).filter(Boolean));
   const badgeDefs = [
     { icon: '初', label: 'はじめの一杯', on: cupsN >= 1 },
     { icon: '拾', label: '10盃達成', on: cupsN >= 10 },
     { icon: '丗', label: '30盃達成', on: cupsN >= 30 },
     { icon: '蔵', label: '5蔵めぐり', on: kuraSet2.size >= 5 },
     { icon: '県', label: '5県制覇', on: prefSet2.size >= 5 },
-    { icon: '燗', label: '燗酒を嗜む', on: s.myRecords.some((x) => (x.temps || []).some((t) => t.indexOf('燗') !== -1)) },
-    { icon: '写', label: 'ラベル写真家', on: s.myRecords.some((x) => x.photo) },
+    { icon: '燗', label: '燗酒を嗜む', on: store.myRecords.some((x) => (x.temps || []).some((t) => t.indexOf('燗') !== -1)) },
+    { icon: '写', label: 'ラベル写真家', on: store.myRecords.some((x) => x.photo) },
     { icon: '全', label: '全国制覇', on: prefSet2.size >= 47 },
   ];
   const badges = badgeDefs.map((b) => ({ icon: b.icon, label: b.label, bg: b.on ? '#32507C' : '#EFEAE0', color: b.on ? '#FDFBF5' : '#BCB29D', labelColor: b.on ? '#2E2A24' : '#A89D8A' }));
@@ -380,87 +379,87 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   return {
     // nav
     navItems,
-    goHome: () => st.nav('home'),
-    goZukan: () => st.nav('zukan'),
-    goMy: () => { if (st.requireLogin()) st.nav('mypage'); },
+    goHome: () => store.nav('home'),
+    goZukan: () => store.nav('zukan'),
+    goMy: () => { if (store.requireLogin()) store.nav('mypage'); },
     // SP ハンバーガーメニュー項目（タブバーから外れた導線をここで補う）
     menuItems: [
-      { label: '酒蔵マップ', click: () => st.nav('map') },
-      { label: '飲める店', click: () => st.nav('map') },
-      { label: 'みんなの利き酒帳', click: () => st.nav('feed') },
-      { label: 'イベントを立てる', click: () => st.openEventCreate() },
-      { label: '酒蔵を登録する', click: () => st.openKuraReg() },
+      { label: '酒蔵マップ', click: () => store.nav('map') },
+      { label: '飲める店', click: () => store.nav('map') },
+      { label: 'みんなの利き酒帳', click: () => store.nav('feed') },
+      { label: 'イベントを立てる', click: () => store.openEventCreate() },
+      { label: '酒蔵を登録する', click: () => store.openKuraReg() },
     ],
     // login
     isLogin: route.screen === 'login',
     showChrome: route.screen !== 'login',
-    loggedIn: !!s.user, loggedOut: !s.user,
-    userAvatar: u.avatar, userName: u.name,
-    goLogin: () => st.nav('login'),
-    doLogout: () => st.logout(),
-    githubLogin: () => st.loginGithub(),
-    guestClick: () => st.nav('home'),
-    startRecordClick: () => st.startRecord(null),
+    loggedIn: !!store.user, loggedOut: !store.user,
+    userAvatar: currentUser.avatar, userName: currentUser.name,
+    goLogin: () => store.nav('login'),
+    doLogout: () => store.logout(),
+    githubLogin: () => store.loginGithub(),
+    guestClick: () => store.nav('home'),
+    startRecordClick: () => store.startRecord(null),
     // responsive
-    isMobile: mob && route.screen !== 'login', isDesktopNav: !mob,
+    isMobile: isMobile && route.screen !== 'login', isDesktopNav: !isMobile,
     tabLeft, tabRight,
-    pagePad: mob ? '28px 18px 130px' : '40px 40px 80px',
-    pagePadTight: mob ? '20px 18px 130px' : '32px 40px 80px',
-    heroCols: mob ? '1fr' : '1.5fr 1fr',
-    homeSplitCols: mob ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
-    heroTitleSize: mob ? '30px' : '38px',
-    mapH: mob ? '300px' : '380px',
-    zukanCols: mob ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-    detailCols: mob ? '1fr' : '360px 1fr',
-    bottleH: mob ? '320px' : '420px',
-    specCols: mob ? '1fr 1fr' : '1fr 1fr 1fr',
-    postCols: mob ? '1fr' : '260px 1fr',
-    postCardPad: mob ? '20px 18px' : '32px 36px',
-    myCols: mob ? '1fr' : '1fr 380px',
+    pagePad: isMobile ? '28px 18px 130px' : '40px 40px 80px',
+    pagePadTight: isMobile ? '20px 18px 130px' : '32px 40px 80px',
+    heroCols: isMobile ? '1fr' : '1.5fr 1fr',
+    homeSplitCols: isMobile ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
+    heroTitleSize: isMobile ? '30px' : '38px',
+    mapH: isMobile ? '300px' : '380px',
+    zukanCols: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+    detailCols: isMobile ? '1fr' : '360px 1fr',
+    bottleH: isMobile ? '320px' : '420px',
+    specCols: isMobile ? '1fr 1fr' : '1fr 1fr 1fr',
+    postCols: isMobile ? '1fr' : '260px 1fr',
+    postCardPad: isMobile ? '20px 18px' : '32px 36px',
+    myCols: isMobile ? '1fr' : '1fr 380px',
     isHome: route.screen === 'home', isZukan: route.screen === 'zukan', isDetail: route.screen === 'detail', isRecord: route.screen === 'record', isMy: route.screen === 'mypage', isFeed: route.screen === 'feed', isPost: route.screen === 'post' && !!post, isMap: route.screen === 'map', isKura: route.screen === 'kura' && !!route.kuraName,
     // home
-    statCups: s.myRecords.length, statBrands: uniqBrands.size, statKura: uniqKura.size,
+    statCups: store.myRecords.length, statBrands: uniqBrands.size, statKura: uniqKura.size,
     today: { name: today.name, sub: subOf(today) },
-    todayClick: () => st.openDetail(today.id),
-    myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => st.nav('feed'), post: post ?? EMPTY_POST, ranking,
+    todayClick: () => store.openDetail(today.id),
+    myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => store.nav('feed'), post: post ?? EMPTY_POST, ranking,
     // detail
     d: { name: d.name, brewery: d.brewery, pref: d.pref, cls: d.cls, class: d.cls, polish: d.polish, rice: d.rice, yeast: d.yeast, smv: d.smv, abv: d.abv, temp: d.temp, desc: d.desc, x: d.x, y: d.y, rating: d.rating.toFixed(1), count: d.count },
     dStars: starStr(Math.round(d.rating)),
-    dRecordClick: () => { st.patch({ fromDetail: true }); st.startRecord(d.id); },
-    dWantClick: () => { if (!st.requireLogin()) return; st.patch({ wantIds: wanted ? s.wantIds.filter((x) => x !== d.id) : s.wantIds.concat([d.id]) }); },
+    dRecordClick: () => { store.patch({ fromDetail: true }); store.startRecord(d.id); },
+    dWantClick: () => { if (!store.requireLogin()) return; store.patch({ wantIds: wanted ? store.wantIds.filter((x) => x !== d.id) : store.wantIds.concat([d.id]) }); },
     dWantLabel: wanted ? '飲みたいリスト追加済 ✓' : '飲みたいリストへ',
     dWantBg: wanted ? '#32507C' : '#FDFBF5',
     dWantColor: wanted ? '#FDFBF5' : '#32507C',
     dHasMyPoint: !!myRecForD, dMyX: myRecForD ? myRecForD.x : 0, dMyY: myRecForD ? myRecForD.y : 0,
     dReviews, dShop,
     // record
-    recSteps, recProgress: r.step / 4 * 100,
-    recTitle: titles[r.step - 1][0], recSub: titles[r.step - 1][1],
-    isRecStep1: r.step === 1, isRecStep2: r.step === 2, isRecStep3: r.step === 3, isRecStep4: r.step === 4,
-    recQuery: r.query, onRecSearch: (e: ChangeEv) => st.setRec({ query: e.target.value }), recResults,
+    recSteps, recProgress: rec.step / 4 * 100,
+    recTitle: titles[rec.step - 1][0], recSub: titles[rec.step - 1][1],
+    isRecStep1: rec.step === 1, isRecStep2: rec.step === 2, isRecStep3: rec.step === 3, isRecStep4: rec.step === 4,
+    recQuery: rec.query, onRecSearch: (e: ChangeEv) => store.setRec({ query: e.target.value }), recResults,
     recBrandName: recBrand ? recBrand.name : '', recBrandSub: recBrand ? recBrand.brewery + ' / ' + recBrand.pref + ' — ' + recBrand.cls : '',
-    recChangeBrand: () => { st.patch({ fromDetail: false }); st.setRec({ step: 1 }); },
+    recChangeBrand: () => { store.patch({ fromDetail: false }); store.setRec({ step: 1 }); },
     onMapTap: (e: MouseEvent<HTMLDivElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = Math.min(95, Math.max(5, Math.round((e.clientX - rect.left) / rect.width * 100)));
       const y = Math.min(95, Math.max(5, Math.round((e.clientY - rect.top) / rect.height * 100)));
-      st.setRec({ x, y });
+      store.setRec({ x, y });
     },
-    recHasPoint: r.x != null, recX: r.x, recY: r.y, recGhostDots,
-    recTasteLabel, recSweet: r.sweet, recSweetLabel,
-    onSweet: (e: ChangeEv) => st.setRec({ sweet: Number(e.target.value) }),
-    recStars, recRatingLabel: r.rating > 0 ? r.rating.toFixed(1) : '未評価',
-    tempChips, recPairing: r.pairing,
-    onPairing: (e: ChangeEv) => st.setRec({ pairing: e.target.value }),
-    recMemo: r.memo, onMemo: (e: ChangeEv) => st.setRec({ memo: e.target.value }),
-    onPhoto: (e: ChangeEvent<HTMLInputElement>) => { const f = e.target.files && e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => st.setRec({ photo: rd.result as string }); rd.readAsDataURL(f); e.target.value = ''; },
-    onPhotoRemove: (e: MouseEvent) => { e.stopPropagation(); st.setRec({ photo: null }); },
-    recPhoto: r.photo || '', recHasPhoto: !!r.photo, recNoPhoto: !r.photo,
-    recStarsStr: starStr(r.rating), recEnjoyLabel: enjoyParts,
-    recPublic: r.isPublic,
-    toggleRecPublic: () => st.setRec({ isPublic: !r.isPublic }),
-    recShowFooter: r.step >= 2, recBack, recNext,
-    recNextLabel: r.step === 2 ? (step2Valid ? 'つぎへ — 合わせ' : 'マップに打点と評価をどうぞ') : r.step === 3 ? 'つぎへ — メモ' : '記す — 保存する',
+    recHasPoint: rec.x != null, recX: rec.x, recY: rec.y, recGhostDots,
+    recTasteLabel, recSweet: rec.sweet, recSweetLabel,
+    onSweet: (e: ChangeEv) => store.setRec({ sweet: Number(e.target.value) }),
+    recStars, recRatingLabel: rec.rating > 0 ? rec.rating.toFixed(1) : '未評価',
+    tempChips, recPairing: rec.pairing,
+    onPairing: (e: ChangeEv) => store.setRec({ pairing: e.target.value }),
+    recMemo: rec.memo, onMemo: (e: ChangeEv) => store.setRec({ memo: e.target.value }),
+    onPhoto: (e: ChangeEvent<HTMLInputElement>) => { const f = e.target.files && e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => store.setRec({ photo: rd.result as string }); rd.readAsDataURL(f); e.target.value = ''; },
+    onPhotoRemove: (e: MouseEvent) => { e.stopPropagation(); store.setRec({ photo: null }); },
+    recPhoto: rec.photo || '', recHasPhoto: !!rec.photo, recNoPhoto: !rec.photo,
+    recStarsStr: starStr(rec.rating), recEnjoyLabel: enjoyParts,
+    recPublic: rec.isPublic,
+    toggleRecPublic: () => store.setRec({ isPublic: !rec.isPublic }),
+    recShowFooter: rec.step >= 2, recBack, recNext,
+    recNextLabel: rec.step === 2 ? (step2Valid ? 'つぎへ — 合わせ' : 'マップに打点と評価をどうぞ') : rec.step === 3 ? 'つぎへ — メモ' : '記す — 保存する',
     recNextBg: nextOk ? '#32507C' : '#C9C2B2',
     recNextCursor: nextOk ? 'pointer' : 'default',
     // mypage
@@ -477,32 +476,32 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     drunkPrefSet: drunkPrefs,
     prefGrid,
     kuraMeta,
-    openDetail: (id: string) => st.openDetail(id),
-    openKura: (name: string) => st.openKura(name),
+    openDetail: (id: string) => store.openDetail(id),
+    openKura: (name: string) => store.openKura(name),
     mapStats,
-    goMap: () => st.nav('map'),
+    goMap: () => store.nav('map'),
     ku,
     // SAKE MEETUP
     homeNext, homePast, homeVoting, hasVoting: !!homeVoting, meetup, declare,
-    meetupsList, isMeetups: route.screen === 'meetups', goMeetups: () => st.nav('meetups'),
+    meetupsList, isMeetups: route.screen === 'meetups', goMeetups: () => store.nav('meetups'),
     isMeetup: route.screen === 'meetup', isDeclare: route.screen === 'declare',
     isMeetupCreate: route.screen === 'eventCreate',
-    openMeetupCreate: () => st.openEventCreate(),
+    openMeetupCreate: () => store.openEventCreate(),
     isKuraReg: route.screen === 'kuraReg',
-    openKuraReg: () => st.openKuraReg(),
-    meetCols: mob ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
-    kuraCols: mob ? '1fr' : 'minmax(0, 1.4fr) minmax(0, 1fr)',
-    kuraBrandCols: mob ? '1fr' : 'repeat(2, 1fr)',
-    dBreweryClick: () => st.openKura(d.brewery),
-    mapCols: mob ? '1fr' : 'minmax(0, 1.55fr) minmax(0, 1fr)',
-    mapPanelPad: mob ? '14px 12px' : '24px',
-    mapGap: mob ? '4px' : '6px',
+    openKuraReg: () => store.openKuraReg(),
+    meetCols: isMobile ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
+    kuraCols: isMobile ? '1fr' : 'minmax(0, 1.4fr) minmax(0, 1fr)',
+    kuraBrandCols: isMobile ? '1fr' : 'repeat(2, 1fr)',
+    dBreweryClick: () => store.openKura(d.brewery),
+    mapCols: isMobile ? '1fr' : 'minmax(0, 1.55fr) minmax(0, 1fr)',
+    mapPanelPad: isMobile ? '14px 12px' : '24px',
+    mapGap: isMobile ? '4px' : '6px',
     // toast
-    toastVisible: !!s.toast, toastMsg: s.toast,
+    toastVisible: !!store.toast, toastMsg: store.toast,
     stopProp: (e: MouseEvent) => e.stopPropagation(),
   };
 }
 
 // 画面コンポーネントが受け取るビューモデルの型。useVals の戻り値から推論する
-// （明示的な巨大interfaceを保守しなくて済む）。各画面は { v }: { v: Vals } で受ける。
+// （明示的な巨大interfaceを保守しなくて済む）。各画面は { vals }: { vals: Vals } で受ける。
 export type Vals = ReturnType<typeof useVals>;

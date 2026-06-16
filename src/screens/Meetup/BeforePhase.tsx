@@ -1,7 +1,7 @@
 import type { Vals } from '@/useVals';
 // 開催前フェーズ: 出欠トグル + 持ち寄りラインナップ + あなたの一本 + 幹事メニュー
-export function BeforePhase({ v }: { v: Vals }) {
-  const m = v.meetup;
+export function BeforePhase({ vals }: { vals: Vals }) {
+  const m = vals.meetup;
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28, flexWrap: 'wrap' }}>
@@ -16,7 +16,7 @@ export function BeforePhase({ v }: { v: Vals }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: v.meetCols, gap: 28, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: vals.meetCols, gap: 28, alignItems: 'start' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 16 }}>
             <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700 }}>持ち寄りラインナップ</div>

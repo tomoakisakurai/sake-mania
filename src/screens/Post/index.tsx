@@ -17,7 +17,7 @@ export interface CommentState {
   saveEdit: () => void;
 }
 
-export function Post({ v }: { v: Vals }) {
+export function Post({ vals }: { vals: Vals }) {
   const st = useStore();
   const [draft, setDraft] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -35,15 +35,15 @@ export function Post({ v }: { v: Vals }) {
   const cs: CommentState = { draft, setDraft, editingId, editDraft, setEditDraft, startEdit, cancelEdit, saveEdit };
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: v.pagePadTight }}>
-      <div onClick={v.goFeed} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 22 }}>← みんなの利き酒帳にもどる</div>
-      <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 16, padding: v.postCardPad }}>
-        <Header v={v} />
-        <div style={{ display: 'grid', gridTemplateColumns: v.postCols, gap: 32 }}>
-          <MediaColumn v={v} />
-          <TasteColumn v={v} />
+    <div style={{ maxWidth: 860, margin: '0 auto', padding: vals.pagePadTight }}>
+      <div onClick={vals.goFeed} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 22 }}>← みんなの利き酒帳にもどる</div>
+      <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 16, padding: vals.postCardPad }}>
+        <Header vals={vals} />
+        <div style={{ display: 'grid', gridTemplateColumns: vals.postCols, gap: 32 }}>
+          <MediaColumn vals={vals} />
+          <TasteColumn vals={vals} />
         </div>
-        <Comments v={v} cs={cs} />
+        <Comments vals={vals} cs={cs} />
       </div>
     </div>
   );

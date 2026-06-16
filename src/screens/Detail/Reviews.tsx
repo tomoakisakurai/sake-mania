@@ -1,10 +1,10 @@
 import type { Vals } from '@/useVals';
 // この銘柄の利き酒帳(レビュー一覧)
-export function Reviews({ v }: { v: Vals }) {
+export function Reviews({ vals }: { vals: Vals }) {
   return (
     <div style={{ maxWidth: 560 }}>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: "1px solid #E3DBCB", paddingBottom: 10, marginBottom: 4 }}>この銘柄の利き酒帳</div>
-      {v.dReviews.map((rv, i: number) => (
+      {vals.dReviews.map((rv, i: number) => (
         <div key={i} style={{ padding: "16px 4px", borderBottom: "1px solid #F0EADC" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
             <div style={{ fontSize: 13, fontWeight: 700 }}>{rv.user}</div>

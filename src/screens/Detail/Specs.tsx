@@ -9,15 +9,15 @@ function Cell({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function Specs({ v }: { v: Vals }) {
+export function Specs({ vals }: { vals: Vals }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: v.specCols, gap: 1, background: "#E3DBCB", border: "1px solid #E3DBCB", borderRadius: 10, overflow: "hidden", maxWidth: 560, marginBottom: 28 }}>
-      <Cell label="精米歩合" value={v.d.polish} />
-      <Cell label="酒米" value={v.d.rice} />
-      <Cell label="酵母" value={v.d.yeast} />
-      <Cell label="日本酒度" value={v.d.smv} />
-      <Cell label="アルコール" value={v.d.abv} />
-      <Cell label="おすすめ温度" value={v.d.temp} />
+    <div style={{ display: "grid", gridTemplateColumns: vals.specCols, gap: 1, background: "#E3DBCB", border: "1px solid #E3DBCB", borderRadius: 10, overflow: "hidden", maxWidth: 560, marginBottom: 28 }}>
+      <Cell label="精米歩合" value={vals.d.polish} />
+      <Cell label="酒米" value={vals.d.rice} />
+      <Cell label="酵母" value={vals.d.yeast} />
+      <Cell label="日本酒度" value={vals.d.smv} />
+      <Cell label="アルコール" value={vals.d.abv} />
+      <Cell label="おすすめ温度" value={vals.d.temp} />
     </div>
   );
 }
