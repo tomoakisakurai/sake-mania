@@ -1,6 +1,8 @@
+import type { ChangeEvent } from 'react';
 import type { Vals } from '@/useVals';
+
 // 持ち寄り宣言: 銘柄を選んだ状態(確認 + かぶり警告 + ひとこと + 宣言ボタン)
-export function Picked({ v }: { v: Vals }) {
+export function Picked({ v, note, setNote }: { v: Vals; note: string; setNote: (n: string) => void }) {
   const d = v.declare;
   return (
     <>
@@ -19,8 +21,8 @@ export function Picked({ v }: { v: Vals }) {
         </div>
       )}
       <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>ひとこと <span style={{ color: "#A89D8A", fontWeight: 400 }}>(任意)</span></div>
-      <textarea value={d.note} onChange={d.onNote} rows={2} placeholder="例: 夏はやっぱり微発泡から!" style={{ width: "100%", background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 10, padding: "12px 16px", fontSize: 14, lineHeight: 1.8, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", resize: "vertical", marginBottom: 22 }}></textarea>
-      <div onClick={d.submit} style={{ background: "#BC6A2D", color: "#FDFBF5", borderRadius: 999, padding: 15, textAlign: "center", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>この一本を宣言する</div>
+      <textarea value={note} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNote(e.target.value)} rows={2} placeholder="例: 夏はやっぱり微発泡から!" style={{ width: "100%", background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 10, padding: "12px 16px", fontSize: 14, lineHeight: 1.8, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", resize: "vertical", marginBottom: 22 }}></textarea>
+      <div onClick={() => d.submit(note)} style={{ background: "#BC6A2D", color: "#FDFBF5", borderRadius: 999, padding: 15, textAlign: "center", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>この一本を宣言する</div>
     </>
   );
 }

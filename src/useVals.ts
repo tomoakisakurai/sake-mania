@@ -1,6 +1,6 @@
 // Faithful port of the Claude Design prototype's renderVals(): builds the full
 // view-model object consumed by every screen. Mirrors the prototype 1:1.
-import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
+import type { ChangeEvent, MouseEvent } from 'react';
 import { useStore } from './store';
 import type { RouteState } from '@/lib/routes';
 import type { ReferenceData } from '@/lib/getReferenceData';
@@ -27,7 +27,7 @@ const EMPTY_POST: PostVM = {
   canNomi: false, cantNomi: true,
   nomiCount: 0, nomiBg: '', nomiColor: '', nomiClick: noop,
   comments: [], commentCount: 0, hasComments: false,
-  commentSend: noop, onCommentKey: noop,
+  commentSend: (_draft: string) => {},
 };
 
 // socialOf/mkFeed が読む記録のフィールド（PublicRec/MyRec/OtherRec が満たす最小構造）
@@ -68,16 +68,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   // feed
   const u = s.user || { name: 'yuu_sake_log', avatar: '悠' };
   const yuuWho = { user: u.name, mine: '(あなた)', avatar: u.avatar, avatarBg: '#DDD3BE' };
-  const loginTabs = ([['login', 'ログイン'], ['signup', '新規登録']] as ['login' | 'signup', string][]).map((t) => ({
-    label: t[1], click: () => st.patch({ loginMode: t[0] }),
-    color: s.loginMode === t[0] ? '#2E2A24' : '#A89D8A',
-    weight: s.loginMode === t[0] ? 700 : 400,
-    border: s.loginMode === t[0] ? '2px solid #32507C' : '2px solid transparent',
-  }));
-  const socialBtns = [
-    { mark: 'G', markColor: '#4285F4', label: 'Googleでつづける' },
-    { mark: '●', markColor: '#06C755', label: 'LINEでつづける' },
-  ].map((o) => ({ ...o, click: () => st.doLogin() }));
 
   const socialOf = (x: SocialRec) => {
     // 押下後はストアのマップを優先、未取得時はレコード同梱の値（=フィードの数字が遅れない）
@@ -124,7 +114,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
           ? px.date + ' ・ ' + pxUser + ' さんの記録'
           : (px as OtherRec).time + ' ・ ' + (px as OtherRec).place;
       const pso = socialOf(px);
-      const ed = s.editingComment;
       post = {
         user: isMine ? yuuWho.user : pxUser, mine: isMine ? '(あなた)' : '',
         avatar: isMine ? yuuWho.avatar : pxAvatar, avatarBg: isMine ? yuuWho.avatarBg : pxAvatarBg,
@@ -147,19 +136,16 @@ export function useVals(route: RouteState, ref: ReferenceData) {
         nomiBg: pso.liked ? '#BC6A2D' : '#FDFBF5',
         nomiColor: pso.liked ? '#FDFBF5' : '#BC6A2D',
         nomiClick: () => st.toggleNomi(px.rid),
-        comments: (s.commentsByRid[px.rid] || []).map((c) => {
-          const editing = ed === c.id;
-          return {
-            user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
-            time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
-            canEdit: c.mine && !editing, isEditing: editing, notEditing: !editing,
-            editClick: () => st.patch({ editingComment: c.id, editDraft: c.text }),
-            deleteClick: () => st.deleteComment(c.id),
-          };
-        }),
+        comments: (s.commentsByRid[px.rid] || []).map((c) => ({
+          id: c.id,
+          user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
+          time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
+          canEdit: c.mine,
+          initEditDraft: c.text,
+          deleteClick: () => st.deleteComment(c.id),
+        })),
         commentCount: pso.commentCount, hasComments: pso.commentCount > 0,
-        commentSend: () => st.addComment(px.rid),
-        onCommentKey: (e: KeyboardEvent) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !(e.nativeEvent && e.nativeEvent.isComposing) && e.keyCode !== 229) { e.preventDefault(); st.addComment(px.rid); } },
+        commentSend: (draft: string) => st.addComment(px.rid, draft),
       };
     }
   }
@@ -168,16 +154,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const ranking = brands.slice().sort((a, b) => b.count - a.count).slice(0, 4).map((b, i) => ({ rank: ['壱', '弐', '参', '四'][i], color: i === 0 ? '#BC6A2D' : '#8B8273', name: b.name, brewery: b.brewery + ' / ' + b.pref, count: b.count + '記録', click: () => st.openDetail(b.id) }));
 
   const today = byId('kuheiji') || brands[0] || EMPTY_BRAND;
-
-  // zukan
-  const q = s.searchQuery.trim();
-  let fb = brands.filter((b) => !q || (b.name + b.brewery + b.rice + b.pref).indexOf(q) !== -1);
-  if (s.activeTag) fb = fb.filter((b) => b.tags.indexOf(s.activeTag!) !== -1);
-  const filteredBrands = fb.map((b) => ({ name: b.name, brewery: b.brewery, pref: b.pref, polish: b.polish, rice: b.rice, rating: b.rating.toFixed(1), pct: Math.round(b.rating / 5 * 100), click: () => st.openDetail(b.id) }));
-  const tagChips = ['フルーティ', '辛口', '生酒', 'ガス感', '燗映え', 'ジューシー'].map((t) => {
-    const a = s.activeTag === t;
-    return { label: t, bg: a ? '#32507C' : '#FDFBF5', color: a ? '#FDFBF5' : '#5C5547', border: a ? '1px solid #32507C' : '1px solid #E3DBCB', click: () => st.patch({ activeTag: a ? null : t }) };
-  });
 
   // detail
   const d = byId(route.detailId) || brands[0];
@@ -234,45 +210,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     kuraByPref[b.pref][b.brewery].push(b);
   });
   const drunkPrefs = new Set(s.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).pref).filter(Boolean));
-  const prefTiles = prefGrid.map((p) => {
-    const name = p[0];
-    const hasK = !!kuraByPref[name];
-    const drunk = drunkPrefs.has(name);
-    const sel = s.mapPref === name;
-    const kuraCount = hasK ? Object.keys(kuraByPref[name]).length : 0;
-    return {
-      name, col: p[1], row: p[2],
-      bg: drunk ? '#BC6A2D' : hasK ? '#32507C' : '#F3EDDF',
-      color: hasK ? '#FDFBF5' : '#B9AE99',
-      border: sel ? '2px solid #2E2A24' : hasK ? '1px solid transparent' : '1px solid #EAE2D0',
-      fs: name.length >= 4 ? (mob ? '6.5px' : '8.5px') : (mob ? '8.5px' : '11px'),
-      fsSub: mob ? '7px' : '9px',
-      cursor: hasK ? 'pointer' : 'default',
-      hasCount: kuraCount > 0, countLabel: kuraCount + '蔵',
-      click: hasK ? (() => st.patch({ mapPref: sel ? null : name })) : (() => { /* noop */ }),
-    };
-  });
-  const mapPref = s.mapPref;
-  const mapKuras = (mapPref && kuraByPref[mapPref])
-    ? Object.keys(kuraByPref[mapPref]).map((kn) => {
-        const meta = kuraMeta[kn];
-        const bs = kuraByPref[mapPref][kn];
-        const cups = s.myRecords.filter((x) => bs.some((b) => b.id === x.brandId)).length;
-        return {
-          name: kn,
-          nameClick: () => st.openKura(kn),
-          gmapLink: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(kn + ' ' + (meta?.city || '') + ' ' + mapPref),
-          meta: mapPref + ' ' + (meta?.city || '') + (meta?.founded ? ' — 創業 ' + meta.founded + '年' : ''),
-          hasCups: cups > 0, cupsLabel: '呑んだ盃 ' + cups,
-          brands: bs.map((b) => ({ label: b.name, click: () => st.openDetail(b.id) })),
-        };
-      })
-    : [];
-  const prefChipList = Object.keys(kuraByPref).map((pn) => ({
-    label: pn + ' ' + Object.keys(kuraByPref[pn]).length + '蔵',
-    bg: drunkPrefs.has(pn) ? '#BC6A2D' : '#32507C',
-    click: () => st.patch({ mapPref: pn }),
-  }));
   const mapStats = '蔵のある県 ' + Object.keys(kuraByPref).length + ' ・ 呑んだ県 ' + drunkPrefs.size + ' / 47';
 
   // ===== SAKE MEETUP（DB由来） =====
@@ -328,7 +265,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   allBring.forEach((b) => { brandCounts[b.brandId] = (brandCounts[b.brandId] || 0) + 1; });
   const bringList = allBring.map((b) => {
     const br = byId(b.brandId) || EMPTY_BRAND;
-    return { memberName: b.memberName, avatar: b.avatar, avatarBg: b.avatarBg, mine: !!b.mine, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, note: b.note || '', dup: brandCounts[b.brandId] > 1, brandClick: () => st.openDetail(b.brandId) };
+    return { brandId: b.brandId, memberName: b.memberName, avatar: b.avatar, avatarBg: b.avatarBg, mine: !!b.mine, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, note: b.note || '', dup: brandCounts[b.brandId] > 1, brandClick: () => st.openDetail(b.brandId) };
   });
   const voteCounts: Record<string, number> = md?.voteCounts || {};
   const myVote = md?.myVoteBrandId || null;
@@ -373,48 +310,17 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   };
 
   // declare flow（かぶり判定は現在の宣言一覧から）
-  const dq = (s.declareQuery || '').trim();
-  const declareResults = brands.filter((b) => !dq || (b.name + b.brewery + b.pref).indexOf(dq) !== -1).slice(0, 6).map((b) => {
-    const taken = allBring.find((x) => x.brandId === b.id && !x.mine);
-    return { name: b.name, sub: b.brewery + ' / ' + b.pref, taken: !!taken, takenLabel: taken ? (taken.memberName + 'さんと かぶり') : '', click: () => st.patch({ declareBrandId: b.id }) };
-  });
   const dBrand = byId(s.declareBrandId);
   const dTaken = dBrand ? allBring.find((x) => x.brandId === dBrand.id && !x.mine) : null;
   const declare = {
     meetName: md?.name || '',
-    query: s.declareQuery, onQuery: (e: ChangeEv) => st.patch({ declareQuery: e.target.value }), results: declareResults,
     picked: !!dBrand, pickedName: dBrand ? dBrand.name : '', pickedSub: dBrand ? (dBrand.brewery + ' / ' + dBrand.pref) : '',
     changeBrand: () => st.patch({ declareBrandId: null }),
     dupWarn: !!dTaken, dupWarnLabel: dTaken ? (dTaken.memberName + 'さんが既に持ち寄り予定です。かぶってもOKですが、変えると喜ばれるかも。') : '',
-    note: s.declareNote, onNote: (e: ChangeEv) => st.patch({ declareNote: e.target.value }),
-    canSubmit: !!dBrand, submit: () => st.submitDeclare(meId),
+    canSubmit: !!dBrand,
+    submit: (note: string) => st.submitDeclare(meId, note),
     notPicked: !dBrand,
     cancel: () => st.openMeetup(meId),
-  };
-  const kuraReg = {
-    krName: s.krName, onName: (e: ChangeEv) => st.patch({ krName: e.target.value }),
-    krPref: s.krPref, onPref: (e: ChangeEv) => st.patch({ krPref: e.target.value }),
-    krCity: s.krCity, onCity: (e: ChangeEv) => st.patch({ krCity: e.target.value }),
-    krFounded: s.krFounded, onFounded: (e: ChangeEv) => st.patch({ krFounded: e.target.value }),
-    krBrands: s.krBrands, onBrands: (e: ChangeEv) => st.patch({ krBrands: e.target.value }),
-    krDesc: s.krDesc, onDesc: (e: ChangeEv) => st.patch({ krDesc: e.target.value }),
-    submit: () => st.submitKuraReg(),
-    done: s.krDone, notDone: !s.krDone,
-    registeredName: s.krName,
-    another: () => st.resetKuraReg(),
-    backToMap: () => st.nav('map'),
-  };
-  const meetupCreate = {
-    ecName: s.ecName, onName: (e: ChangeEv) => st.patch({ ecName: e.target.value }),
-    ecDate: s.ecDate, onDate: (e: ChangeEv) => st.patch({ ecDate: e.target.value }),
-    ecPlace: s.ecPlace, onPlace: (e: ChangeEv) => st.patch({ ecPlace: e.target.value }),
-    ecDesc: s.ecDesc, onDesc: (e: ChangeEv) => st.patch({ ecDesc: e.target.value }),
-    submit: () => st.submitEventCreate(),
-    done: s.ecDone, notDone: !s.ecDone,
-    registeredName: s.ecName,
-    another: () => st.resetEventCreate(),
-    goHome: () => st.nav('home'),
-    backHome: () => st.nav('home'),
   };
 
   // kura detail
@@ -471,17 +377,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const badges = badgeDefs.map((b) => ({ icon: b.icon, label: b.label, bg: b.on ? '#32507C' : '#EFEAE0', color: b.on ? '#FDFBF5' : '#BCB29D', labelColor: b.on ? '#2E2A24' : '#A89D8A' }));
   const achievedCount = badgeDefs.filter((b) => b.on).length;
 
-  // 飲める店マップ
-  const isBars = s.mapMode === 'bars';
-  const barSel = bars.find((b) => b.id === s.barId) || bars[0] || EMPTY_BAR;
-  const barList = bars.map((b) => ({ name: b.name, area: b.area, type: b.type, sel: b.id === barSel.id, bg: b.id === barSel.id ? '#32507C' : '#FFFFFF', color: b.id === barSel.id ? '#FDFBF5' : '#2E2A24', subColor: b.id === barSel.id ? 'rgba(253,251,245,0.7)' : '#8B8273', click: () => st.patch({ barId: b.id }) }));
-  const barView = {
-    name: barSel.name, area: barSel.area, type: barSel.type, note: barSel.note,
-    mapSrc: 'https://www.google.com/maps?q=' + encodeURIComponent(barSel.venueQ) + '&output=embed&hl=ja&z=15',
-    mapLink: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(barSel.venueQ),
-    brands: (barSel.brands || []).map((id: string) => { const br = byId(id) || EMPTY_BRAND; return { label: br.name, click: () => st.openDetail(id) }; }),
-  };
-
   return {
     // nav
     navItems,
@@ -491,7 +386,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     // SP ハンバーガーメニュー項目（タブバーから外れた導線をここで補う）
     menuItems: [
       { label: '酒蔵マップ', click: () => st.nav('map') },
-      { label: '飲める店', click: () => { st.patch({ mapMode: 'bars' }); st.nav('map'); } },
+      { label: '飲める店', click: () => st.nav('map') },
       { label: 'みんなの利き酒帳', click: () => st.nav('feed') },
       { label: 'イベントを立てる', click: () => st.openEventCreate() },
       { label: '酒蔵を登録する', click: () => st.openKuraReg() },
@@ -503,14 +398,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     userAvatar: u.avatar, userName: u.name,
     goLogin: () => st.nav('login'),
     doLogout: () => st.logout(),
-    loginTabs, isSignup: s.loginMode === 'signup',
-    loginName: s.loginName, onLoginName: (e: ChangeEv) => st.patch({ loginName: e.target.value }),
-    loginEmail: s.loginEmail, onLoginEmail: (e: ChangeEv) => st.patch({ loginEmail: e.target.value }),
-    loginPw: s.loginPw, onLoginPw: (e: ChangeEv) => st.patch({ loginPw: e.target.value }),
-    loginCta: s.loginMode === 'signup' ? '登録してはじめる' : 'ログイン',
-    doLoginClick: () => st.doLogin(),
     githubLogin: () => st.loginGithub(),
-    socialBtns,
     guestClick: () => st.nav('home'),
     startRecordClick: () => st.startRecord(null),
     // responsive
@@ -535,10 +423,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     today: { name: today.name, sub: subOf(today) },
     todayClick: () => st.openDetail(today.id),
     myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => st.nav('feed'), post: post ?? EMPTY_POST, ranking,
-    // zukan
-    searchQuery: s.searchQuery,
-    onSearch: (e: ChangeEv) => st.patch({ searchQuery: e.target.value }),
-    tagChips, filteredBrands, resultCount: filteredBrands.length,
     // detail
     d: { name: d.name, brewery: d.brewery, pref: d.pref, cls: d.cls, class: d.cls, polish: d.polish, rice: d.rice, yeast: d.yeast, smv: d.smv, abv: d.abv, temp: d.temp, desc: d.desc, x: d.x, y: d.y, rating: d.rating.toFixed(1), count: d.count },
     dStars: starStr(Math.round(d.rating)),
@@ -586,40 +470,33 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     cupsCount: cupsN,
     badges, achievedCount, badgeTotal: badgeDefs.length,
     badgePref: prefSet2.size, badgeKura: kuraSet2.size,
-    // 飲める店
-    isBars, mapModeKura: !isBars, mapModeBars: isBars,
-    kuraTabBg: isBars ? 'transparent' : '#32507C', kuraTabColor: isBars ? '#8B8273' : '#FDFBF5',
-    barsTabBg: isBars ? '#BC6A2D' : 'transparent', barsTabColor: isBars ? '#FDFBF5' : '#8B8273',
-    setMapKura: () => st.patch({ mapMode: 'kura' }), setMapBars: () => st.patch({ mapMode: 'bars' }),
-    barList, barView,
-    // kura map
-    prefTiles, mapKuras, prefChipList, mapStats,
+    // kura map（Map画面のuseMapStateで使う生データ）
+    allBrands: brands,
+    allBars: bars,
+    kuraByPref,
+    drunkPrefSet: drunkPrefs,
+    prefGrid,
+    kuraMeta,
+    openDetail: (id: string) => st.openDetail(id),
+    openKura: (name: string) => st.openKura(name),
+    mapStats,
     goMap: () => st.nav('map'),
     ku,
     // SAKE MEETUP
-    homeNext, homePast, homeVoting, hasVoting: !!homeVoting, meetup, declare, meetupCreate,
+    homeNext, homePast, homeVoting, hasVoting: !!homeVoting, meetup, declare,
     meetupsList, isMeetups: route.screen === 'meetups', goMeetups: () => st.nav('meetups'),
     isMeetup: route.screen === 'meetup', isDeclare: route.screen === 'declare',
     isMeetupCreate: route.screen === 'eventCreate',
     openMeetupCreate: () => st.openEventCreate(),
     isKuraReg: route.screen === 'kuraReg',
-    kuraReg, openKuraReg: () => st.openKuraReg(),
+    openKuraReg: () => st.openKuraReg(),
     meetCols: mob ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
     kuraCols: mob ? '1fr' : 'minmax(0, 1.4fr) minmax(0, 1fr)',
     kuraBrandCols: mob ? '1fr' : 'repeat(2, 1fr)',
     dBreweryClick: () => st.openKura(d.brewery),
-    mapHasSel: !!s.mapPref, mapNoSel: !s.mapPref, mapSelPref: s.mapPref || '',
     mapCols: mob ? '1fr' : 'minmax(0, 1.55fr) minmax(0, 1fr)',
     mapPanelPad: mob ? '14px 12px' : '24px',
     mapGap: mob ? '4px' : '6px',
-    // comments
-    commentDraft: s.commentDraft,
-    onCommentDraft: (e: ChangeEv) => st.patch({ commentDraft: e.target.value }),
-    editDraft: s.editDraft,
-    onEditDraft: (e: ChangeEv) => st.patch({ editDraft: e.target.value }),
-    editSave: () => st.saveEditComment(),
-    editCancel: () => st.patch({ editingComment: null, editDraft: '' }),
-    onEditKey: (e: KeyboardEvent) => { const composing = (e.nativeEvent && e.nativeEvent.isComposing) || e.keyCode === 229; if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !composing) { e.preventDefault(); st.saveEditComment(); } else if (e.key === 'Escape') st.patch({ editingComment: null, editDraft: '' }); },
     // toast
     toastVisible: !!s.toast, toastMsg: s.toast,
     stopProp: (e: MouseEvent) => e.stopPropagation(),

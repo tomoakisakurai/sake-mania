@@ -1,6 +1,4 @@
 // Types mirror the Claude Design prototype data shapes exactly.
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
-
 export type Screen =
   | 'login'
   | 'home'
@@ -198,15 +196,14 @@ export interface EditingComment {
 }
 
 export interface CommentVM {
+  id: string;
   user: string;
   avatar: string;
   avatarBg: string;
   time: string;
   text: string;
   canEdit: boolean;
-  isEditing: boolean;
-  notEditing: boolean;
-  editClick: () => void;
+  initEditDraft: string;
   deleteClick: () => void;
 }
 
@@ -250,6 +247,5 @@ export interface PostVM {
   comments: CommentVM[];
   commentCount: number;
   hasComments: boolean;
-  commentSend: () => void;
-  onCommentKey: (e: ReactKeyboardEvent) => void;
+  commentSend: (draft: string) => void;
 }

@@ -1,5 +1,25 @@
+import { useState } from 'react';
+import type { ChangeEvent } from 'react';
 import type { Vals } from '@/useVals';
+import { useStore } from '@/store';
+
 export function Login({ v }: { v: Vals }) {
+  const st = useStore();
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [pw, setPw] = useState('');
+
+  const loginTabs = (['login', 'signup'] as const).map((t) => ({
+    label: t === 'login' ? 'ログイン' : '新規登録',
+    click: () => setMode(t),
+    color: mode === t ? '#2E2A24' : '#A89D8A',
+    weight: mode === t ? 700 : 400,
+    border: mode === t ? '2px solid #32507C' : '2px solid transparent',
+  }));
+  const isSignup = mode === 'signup';
+  const loginCta = isSignup ? '登録してはじめる' : 'ログイン';
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 18px' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
@@ -10,21 +30,21 @@ export function Login({ v }: { v: Vals }) {
         </div>
         <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 16, padding: '28px 26px' }}>
           <div style={{ display: 'flex', borderBottom: '1px solid #E3DBCB', marginBottom: 24 }}>
-            {v.loginTabs.map((lt, i: number) => (
+            {loginTabs.map((lt, i: number) => (
               <div key={i} onClick={lt.click} style={{ flex: 1, textAlign: 'center', paddingBottom: 12, fontSize: 14, cursor: 'pointer', color: lt.color, fontWeight: lt.weight, borderBottom: lt.border, marginBottom: -1 }}>{lt.label}</div>
             ))}
           </div>
-          {v.isSignup && (
+          {isSignup && (
             <>
               <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>ニックネーム</div>
-              <input type="text" value={v.loginName} onChange={v.onLoginName} placeholder="例: sake_taro" style={{ width: '100%', background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', marginBottom: 16 }} />
+              <input type="text" value={name} onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)} placeholder="例: sake_taro" style={{ width: '100%', background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', marginBottom: 16 }} />
             </>
           )}
           <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>メールアドレス</div>
-          <input type="email" value={v.loginEmail} onChange={v.onLoginEmail} placeholder="you@example.com" style={{ width: '100%', background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', marginBottom: 16 }} />
+          <input type="email" value={email} onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} placeholder="you@example.com" style={{ width: '100%', background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', marginBottom: 16 }} />
           <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>パスワード</div>
-          <input type="password" value={v.loginPw} onChange={v.onLoginPw} placeholder="••••••••" style={{ width: '100%', background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', marginBottom: 22 }} />
-          <div onClick={v.doLoginClick} style={{ background: '#32507C', color: '#FDFBF5', borderRadius: 999, padding: 14, textAlign: 'center', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>{v.loginCta}</div>
+          <input type="password" value={pw} onChange={(e: ChangeEvent<HTMLInputElement>) => setPw(e.target.value)} placeholder="••••••••" style={{ width: '100%', background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', marginBottom: 22 }} />
+          <div onClick={() => st.doLogin(email.trim(), pw, name, mode)} style={{ background: '#32507C', color: '#FDFBF5', borderRadius: 999, padding: 14, textAlign: 'center', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>{loginCta}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
             <div style={{ flex: 1, height: 1, background: '#E3DBCB' }}></div>
             <span style={{ fontSize: 11, color: '#A89D8A' }}>または</span>

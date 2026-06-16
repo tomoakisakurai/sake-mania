@@ -22,20 +22,9 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined;
 export interface State {
   vw: number;
   user: User | null;
-  loginMode: 'login' | 'signup';
-  loginName: string;
-  loginEmail: string;
-  loginPw: string;
-  searchQuery: string;
-  activeTag: string | null;
   toast: string;
   wantIds: string[];
-  mapPref: string | null;
   declareBrandId: string | null;
-  declareNote: string;
-  declareQuery: string;
-  mapMode: 'kura' | 'bars';
-  barId: string | null;
   meetupList: MeetupView[];
   meetupDetail: MeetupDetail | null;
   // 描画後にクライアントから後追い取得する参照データ（null=未取得）
@@ -43,14 +32,9 @@ export interface State {
   myNomi: Record<string, boolean>;
   nomiCounts: Record<string, number>;
   commentsByRid: Record<string, CommentItem[]>;
-  commentDraft: string;
-  editingComment: string | null;
-  editDraft: string;
   rec: Rec;
   myRecords: MyRec[];
   publicRecords: PublicRec[];
-  krName: string; krPref: string; krCity: string; krFounded: string; krBrands: string; krDesc: string; krDone: boolean;
-  ecName: string; ecDate: string; ecPlace: string; ecDesc: string; ecDone: boolean;
   fromDetail: boolean;
 
   // navigation bridge (injected from the React tree by Providers)
@@ -75,7 +59,7 @@ export interface State {
   loadMyRecords: () => void;
   loadPublicRecords: () => void;
   setRecordPublic: (recordId: string, isPublic: boolean) => void;
-  doLogin: () => void;
+  doLogin: (email: string, pw: string, name: string, mode: 'login' | 'signup') => void;
   loginGithub: () => void;
   logout: () => void;
   startRecord: (brandId: string | null) => void;
@@ -83,53 +67,34 @@ export interface State {
   saveRecord: () => void;
   loadSocial: () => void;
   toggleNomi: (rid: string) => void;
-  addComment: (rid: string) => void;
+  addComment: (rid: string, draft: string) => void;
   deleteComment: (commentId: string) => void;
-  saveEditComment: () => void;
+  saveEditComment: (id: string, text: string) => void;
   loadMeetups: () => void;
   loadMeetupDetail: (id: string) => void;
   toggleGoing: (id: string) => void;
-  submitDeclare: (meetupId: string) => void;
+  submitDeclare: (meetupId: string, note: string) => void;
   cancelDeclare: (id: string) => void;
   voteMvp: (meetId: string, brandId: string) => void;
   setPhase: (meetId: string, phase: MeetupPhase) => void;
-  submitKuraReg: () => void;
-  resetKuraReg: () => void;
-  submitEventCreate: () => void;
-  resetEventCreate: () => void;
+  submitEventCreate: (form: { name: string; date: string; place: string; desc: string }) => Promise<boolean>;
 }
 
 export const useStore = create<State>((set, get) => ({
   vw: 1200, // desktop default; Providers sets the real width after mount
   user: null,
-  loginMode: 'login',
-  loginName: '',
-  loginEmail: '',
-  loginPw: '',
-  searchQuery: '',
-  activeTag: null,
   toast: '',
   wantIds: ['kuheiji', 'hanaabi'],
-  mapPref: null,
   declareBrandId: null,
-  declareNote: '',
-  declareQuery: '',
-  mapMode: 'kura',
-  barId: null,
   meetupList: [],
   meetupDetail: null,
   deferredRef: null,
   myNomi: {},
   nomiCounts: {},
   commentsByRid: {},
-  commentDraft: '',
-  editingComment: null,
-  editDraft: '',
   rec: freshRec(null),
   myRecords: [],
   publicRecords: [],
-  krName: '', krPref: '', krCity: '', krFounded: '', krBrands: '', krDesc: '', krDone: false,
-  ecName: '', ecDate: '', ecPlace: '', ecDesc: '', ecDone: false,
   fromDetail: false,
 
   _navigate: () => { /* set by Providers once the router is available */ },
@@ -182,35 +147,32 @@ export const useStore = create<State>((set, get) => ({
     get().flash(isPublic ? 'みんなの利き酒帳に公開しました' : '公開を取り消しました');
   },
 
-  doLogin: async () => {
-    const st = get();
+  doLogin: async (email, pw, name, mode) => {
     const supabase = getSupabaseBrowser();
     if (!supabase) { get().flash('Supabaseが未設定です（環境変数 NEXT_PUBLIC_SUPABASE_URL / ANON_KEY を設定してください）'); return; }
-    const email = st.loginEmail.trim();
-    const pw = st.loginPw;
     if (!email || !pw) { get().flash('メールアドレスとパスワードを入力してください'); return; }
-    const isSignup = st.loginMode === 'signup';
+    const isSignup = mode === 'signup';
 
-    const welcome = (name: string, signup: boolean) => {
+    const welcome = (userName: string, signup: boolean) => {
       clearTimeout(toastTimer);
-      set({ toast: signup ? 'ようこそ、' + name + ' さん — 最初の一杯を記録してみましょう' : 'おかえりなさい、' + name + ' さん' });
+      set({ toast: signup ? 'ようこそ、' + userName + ' さん — 最初の一杯を記録してみましょう' : 'おかえりなさい、' + userName + ' さん' });
       toastTimer = setTimeout(() => set({ toast: '' }), 4000);
     };
 
     if (isSignup) {
-      const nickname = st.loginName.trim() || email.split('@')[0];
+      const nickname = name.trim() || email.split('@')[0];
       const { data, error } = await supabase.auth.signUp({ email, password: pw, options: { data: { nickname } } });
       if (error) { get().flash('登録に失敗しました: ' + error.message); return; }
       if (!data.session) { get().flash('確認メールを送信しました。メール内のリンクから認証してください'); return; }
       const user = mapUser(data.user);
-      set({ user, loginPw: '' });
+      set({ user });
       welcome(user?.name ?? nickname, true);
       get()._navigate('/');
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password: pw });
       if (error) { get().flash('ログインに失敗しました: ' + error.message); return; }
       const user = mapUser(data.user);
-      set({ user, loginPw: '' });
+      set({ user });
       welcome(user?.name ?? email, false);
       get()._navigate('/');
     }
@@ -230,7 +192,7 @@ export const useStore = create<State>((set, get) => ({
   logout: async () => {
     const supabase = getSupabaseBrowser();
     if (supabase) await supabase.auth.signOut();
-    set({ user: null, myRecords: [], loginEmail: '', loginPw: '', loginName: '', loginMode: 'login' });
+    set({ user: null, myRecords: [] });
     get()._navigate('/login');
   },
 
@@ -267,29 +229,24 @@ export const useStore = create<State>((set, get) => ({
     if (!res) return;
     set((s) => ({ myNomi: { ...s.myNomi, [rid]: res.liked }, nomiCounts: { ...s.nomiCounts, [rid]: res.count } }));
   },
-  addComment: async (rid) => {
-    const t = get().commentDraft.trim();
+  addComment: async (rid, draft) => {
+    const t = draft.trim();
     if (!t) return;
     if (!get().requireLogin()) return;
     const ok = await addCommentAction(rid, t);
     if (!ok) { get().flash('コメントの送信に失敗しました'); return; }
-    set({ commentDraft: '' });
     await get().loadSocial();
   },
   deleteComment: async (commentId) => {
     const ok = await deleteCommentAction(commentId);
     if (!ok) return;
-    set({ editingComment: null });
     await get().loadSocial();
   },
-  saveEditComment: async () => {
-    const id = get().editingComment;
-    if (!id) return;
-    const t = get().editDraft.trim();
+  saveEditComment: async (id, text) => {
+    const t = text.trim();
     if (!t) return;
     const ok = await editCommentAction(id, t);
     if (!ok) { get().flash('編集に失敗しました'); return; }
-    set({ editingComment: null, editDraft: '' });
     await get().loadSocial();
   },
 
@@ -310,14 +267,13 @@ export const useStore = create<State>((set, get) => ({
     if (!get().requireLogin()) return;
     const md = get().meetupDetail;
     const ex = md && md.id === id ? md.myBringBrandId : null;
-    const exBring = md && md.id === id ? md.brings.find((b) => b.mine) : undefined;
-    set({ declareBrandId: ex, declareNote: exBring?.note || '', declareQuery: '' });
+    set({ declareBrandId: ex });
     get()._navigate(paths.declare(id));
   },
-  submitDeclare: async (meetupId) => {
+  submitDeclare: async (meetupId, note) => {
     const brandId = get().declareBrandId;
     if (!brandId) { get().flash('持ち寄る一本を選んでください'); return; }
-    const ok = await declareBring(meetupId, brandId, get().declareNote);
+    const ok = await declareBring(meetupId, brandId, note);
     if (!ok) { get().flash('宣言に失敗しました（ログインが必要です）'); return; }
     await Promise.all([get().loadMeetupDetail(meetupId), get().loadMeetups()]);
     get()._navigate(paths.meetup(meetupId));
@@ -342,27 +298,18 @@ export const useStore = create<State>((set, get) => ({
 
   openKuraReg: () => {
     if (!get().requireLogin()) return;
-    set({ krDone: false });
     get()._navigate('/kura/register');
   },
-  submitKuraReg: () => {
-    if (!get().krName.trim() || !get().krPref.trim()) { get().flash('蔵名と都道府県は必須です'); return; }
-    set({ krDone: true });
-  },
-  resetKuraReg: () => set({ krName: '', krPref: '', krCity: '', krFounded: '', krBrands: '', krDesc: '', krDone: false }),
 
   openEventCreate: () => {
     if (!get().requireLogin()) return;
-    set({ ecDone: false });
     get()._navigate('/meetup/create');
   },
-  submitEventCreate: async () => {
-    const st = get();
-    if (!st.ecName.trim() || !st.ecDate.trim() || !st.ecPlace.trim()) { get().flash('会の名前・日時・会場は必須です'); return; }
-    const id = await createMeetup({ name: st.ecName.trim(), dateLabel: st.ecDate.trim(), place: st.ecPlace.trim(), theme: st.ecDesc.trim() });
-    if (!id) { get().flash('作成に失敗しました（ログインが必要です）'); return; }
+  submitEventCreate: async (form) => {
+    if (!form.name.trim() || !form.date.trim() || !form.place.trim()) { get().flash('会の名前・日時・会場は必須です'); return false; }
+    const id = await createMeetup({ name: form.name.trim(), dateLabel: form.date.trim(), place: form.place.trim(), theme: form.desc.trim() });
+    if (!id) { get().flash('作成に失敗しました（ログインが必要です）'); return false; }
     await get().loadMeetups();
-    set({ ecDone: true });
+    return true;
   },
-  resetEventCreate: () => set({ ecName: '', ecDate: '', ecPlace: '', ecDesc: '', ecDone: false }),
 }));
