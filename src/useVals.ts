@@ -422,7 +422,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
       { label: '飲める店', click: () => store.nav('map') },
       { label: 'みんなの利き酒帳', click: () => store.nav('feed') },
       { label: 'イベントを立てる', click: () => store.openEventCreate() },
-      { label: '酒蔵を登録する', click: () => store.openKuraReg() },
+      ...(store.user?.isAdmin ? [{ label: '酒蔵を登録する', click: () => store.openKuraReg() }] : []),
     ],
     // login
     isLogin: route.screen === 'login',

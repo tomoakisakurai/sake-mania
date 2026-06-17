@@ -205,6 +205,7 @@ export const useStore = create<State>((set, get) => ({
 
   openKuraReg: () => {
     if (!get().requireLogin()) return;
+    if (!get().user?.isAdmin) { get().flash('酒蔵の登録は管理者のみ行えます'); return; }
     get()._navigate('/kura/register');
   },
 

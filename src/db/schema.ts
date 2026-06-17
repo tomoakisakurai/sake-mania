@@ -108,6 +108,7 @@ export const profiles = pgTable('profiles', {
   nickname: text('nickname').notNull(),
   avatar: text('avatar').notNull(),
   avatarBg: text('avatar_bg').notNull().default('#DDD3BE'),
+  isAdmin: boolean('is_admin').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

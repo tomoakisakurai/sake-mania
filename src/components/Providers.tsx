@@ -6,6 +6,7 @@ import { useVals } from '@/useVals';
 import type { Vals } from '@/useVals';
 import { routeStateFromPath } from '@/lib/routes';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
+import { getIsAdmin } from '@/app/actions/profile';
 import type { CoreReferenceData, DeferredReferenceData, ReferenceData } from '@/lib/getReferenceData';
 import { Nav } from './Nav';
 import { TabBar } from './TabBar';
@@ -86,12 +87,15 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
     if (!supabase) return;
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
       const store = useStore.getState();
-      store.setUser(mapUser(session?.user));
+      const user = mapUser(session?.user);
+      store.setUser(user);
       if (event === 'SIGNED_OUT') {
         store.setMyRecords([]);
         await store.loadSocial();
         store.loadMeetups();
-      } else if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+      } else if (session && user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+        const isAdmin = await getIsAdmin();
+        store.setUser({ ...user, isAdmin });
         await store.loadMyRecords();
         await store.loadSocial();
         store.loadMeetups();

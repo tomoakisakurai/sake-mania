@@ -6,6 +6,18 @@ import { Done } from './Done';
 
 export function KuraReg({ vals }: { vals: Vals }) {
   const st = useStore();
+  const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
+
+  if (!isAdmin) {
+    return (
+      <div style={{ maxWidth: 620, margin: '0 auto', padding: vals.pagePadTight }}>
+        <div onClick={() => st.nav('map')} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 24 }}>← 酒蔵マップにもどる</div>
+        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>アクセスできません</div>
+        <div style={{ fontSize: 14, color: '#5C5547', lineHeight: 1.9 }}>酒蔵の登録は管理者のみ行えます。</div>
+      </div>
+    );
+  }
+
   const [name, setName] = useState('');
   const [pref, setPref] = useState('');
   const [city, setCity] = useState('');

@@ -1,8 +1,10 @@
+import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import type { MapVM } from './useMapState';
 
 // 酒蔵マップモード: 47都道府県タイル + 凡例 と、選択県の蔵リスト(未選択時は県チップ)
 export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
+  const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
   return (
     <>
       <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 24 }}>色のついた県をタップすると、その県の蔵が見られます。呑んだ蔵のある県は朱に染まります。</div>
@@ -56,10 +58,12 @@ export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
                   ))}
                 </div>
               </div>
-              <div onClick={vals.openKuraReg} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '18px 22px', marginTop: 14, cursor: 'pointer' }}>
-                <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 14.5, fontWeight: 700, marginBottom: 4 }}>載っていない蔵がありますか?</div>
-                <div style={{ fontSize: 12, color: '#8B8273', lineHeight: 1.7 }}>あなたの好きな酒蔵を図鑑に追加申請できます <span style={{ color: '#32507C', fontWeight: 700 }}>→ 蔵を登録する</span></div>
-              </div>
+              {isAdmin && (
+                <div onClick={vals.openKuraReg} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '18px 22px', marginTop: 14, cursor: 'pointer' }}>
+                  <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 14.5, fontWeight: 700, marginBottom: 4 }}>載っていない蔵がありますか?</div>
+                  <div style={{ fontSize: 12, color: '#8B8273', lineHeight: 1.7 }}>あなたの好きな酒蔵を図鑑に追加申請できます <span style={{ color: '#32507C', fontWeight: 700 }}>→ 蔵を登録する</span></div>
+                </div>
+              )}
             </>
           )}
         </div>

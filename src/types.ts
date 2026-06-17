@@ -145,6 +145,7 @@ export interface KuraMetaEntry {
 export interface User {
   name: string;
   avatar: string;
+  isAdmin: boolean;
 }
 
 export interface PostRef {

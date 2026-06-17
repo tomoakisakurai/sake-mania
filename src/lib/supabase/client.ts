@@ -25,5 +25,5 @@ export function mapUser(u: SupabaseUser | null | undefined): User | null {
   const name = (meta.nickname && meta.nickname.trim())
     || (u.email ? u.email.split('@')[0] : '')
     || 'sake_user';
-  return { name, avatar: name.charAt(0) || '酒' };
+  return { name, avatar: name.charAt(0) || '酒', isAdmin: false };
 }
