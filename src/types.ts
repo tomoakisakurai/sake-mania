@@ -47,7 +47,7 @@ export interface Comment {
 }
 
 export interface OtherRec {
-  rid: string;
+  recordId: string;
   nomi: number;
   comments: Comment[];
   user: string;
@@ -67,7 +67,7 @@ export interface OtherRec {
 }
 
 export interface MyRec {
-  rid: string;
+  recordId: string;
   nomi: number;
   comments: Comment[];
   brandId: string;
@@ -156,7 +156,7 @@ export interface PostRef {
 
 // A published record by any user, shaped to be feed/post compatible.
 export interface PublicRec {
-  rid: string;
+  recordId: string;
   brandId: string;
   rating: number;
   x: number;
@@ -193,7 +193,7 @@ export interface Rec {
 }
 
 export interface EditingComment {
-  rid: string;
+  recordId: string;
   i: number;
 }
 
@@ -219,6 +219,8 @@ export interface PostVM {
   isPublic: boolean;
   publishLabel: string;
   publishToggle: () => void;
+  canDelete: boolean;
+  deleteClick: () => void;
   brandName: string;
   brewery: string;
   brandSubRest: string;

@@ -31,7 +31,7 @@ export interface State {
   deferredRef: DeferredReferenceData | null;
   myNomi: Record<string, boolean>;
   nomiCounts: Record<string, number>;
-  commentsByRid: Record<string, CommentItem[]>;
+  commentsByRecordId: Record<string, CommentItem[]>;
   rec: Rec;
   myRecords: MyRec[];
   publicRecords: PublicRec[];
@@ -82,7 +82,7 @@ export const useStore = create<State>((set, get) => ({
   deferredRef: null,
   myNomi: {},
   nomiCounts: {},
-  commentsByRid: {},
+  commentsByRecordId: {},
   rec: freshRec(null),
   myRecords: [],
   publicRecords: [],
@@ -160,9 +160,9 @@ export const useStore = create<State>((set, get) => ({
 
   loadSocial: async () => {
     const st = get();
-    const ids = Array.from(new Set([...st.myRecords.map((r) => r.rid), ...st.publicRecords.map((r) => r.rid)]));
+    const ids = Array.from(new Set([...st.myRecords.map((r) => r.recordId), ...st.publicRecords.map((r) => r.recordId)]));
     const social = await getSocial(ids);
-    set({ nomiCounts: social.counts, myNomi: social.mine, commentsByRid: social.comments });
+    set({ nomiCounts: social.counts, myNomi: social.mine, commentsByRecordId: social.comments });
   },
   toggleNomi: async (rid) => {
     if (!get().requireLogin()) return;

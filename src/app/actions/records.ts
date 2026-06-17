@@ -22,7 +22,7 @@ const fmtDate = (d: Date) => `${d.getMonth() + 1}月${d.getDate()}日`;
 
 function toMyRec(r: typeof schema.records.$inferSelect, isNew = false): MyRec {
   return {
-    rid: r.id, nomi: 0, comments: [], brandId: r.brandId,
+    recordId: r.id, nomi: 0, comments: [], brandId: r.brandId,
     date: isNew ? '今日' : fmtDate(new Date(r.createdAt)),
     rating: r.rating, x: r.x, y: r.y, sweet: r.sweet,
     temps: (r.temps as string[]) ?? [], pairing: r.pairing, memo: r.memo,
@@ -79,6 +79,16 @@ export async function saveRecord(input: RecordInput): Promise<MyRec | null> {
   return toMyRec(row, true);
 }
 
+/** Delete one of the current user's records. Returns success. */
+export async function deleteRecord(recordId: string): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user) return false;
+  await db.delete(schema.records)
+    .where(and(eq(schema.records.id, recordId), eq(schema.records.userId, user.id)));
+  return true;
+}
+
 /** Publish / unpublish one of the current user's records. Returns success. */
 export async function setRecordPublic(recordId: string, isPublic: boolean): Promise<boolean> {
   const db = getDb();
@@ -123,7 +133,7 @@ export async function getPublicRecords(): Promise<PublicRec[]> {
   return rows.map(({ r, p }) => {
     const name = p?.nickname || 'sake_user';
     return {
-      rid: r.id, brandId: r.brandId, rating: r.rating, x: r.x, y: r.y, sweet: r.sweet,
+      recordId: r.id, brandId: r.brandId, rating: r.rating, x: r.x, y: r.y, sweet: r.sweet,
       temps: (r.temps as string[]) ?? [], pairing: r.pairing, memo: r.memo, photo: r.photo ?? undefined,
       nomi: nomiCount[r.id] || 0, commentCount: commentCount[r.id] || 0, liked: !!liked[r.id], comments: [],
       user: name, avatar: p?.avatar || name.charAt(0) || '酒', avatarBg: p?.avatarBg || '#DDD3BE',

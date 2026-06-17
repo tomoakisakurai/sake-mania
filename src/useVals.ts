@@ -8,7 +8,7 @@ import type { Brand, Bar, PostRef, MyRec, PublicRec, OtherRec, PostVM } from '@/
 import { buildNavModel } from '@/lib/nav';
 import { addComment as addCommentAction, deleteComment as deleteCommentAction } from '@/app/actions/social';
 import { declareBring, cancelBring } from '@/app/actions/meetups';
-import { setRecordPublic as setRecordPublicAction } from '@/app/actions/records';
+import { setRecordPublic as setRecordPublicAction, deleteRecord as deleteRecordAction } from '@/app/actions/records';
 
 // 入力系(input/textarea)のonChangeで使う共通イベント型
 type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
@@ -19,7 +19,7 @@ const EMPTY_BAR: Bar = { id: '', name: '', area: '', type: '', venueQ: '', brand
 const noop = () => {};
 const EMPTY_POST: PostVM = {
   user: '', mine: '', avatar: '', avatarBg: '', timePlace: '',
-  canPublish: false, isPublic: false, publishLabel: '', publishToggle: noop,
+  canPublish: false, isPublic: false, publishLabel: '', publishToggle: noop, canDelete: false, deleteClick: noop,
   brandName: '', brewery: '', brandSubRest: '',
   kuraClick: noop, stars: '', ratingNum: '',
   x: null, y: null, bx: 0, by: 0,
@@ -34,7 +34,7 @@ const EMPTY_POST: PostVM = {
 };
 
 // socialOf/mkFeed が読む記録のフィールド（PublicRec/MyRec/OtherRec が満たす最小構造）
-type SocialRec = { rid: string; nomi?: number; liked?: boolean; commentCount?: number };
+type SocialRec = { recordId: string; nomi?: number; liked?: boolean; commentCount?: number };
 type FeedSourceRec = SocialRec & { brandId: string; rating: number; memo: string; temps: string[]; pairing: string; photo?: string | null };
 type FeedWho = { user: string; mine: string; avatar: string; avatarBg: string };
 
@@ -73,9 +73,9 @@ export function useVals(route: RouteState, ref: ReferenceData) {
 
   const socialOf = (x: SocialRec) => {
     // 押下後はストアのマップを優先、未取得時はレコード同梱の値（=フィードの数字が遅れない）
-    const liked = (x.rid in store.myNomi) ? store.myNomi[x.rid] : !!x.liked;
-    const nomi = (x.rid in store.nomiCounts) ? store.nomiCounts[x.rid] : (x.nomi || 0);
-    const loaded = store.commentsByRid[x.rid];
+    const liked = (x.recordId in store.myNomi) ? store.myNomi[x.recordId] : !!x.liked;
+    const nomi = (x.recordId in store.nomiCounts) ? store.nomiCounts[x.recordId] : (x.nomi || 0);
+    const loaded = store.commentsByRecordId[x.recordId];
     const commentCount = loaded ? loaded.length : (x.commentCount || 0);
     return { liked, nomi, comments: loaded || [], commentCount };
   };
@@ -83,7 +83,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     const b = byId(x.brandId) || EMPTY_BRAND;
     const so = socialOf(x);
     const isOther = who.user !== yuuWho.user;
-    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: MouseEvent) => { e.stopPropagation(); store.toggleNomi(x.rid); }, click: () => store.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); store.openDetail(b.id); } };
+    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: MouseEvent) => { e.stopPropagation(); store.toggleNomi(x.recordId); }, click: () => store.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); store.openDetail(b.id); } };
   };
   // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。サンプル投稿(others)は出さない。
   const allFeed = store.publicRecords.map((pr, i) =>
@@ -123,11 +123,23 @@ export function useVals(route: RouteState, ref: ReferenceData) {
         canPublish: isOwnDbRecord, isPublic: recPublicNow,
         publishLabel: recPublicNow ? '公開中 — 非公開にする' : 'みんなの利き酒帳に公開する',
         publishToggle: async () => {
-          const ok = await setRecordPublicAction(px.rid, !recPublicNow);
+          const ok = await setRecordPublicAction(px.recordId, !recPublicNow);
           if (!ok) { store.flash('変更に失敗しました'); return; }
           await Promise.all([store.loadMyRecords(), store.loadPublicRecords()]);
           await store.loadSocial();
           store.flash(!recPublicNow ? 'みんなの利き酒帳に公開しました' : '公開を取り消しました');
+        },
+        canDelete: isOwnDbRecord,
+        deleteClick: async () => {
+          if (!window.confirm('この記録を削除しますか?')) return;
+          const ok = await deleteRecordAction(px.recordId);
+          if (!ok) { store.flash('削除に失敗しました'); return; }
+          store.patch({
+            myRecords: store.myRecords.filter((r) => r.recordId !== px.recordId),
+            publicRecords: store.publicRecords.filter((r) => r.recordId !== px.recordId),
+          });
+          store.flash('記録を削除しました');
+          store.nav('mypage');
         },
         brandName: pb.name, brewery: pb.brewery, brandSubRest: pb.pref + ' — ' + pb.cls,
         kuraClick: () => store.openKura(pb.brewery), stars: starStr(px.rating), ratingNum: px.rating.toFixed(1),
@@ -143,8 +155,8 @@ export function useVals(route: RouteState, ref: ReferenceData) {
         nomiCount: pso.nomi,
         nomiBg: pso.liked ? '#BC6A2D' : '#FDFBF5',
         nomiColor: pso.liked ? '#FDFBF5' : '#BC6A2D',
-        nomiClick: () => store.toggleNomi(px.rid),
-        comments: (store.commentsByRid[px.rid] || []).map((c) => ({
+        nomiClick: () => store.toggleNomi(px.recordId),
+        comments: (store.commentsByRecordId[px.recordId] || []).map((c) => ({
           id: c.id,
           user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
           time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
@@ -157,7 +169,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
           const t = draft.trim();
           if (!t) return;
           if (!store.requireLogin()) return;
-          const ok = await addCommentAction(px.rid, t);
+          const ok = await addCommentAction(px.recordId, t);
           if (!ok) { store.flash('コメントの送信に失敗しました'); return; }
           await store.loadSocial();
         },
@@ -384,7 +396,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   // mypage
   const myList = store.myRecords.map((x, i) => {
     const b = byId(x.brandId) || EMPTY_BRAND;
-    return { name: b.name, sub: b.brewery + ' / ' + b.pref, date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)', tags: x.temps.concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, click: () => store.openPost({ src: 'mine', i }) };
+    return { recordId: x.recordId, name: b.name, sub: b.brewery + ' / ' + b.pref, date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)', tags: x.temps.concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, click: () => store.openPost({ src: 'mine', i }) };
   });
   const wantList = store.wantIds.map((id) => byId(id)).filter((b): b is Brand => Boolean(b)).map((b) => ({ name: b.name, sub: b.brewery + ' / ' + b.pref, click: () => store.openDetail(b.id), buyUrl: 'https://search.rakuten.co.jp/search/mall/' + encodeURIComponent(b.name) + '/' }));
 
