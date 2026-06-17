@@ -36,7 +36,7 @@ export const members = pgTable('members', {
 });
 
 export const others = pgTable('others', {
-  rid: text('rid').primaryKey(),
+  recordId: text('rid').primaryKey(),
   nomi: integer('nomi').notNull(),
   comments: jsonb('comments').$type<Comment[]>().notNull(),
   user: text('user').notNull(),
