@@ -17,6 +17,7 @@ import { Declare } from '@/screens/Declare';
 import { MeetupCreate } from '@/screens/MeetupCreate';
 import { Kura } from '@/screens/Kura';
 import { KuraReg } from '@/screens/KuraReg';
+import { BrandReg } from '@/screens/BrandReg';
 import { Post } from '@/screens/Post';
 
 export const HomeClient = () => <Home vals={useV()} />;
@@ -33,4 +34,5 @@ export const DeclareClient = () => <Declare vals={useV()} />;
 export const MeetupCreateClient = () => <MeetupCreate vals={useV()} />;
 export const KuraClient = () => <Kura vals={useV()} />;
 export const KuraRegClient = () => <KuraReg vals={useV()} />;
+export const BrandRegClient = () => <BrandReg />;
 export const PostClient = () => <Post vals={useV()} />;

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { ChangeEvent } from 'react';
+import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import { BrandCard } from './BrandCard';
 
@@ -8,6 +9,8 @@ const TAGS = ['フルーティ', '辛口', '生酒', 'ガス感', '燗映え', '
 export function Zukan({ vals }: { vals: Vals }) {
   const [query, setQuery] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const store = useStore();
+  const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
 
   const filteredBrands = useMemo(() => {
     const q = query.trim();
@@ -27,7 +30,12 @@ export function Zukan({ vals }: { vals: Vals }) {
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: vals.pagePad }}>
-      <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, marginBottom: 20 }}>銘柄図鑑</div>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginBottom: 20 }}>
+        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700 }}>銘柄図鑑</div>
+        {isAdmin && (
+          <div onClick={() => store.nav('brandReg')} style={{ marginLeft: 'auto', border: '1px solid #32507C', color: '#32507C', borderRadius: 999, padding: '9px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>＋ 銘柄を登録する</div>
+        )}
+      </div>
       <input type="text" value={query} onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)} placeholder="銘柄名・酒蔵・酒米・産地でさがす" style={{ width: '100%', maxWidth: 640, background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 999, padding: '14px 24px', fontSize: 14.5, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'block', marginBottom: 16 }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
         {tagChips.map((c, i: number) => (

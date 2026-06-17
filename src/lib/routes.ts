@@ -31,6 +31,7 @@ export function routeStateFromPath(pathname: string): RouteState {
     return { ...base, screen: 'post', postRef: { src, i: Number(seg[2]) } };
   }
   if (p === '/kura/register') return { ...base, screen: 'kuraReg' };
+  if (p === '/brand/register') return { ...base, screen: 'brandReg' };
   if (seg[0] === 'kura' && seg[1]) return { ...base, screen: 'kura', kuraName: decodeURIComponent(seg[1]) };
   if (p === '/meetup/create') return { ...base, screen: 'eventCreate' };
   if (seg[0] === 'meetup' && seg[1] && seg[2] === 'declare') return { ...base, screen: 'declare', meetupId: decodeURIComponent(seg[1]) };
@@ -52,6 +53,7 @@ export function pathForScreen(screen: Screen): string {
     case 'record': return '/record';
     case 'eventCreate': return '/meetup/create';
     case 'kuraReg': return '/kura/register';
+    case 'brandReg': return '/brand/register';
     default: return '/';
   }
 }

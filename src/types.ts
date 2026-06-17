@@ -11,6 +11,7 @@ export type Screen =
   | 'map'
   | 'kura'
   | 'kuraReg'
+  | 'brandReg'
   | 'meetups'
   | 'meetup'
   | 'declare'
