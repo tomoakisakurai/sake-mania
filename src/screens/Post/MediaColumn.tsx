@@ -10,6 +10,9 @@ export function MediaColumn({ vals }: { vals: Vals }) {
       {vals.post.canPublish && (
         <div onClick={vals.post.publishToggle} style={{ border: `1.5px solid ${vals.post.isPublic ? '#BC6A2D' : '#E3DBCB'}`, background: vals.post.isPublic ? '#FBF0E6' : '#FDFBF5', color: vals.post.isPublic ? '#9A5A20' : '#5C5547', borderRadius: 999, padding: 11, textAlign: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{vals.post.publishLabel}</div>
       )}
+      {vals.post.canDelete && (
+        <div onClick={vals.post.deleteClick} style={{ border: '1.5px solid #E3DBCB', color: '#A89D8A', borderRadius: 999, padding: 11, textAlign: 'center', fontSize: 13, cursor: 'pointer' }}>この記録を削除する</div>
+      )}
     </div>
   );
 }

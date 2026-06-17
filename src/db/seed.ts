@@ -43,7 +43,7 @@ async function main() {
   await db.delete(schema.others);
   await db.insert(schema.others).values(
     others.map((o, i) => ({
-      rid: o.rid, nomi: o.nomi, comments: o.comments, user: o.user, avatar: o.avatar,
+      recordId: o.recordId, nomi: o.nomi, comments: o.comments, user: o.user, avatar: o.avatar,
       avatarBg: o.avatarBg, time: o.time, place: o.place, brandId: o.brandId, rating: o.rating,
       x: o.x, y: o.y, sweet: o.sweet, temps: o.temps, pairing: o.pairing, memo: o.memo,
       date: o.date, sortOrder: i,

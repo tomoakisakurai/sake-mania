@@ -140,7 +140,7 @@ export async function getDeferredReferenceData(): Promise<DeferredReferenceData>
     }
 
     const others: OtherRec[] = oRows.map((r) => ({
-      rid: r.rid, nomi: num(r.nomi), comments: arr(r.comments), user: r.user, avatar: r.avatar,
+      recordId: r.recordId, nomi: num(r.nomi), comments: arr(r.comments), user: r.user, avatar: r.avatar,
       avatarBg: r.avatarBg, time: r.time, place: r.place, brandId: r.brandId, rating: num(r.rating),
       x: num(r.x), y: num(r.y), sweet: num(r.sweet), temps: arr(r.temps), pairing: r.pairing, memo: r.memo, date: r.date,
     }));
