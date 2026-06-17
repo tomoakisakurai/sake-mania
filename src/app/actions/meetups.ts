@@ -24,6 +24,7 @@ export interface MeetupDetail {
   id: string;
   name: string;
   dateLabel: string;
+  eventDate: string | null;
   place: string;
   theme: string;
   hostName: string;
@@ -138,7 +139,7 @@ export async function getMeetupDetail(meetupId: string): Promise<MeetupDetail | 
   const myBring = user ? brings.find((b) => b.userId === user.id) : undefined;
 
   return {
-    id: event.id, name: event.name, dateLabel: event.dateLabel, place: event.place, theme: event.theme,
+    id: event.id, name: event.name, dateLabel: event.dateLabel, eventDate: event.eventDate ?? null, place: event.place, theme: event.theme,
     hostName: nameOf(event.hostId), phase: event.phase, voteDeadline: event.voteDeadline || '',
     isHost: !!user && event.hostId === user.id,
     iGoing: !!user && attendees.some((a) => a.userId === user.id),
@@ -210,4 +211,14 @@ export async function setMeetupPhase(meetupId: string, phase: string): Promise<b
     .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
     .returning({ id: schema.meetupEvents.id });
   return updated.length > 0;
+}
+
+export async function deleteMeetup(meetupId: string): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user) return false;
+  const deleted = await db.delete(schema.meetupEvents)
+    .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
+    .returning({ id: schema.meetupEvents.id });
+  return deleted.length > 0;
 }
