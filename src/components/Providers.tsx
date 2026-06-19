@@ -87,15 +87,26 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
     if (!supabase) return;
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
       const store = useStore.getState();
-      const user = mapUser(session?.user);
-      store.setUser(user);
       if (event === 'SIGNED_OUT') {
+        store.setUser(null);
+        store.patch({ authReady: true });
         store.setMyRecords([]);
         await store.loadSocial();
         store.loadMeetups();
-      } else if (session && user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-        const isAdmin = await getIsAdmin();
-        store.setUser({ ...user, isAdmin });
+        return;
+      }
+      const user = mapUser(session?.user);
+      if (!session || !user) {
+        store.setUser(null);
+        store.patch({ authReady: true });
+        return;
+      }
+      // isAdmin を取得してから一度だけ setUser する。
+      // 途中で isAdmin:false の状態を経由するとボタン表示がチラつくため。
+      const isAdmin = await getIsAdmin();
+      store.setUser({ ...user, isAdmin });
+      store.patch({ authReady: true });
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         await store.loadMyRecords();
         await store.loadSocial();
         store.loadMeetups();

@@ -22,6 +22,8 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined;
 export interface State {
   vw: number;
   user: User | null;
+  // 初回のSupabase auth解決が完了したか。falseの間はuser=nullでも未確定として扱う。
+  authReady: boolean;
   toast: string;
   wantIds: string[];
   declareBrandId: string | null;
@@ -74,6 +76,7 @@ export interface State {
 export const useStore = create<State>((set, get) => ({
   vw: 1200, // desktop default; Providers sets the real width after mount
   user: null,
+  authReady: false,
   toast: '',
   wantIds: ['kuheiji', 'hanaabi'],
   declareBrandId: null,

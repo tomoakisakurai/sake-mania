@@ -8,6 +8,7 @@ import { LabelReader } from './LabelReader';
 
 export function BrandReg() {
   const store = useStore();
+  const authReady = useStore((s) => s.authReady);
   const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
@@ -26,6 +27,9 @@ export function BrandReg() {
   const [registeredId, setRegisteredId] = useState('');
   const [done, setDone] = useState(false);
 
+  if (!authReady) {
+    return <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }} />;
+  }
   if (!isAdmin) {
     return (
       <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}>

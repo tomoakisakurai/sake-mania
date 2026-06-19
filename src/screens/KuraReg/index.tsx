@@ -6,7 +6,12 @@ import { Done } from './Done';
 
 export function KuraReg({ vals }: { vals: Vals }) {
   const st = useStore();
+  const authReady = useStore((s) => s.authReady);
   const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
+
+  if (!authReady) {
+    return <div style={{ maxWidth: 620, margin: '0 auto', padding: vals.pagePadTight }} />;
+  }
 
   if (!isAdmin) {
     return (
