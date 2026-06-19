@@ -72,7 +72,7 @@ function mapBrands(rows: (typeof schema.brands.$inferSelect)[]): Brand[] {
   return rows.map((r) => ({
     id: r.id, name: r.name, brewery: r.brewery, pref: r.pref, cls: r.cls, polish: r.polish,
     rice: r.rice, yeast: r.yeast, smv: r.smv, abv: r.abv, temp: r.temp, x: num(r.x), y: num(r.y),
-    rating: num(r.rating), count: num(r.count), tags: arr(r.tags), desc: r.description,
+    rating: num(r.rating), count: num(r.count), tags: arr(r.tags), desc: r.description, photo: r.photo,
   }));
 }
 function mapMembers(rows: (typeof schema.members.$inferSelect)[]): Member[] {

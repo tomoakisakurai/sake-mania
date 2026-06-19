@@ -3,7 +3,11 @@ import type { Vals } from '@/useVals';
 export function Sidebar({ vals }: { vals: Vals }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ height: vals.bottleH, borderRadius: 12, background: "repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3DBCB" }}><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#8B8273", writingMode: "vertical-rl" }}>ボトル写真</span></div>
+      {vals.dPhoto ? (
+        <img src={vals.dPhoto} alt={vals.d.name} style={{ height: vals.bottleH, borderRadius: 12, objectFit: "cover", width: "100%", border: "1px solid #E3DBCB" }} />
+      ) : (
+        <div style={{ height: vals.bottleH, borderRadius: 12, background: "repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3DBCB" }}><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#8B8273", writingMode: "vertical-rl" }}>ボトル写真</span></div>
+      )}
       <div onClick={vals.dRecordClick} style={{ background: "#32507C", color: "#FDFBF5", borderRadius: 999, padding: 14, textAlign: "center", fontSize: 14.5, fontWeight: 700, cursor: "pointer" }}>＋ この銘柄を記録する</div>
       <div onClick={vals.dWantClick} style={{ background: vals.dWantBg, color: vals.dWantColor, border: "1px solid #32507C", borderRadius: 999, padding: 13, textAlign: "center", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{vals.dWantLabel}</div>
       <div style={{ background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 12, padding: "16px 18px" }}>

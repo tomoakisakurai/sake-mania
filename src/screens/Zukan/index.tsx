@@ -19,6 +19,7 @@ export function Zukan({ vals }: { vals: Vals }) {
     return fb.map((b) => ({
       name: b.name, brewery: b.brewery, pref: b.pref, polish: b.polish, rice: b.rice,
       rating: b.rating.toFixed(1), pct: Math.round(b.rating / 5 * 100),
+      photo: b.photo || null,
       click: () => vals.openDetail(b.id),
     }));
   }, [query, activeTag, vals.allBrands, vals.openDetail]);

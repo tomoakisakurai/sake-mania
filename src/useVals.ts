@@ -474,6 +474,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     dWantLabel: wanted ? '飲みたいリスト追加済 ✓' : '飲みたいリストへ',
     dWantBg: wanted ? '#32507C' : '#FDFBF5',
     dWantColor: wanted ? '#FDFBF5' : '#32507C',
+    dPhoto: d.photo || null,
     dHasMyPoint: !!myRecForD, dMyX: myRecForD ? myRecForD.x : 0, dMyY: myRecForD ? myRecForD.y : 0,
     dReviews, dShop,
     // record

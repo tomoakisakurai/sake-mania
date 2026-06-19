@@ -35,6 +35,7 @@ export interface Brand {
   count: number;
   tags: string[];
   desc: string;
+  photo?: string | null;
 }
 
 export interface Comment {
