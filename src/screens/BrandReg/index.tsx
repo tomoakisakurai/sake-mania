@@ -41,7 +41,7 @@ export function BrandReg() {
       store.flash('銘柄名と酒蔵は必須です');
       return;
     }
-    const id = await createBrand({ name: name.trim(), brewery: brewery.trim(), pref, cls, polish, rice, description });
+    const id = await createBrand({ name: name.trim(), brewery: brewery.trim(), pref, cls, polish, rice, description, photo: photo || null });
     if (!id) { store.flash('登録に失敗しました'); return; }
     setRegisteredName(name.trim());
     setRegisteredId(id);

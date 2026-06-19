@@ -12,6 +12,7 @@ export interface BrandInput {
   polish: string;
   rice: string;
   description: string;
+  photo: string | null;
 }
 
 export async function createBrand(input: BrandInput): Promise<string | null> {
@@ -48,6 +49,7 @@ export async function createBrand(input: BrandInput): Promise<string | null> {
     count: 0,
     tags: [],
     description: input.description || '',
+    photo: input.photo,
     sortOrder: 999,
   });
   return id;

@@ -22,6 +22,7 @@ export const brands = pgTable('brands', {
   count: integer('count').notNull(),
   tags: jsonb('tags').$type<string[]>().notNull(),
   description: text('description').notNull(),
+  photo: text('photo'),
   sortOrder: integer('sort_order').notNull().default(0),
 });
 
