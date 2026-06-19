@@ -24,6 +24,7 @@ export const brands = pgTable('brands', {
   description: text('description').notNull(),
   photo: text('photo'),
   sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const members = pgTable('members', {
