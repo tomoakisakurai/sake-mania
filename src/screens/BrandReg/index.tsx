@@ -2,7 +2,9 @@
 import { useState } from 'react';
 import { useStore } from '@/store';
 import { createBrand } from '@/app/actions/brands';
+import { analyzeLabel } from '@/app/actions/analyzeLabel';
 import { Done } from './Done';
+import { LabelReader } from './LabelReader';
 
 export function BrandReg() {
   const store = useStore();
@@ -17,6 +19,9 @@ export function BrandReg() {
   const [polish, setPolish] = useState('');
   const [rice, setRice] = useState('');
   const [description, setDescription] = useState('');
+  const [photo, setPhoto] = useState('');
+  const [reading, setReading] = useState(false);
+  const [readDone, setReadDone] = useState(false);
   const [registeredName, setRegisteredName] = useState('');
   const [registeredId, setRegisteredId] = useState('');
   const [done, setDone] = useState(false);
@@ -46,11 +51,44 @@ export function BrandReg() {
 
   const handleAnother = () => {
     setName(''); setBrewery(''); setPref(''); setCls(''); setPolish(''); setRice(''); setDescription('');
+    setPhoto(''); setReading(false); setReadDone(false);
     setDone(false);
   };
 
   const handleViewBrand = () => {
     store.nav('zukan');
+  };
+
+  const handlePhotoPick = (dataUrl: string) => {
+    setPhoto(dataUrl);
+    setReadDone(false);
+  };
+
+  const handlePhotoRemove = () => {
+    setPhoto(''); setReading(false); setReadDone(false);
+  };
+
+  const handleRead = async () => {
+    if (!photo || reading) return;
+    setReading(true);
+    try {
+      const result = await analyzeLabel(photo);
+      if (!result) {
+        store.flash('読み取りに失敗しました。手で入力してください');
+        return;
+      }
+      setName(result.name);
+      setBrewery(result.brewery);
+      setPref(result.pref);
+      setCls(result.cls);
+      setPolish(result.polish);
+      setRice(result.rice);
+      setDescription(result.description);
+      setReadDone(true);
+      store.flash('ラベルを読み取りました。内容を確認してください');
+    } finally {
+      setReading(false);
+    }
   };
 
   if (done) {
@@ -72,6 +110,15 @@ export function BrandReg() {
       <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', color: '#8B8273', marginBottom: 10 }}>REGISTER A BRAND</div>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, marginBottom: 8 }}>銘柄を登録する</div>
       <div style={{ fontSize: 13.5, lineHeight: 1.9, color: '#5C5547', marginBottom: 28 }}>図鑑にまだ載っていない銘柄を登録できます。登録するとすぐに図鑑に追加され、部のみんなが記録・検索できるようになります。飲んで気に入った一本をぜひ共有しましょう。</div>
+
+      <LabelReader
+        photo={photo}
+        reading={reading}
+        readDone={readDone}
+        onPick={handlePhotoPick}
+        onRead={handleRead}
+        onRemove={handlePhotoRemove}
+      />
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="col-span-2">
@@ -144,11 +191,6 @@ export function BrandReg() {
         placeholder="味わいの特徴やおすすめの飲み方など"
         className="w-full bg-[#FDFBF5] border border-[#E3DBCB] rounded-[10px] px-4 py-3 text-[14px] leading-relaxed text-[#2E2A24] resize-y mb-6"
       />
-
-      <div className="bg-[#FDFBF5] border border-dashed border-[#D9D0BC] rounded-xl p-6 text-center mb-6">
-        <div className="text-[13px] font-bold text-[#5C5547] mb-1">ラベル・ボトルの写真を追加(任意)</div>
-        <div className="text-[11.5px] text-[#A89D8A]">銘柄が伝わる写真があると詳細ページが充実します</div>
-      </div>
 
       <button
         onClick={handleSubmit}
