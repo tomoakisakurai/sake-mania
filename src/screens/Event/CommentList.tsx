@@ -62,8 +62,8 @@ export function CommentList({ comments, onChanged }: Props) {
               <span className="text-[10.5px] text-faint">{relativeTime(comment.createdAt)}{comment.edited ? ' (編集済み)' : ''}</span>
               {comment.mine && editingId !== comment.id && (
                 <span className="ml-auto flex gap-3.5">
-                  <button onClick={() => startEdit(comment)} className="text-[11px] text-primary cursor-pointer font-bold">編集</button>
-                  <button onClick={() => handleDelete(comment.id)} className="text-[11px] text-faint hover:text-danger cursor-pointer font-bold">削除</button>
+                  <span onClick={() => startEdit(comment)} className="text-[11px] text-primary hover:underline cursor-pointer font-bold">編集</span>
+                  <span onClick={() => handleDelete(comment.id)} className="text-[11px] text-faint hover:text-danger cursor-pointer font-bold transition-colors">削除</span>
                 </span>
               )}
             </div>
@@ -75,8 +75,8 @@ export function CommentList({ comments, onChanged }: Props) {
                   rows={2}
                   className="flex-1 min-w-[180px] bg-white border border-primary rounded-xl px-4 py-2.5 text-[13px] leading-relaxed text-ink resize-y"
                 />
-                <button onClick={() => save(comment.id)} className="bg-primary hover:bg-primary-dark text-surface rounded-full px-5 py-2 text-[12.5px] font-bold cursor-pointer transition-colors">保存</button>
-                <button onClick={() => { setEditingId(null); setDraft(''); }} className="border border-line text-body rounded-full px-4 py-2 text-[12.5px] cursor-pointer bg-surface">キャンセル</button>
+                <div onClick={() => save(comment.id)} className="bg-primary hover:bg-primary-dark text-surface rounded-full px-5 py-2 text-[12.5px] font-bold cursor-pointer transition-colors">保存</div>
+                <div onClick={() => { setEditingId(null); setDraft(''); }} className="border border-line text-body rounded-full px-4 py-2 text-[12.5px] cursor-pointer bg-surface">キャンセル</div>
               </div>
             ) : (
               <div className="text-[13px] leading-relaxed text-body whitespace-pre-wrap">{comment.text}</div>
