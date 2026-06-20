@@ -430,6 +430,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     goMy: () => { if (store.requireLogin()) store.nav('mypage'); },
     // SP ハンバーガーメニュー項目（タブバーから外れた導線をここで補う）
     menuItems: [
+      { label: 'イベント情報', click: () => store.nav('events') },
       { label: '銘柄図鑑', click: () => store.nav('zukan') },
       { label: '酒蔵マップ', click: () => store.nav('map') },
       { label: 'メンバー', click: () => store.nav('members') },
