@@ -11,6 +11,7 @@ import type { CoreReferenceData, DeferredReferenceData, ReferenceData } from '@/
 import { Nav } from './Nav';
 import { TabBar } from './TabBar';
 import { Toast } from './Toast';
+import { Footer } from './Footer';
 
 const ValsContext = createContext<Vals | null>(null);
 export function useV(): Vals { return useContext(ValsContext) as Vals; }
@@ -119,9 +120,10 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
 
   return (
     <ValsContext.Provider value={vals}>
-      <div style={{ minHeight: '100vh', background: '#F6F1E7', fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24' }}>
+      <div style={{ minHeight: '100vh', background: '#F6F1E7', fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'flex', flexDirection: 'column' }}>
         {vals.showChrome && <Nav vals={vals} />}
-        {children}
+        <div style={{ flex: 1 }}>{children}</div>
+        {vals.showChrome && <Footer />}
         {vals.isMobile && <TabBar vals={vals} />}
         {vals.toastVisible && <Toast message={vals.toastMsg} />}
       </div>
