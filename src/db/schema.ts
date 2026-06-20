@@ -223,3 +223,17 @@ export const eventComments = pgTable('event_comments', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ===== 通知 =====
+// kind: 'comment' | 'nomi' | 'event_comment' | 'meetup_created' | 'event_created'
+//      | 'vote_open' | 'vote_closed' | 'bring_declared'
+// targetPath: クリック遷移先(例 /meetup/<id>, /post/public/<i>, /event/<id>)
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull(),
+  kind: text('kind').notNull(),
+  text: text('text').notNull(),
+  targetPath: text('target_path').notNull().default(''),
+  readAt: timestamp('read_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});

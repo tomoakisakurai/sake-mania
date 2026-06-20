@@ -3,6 +3,7 @@ import { eq, and, inArray, desc, asc } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
+import { createNotification, createNotificationForAll } from './notifications';
 
 export interface MeetupView {
   id: string;
@@ -67,6 +68,13 @@ export async function createMeetup(input: { name: string; dateLabel: string; pla
   }).returning({ id: schema.meetupEvents.id });
   // host auto-attends
   await db.insert(schema.meetupAttendees).values({ meetupId: row.id, userId: user.id }).onConflictDoNothing();
+  // 全メンバー(自分以外)に通知
+  await createNotificationForAll({
+    kind: 'meetup_created',
+    text: `新しいSAKE MEETUP「${input.name}」が立ちました`,
+    targetPath: `/meetup/${row.id}`,
+    excludeUserId: user.id,
+  });
   return row.id;
 }
 
@@ -175,6 +183,18 @@ export async function declareBring(meetupId: string, brandId: string, note: stri
     .values({ meetupId, userId: user.id, brandId, note })
     .onConflictDoUpdate({ target: [schema.meetupBrings.meetupId, schema.meetupBrings.userId], set: { brandId, note } });
   await db.insert(schema.meetupAttendees).values({ meetupId, userId: user.id }).onConflictDoNothing();
+  // 幹事に通知
+  const [meetup] = await db.select().from(schema.meetupEvents).where(eq(schema.meetupEvents.id, meetupId));
+  const [actor] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
+  if (meetup) {
+    await createNotification({
+      userId: meetup.hostId,
+      kind: 'bring_declared',
+      text: `${actor?.nickname || 'メンバー'}さんが「${meetup.name}」に持ち寄りを宣言しました`,
+      targetPath: `/meetup/${meetupId}`,
+      excludeUserId: user.id,
+    });
+  }
   return true;
 }
 
@@ -210,7 +230,25 @@ export async function setMeetupPhase(meetupId: string, phase: string): Promise<b
     .set({ phase })
     .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
     .returning({ id: schema.meetupEvents.id });
-  return updated.length > 0;
+  if (!updated.length) return false;
+  // 出席者に通知
+  const [meetup] = await db.select().from(schema.meetupEvents).where(eq(schema.meetupEvents.id, meetupId));
+  if (meetup && (phase === 'voting' || phase === 'closed')) {
+    const attendees = await db.select().from(schema.meetupAttendees).where(eq(schema.meetupAttendees.meetupId, meetupId));
+    const text = phase === 'voting'
+      ? `「${meetup.name}」のMVP投票が始まりました`
+      : `「${meetup.name}」のMVPが確定しました`;
+    for (const attendee of attendees) {
+      await createNotification({
+        userId: attendee.userId,
+        kind: phase === 'voting' ? 'vote_open' : 'vote_closed',
+        text,
+        targetPath: `/meetup/${meetupId}`,
+        excludeUserId: user.id,
+      });
+    }
+  }
+  return true;
 }
 
 export async function deleteMeetup(meetupId: string): Promise<boolean> {

@@ -89,6 +89,17 @@ export async function toggleNomi(recordId: string): Promise<{ liked: boolean; co
   } else {
     await db.insert(schema.nomi).values({ recordId, userId: user.id });
     liked = true;
+    // 記録の所有者に通知(自分の記録には飛ばさない)
+    const [record] = await db.select().from(schema.records).where(eq(schema.records.id, recordId));
+    if (record && record.userId !== user.id) {
+      const [actor] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
+      await db.insert(schema.notifications).values({
+        userId: record.userId,
+        kind: 'nomi',
+        text: `${actor?.nickname || 'メンバー'}さんがあなたの記録にのみたいねしました`,
+        targetPath: '/mypage',
+      });
+    }
   }
   const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.nomi).where(eq(schema.nomi.recordId, recordId));
   return { liked, count: n };
@@ -100,6 +111,17 @@ export async function addComment(recordId: string, text: string): Promise<boolea
   const t = text.trim();
   if (!db || !user || !isUuid(recordId) || !t) return false;
   await db.insert(schema.comments).values({ recordId, userId: user.id, text: t });
+  // 記録の所有者に通知(自分の記録には飛ばさない)
+  const [record] = await db.select().from(schema.records).where(eq(schema.records.id, recordId));
+  if (record && record.userId !== user.id) {
+    const [actor] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
+    await db.insert(schema.notifications).values({
+      userId: record.userId,
+      kind: 'comment',
+      text: `${actor?.nickname || 'メンバー'}さんがあなたの記録にコメントしました`,
+      targetPath: '/mypage',
+    });
+  }
   return true;
 }
 

@@ -1,30 +1,89 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { NOTIFS } from '@/lib/notifs';
-import type { Notif } from '@/lib/notifs';
+import { useStore } from '@/store';
+import {
+  getNotifications,
+  markNotifRead,
+  markAllNotifsRead,
+} from '@/app/actions/notifications';
+import type { NotifKind, NotifView } from '@/app/actions/notifications';
+
+const KIND_ICON: Record<NotifKind, string> = {
+  comment: '言',
+  nomi: '杯',
+  event_comment: '言',
+  meetup_created: '盃',
+  event_created: '酒',
+  vote_open: '★',
+  vote_closed: '★',
+  bring_declared: '盃',
+};
+
+const KIND_BG: Record<NotifKind, string> = {
+  comment: '#8B6B43',
+  nomi: 'var(--color-success)',
+  event_comment: '#8B6B43',
+  meetup_created: 'var(--color-accent)',
+  event_created: 'var(--color-accent-dark)',
+  vote_open: 'var(--color-primary)',
+  vote_closed: 'var(--color-primary)',
+  bring_declared: 'var(--color-accent)',
+};
+
+function relativeTime(iso: string): string {
+  const date = new Date(iso);
+  const diffMs = Date.now() - date.getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'たった今';
+  if (min < 60) return `${min}分前`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}時間前`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}日前`;
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+}
 
 export function Notifications() {
   const [open, setOpen] = useState(false);
-  // 未読状態はクライアントメモリのみ(リロードでリセット)
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [notifs, setNotifs] = useState<NotifView[]>([]);
   const router = useRouter();
+  const authReady = useStore((s) => s.authReady);
+  const loggedIn = useStore((s) => !!s.user);
 
-  const unreadCount = NOTIFS.filter((n) => !readIds.has(n.id)).length;
+  const refresh = useCallback(async () => {
+    if (!loggedIn) {
+      setNotifs([]);
+      return;
+    }
+    const data = await getNotifications();
+    setNotifs(data);
+  }, [loggedIn]);
+
+  useEffect(() => {
+    if (!authReady) return;
+    refresh();
+    // パネルを開かなくてもベルの未読バッジが更新されるように、30秒おきに再取得
+    const interval = setInterval(refresh, 30_000);
+    return () => clearInterval(interval);
+  }, [authReady, refresh]);
+
+  const unreadCount = notifs.filter((notif) => notif.isUnread).length;
   const hasUnread = unreadCount > 0;
 
-  const handleClick = (notif: Notif) => {
-    setReadIds((prev) => {
-      const next = new Set(prev);
-      next.add(notif.id);
-      return next;
-    });
+  const handleClick = async (notif: NotifView) => {
     setOpen(false);
-    router.push(notif.path);
+    if (notif.isUnread) {
+      // 楽観更新
+      setNotifs((prev) => prev.map((n) => (n.id === notif.id ? { ...n, isUnread: false } : n)));
+      await markNotifRead(notif.id);
+    }
+    if (notif.targetPath) router.push(notif.targetPath);
   };
 
-  const markAllRead = () => {
-    setReadIds(new Set(NOTIFS.map((n) => n.id)));
+  const handleMarkAllRead = async () => {
+    setNotifs((prev) => prev.map((n) => ({ ...n, isUnread: false })));
+    await markAllNotifsRead();
   };
 
   return (
@@ -51,36 +110,38 @@ export function Notifications() {
             <header className="flex items-center justify-between px-[18px] py-3.5 border-b border-line">
               <h2 className="font-serif text-[15px] font-bold m-0">お知らせ</h2>
               {hasUnread && (
-                <span onClick={markAllRead} className="text-[11.5px] text-primary cursor-pointer font-bold hover:underline">
+                <span onClick={handleMarkAllRead} className="text-[11.5px] text-primary cursor-pointer font-bold hover:underline">
                   すべて既読
                 </span>
               )}
             </header>
             <ul className="max-h-[420px] overflow-y-auto m-0 p-0 list-none">
-              {NOTIFS.map((notif) => {
-                const isUnread = !readIds.has(notif.id);
-                return (
-                  <li
-                    key={notif.id}
-                    onClick={() => handleClick(notif)}
-                    className={`flex gap-3 px-[18px] py-3 border-b border-line-soft cursor-pointer hover:bg-bg ${isUnread ? '' : 'opacity-70'}`}
+              {notifs.length === 0 && (
+                <li className="px-[18px] py-10 text-center text-[12.5px] text-faint">
+                  まだお知らせはありません
+                </li>
+              )}
+              {notifs.map((notif) => (
+                <li
+                  key={notif.id}
+                  onClick={() => handleClick(notif)}
+                  className={`flex gap-3 px-[18px] py-3 border-b border-line-soft cursor-pointer hover:bg-bg ${notif.isUnread ? '' : 'opacity-70'}`}
+                >
+                  <div
+                    style={{ background: KIND_BG[notif.kind] }}
+                    className="w-8 h-8 flex-shrink-0 rounded-full text-surface flex items-center justify-center font-serif text-[13px] font-bold"
                   >
-                    <div
-                      style={{ background: notif.bg }}
-                      className="w-8 h-8 flex-shrink-0 rounded-full text-surface flex items-center justify-center font-serif text-[13px] font-bold"
-                    >
-                      {notif.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12.5px] text-ink leading-relaxed m-0">{notif.text}</p>
-                      <p className="text-[10.5px] text-faint mt-1 m-0">{notif.time}</p>
-                    </div>
-                    {isUnread && (
-                      <span className="w-2 h-2 rounded-full bg-accent flex-shrink-0 mt-1.5" />
-                    )}
-                  </li>
-                );
-              })}
+                    {KIND_ICON[notif.kind]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12.5px] text-ink leading-relaxed m-0">{notif.text}</p>
+                    <p className="text-[10.5px] text-faint mt-1 m-0">{relativeTime(notif.createdAt)}</p>
+                  </div>
+                  {notif.isUnread && (
+                    <span className="w-2 h-2 rounded-full bg-accent flex-shrink-0 mt-1.5" />
+                  )}
+                </li>
+              ))}
             </ul>
           </section>
         </>

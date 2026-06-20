@@ -3,6 +3,7 @@ import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
+import { createNotification, createNotificationForAll } from './notifications';
 
 export type EventStatus = 'going' | 'interested';
 
@@ -216,6 +217,13 @@ export async function createEvent(input: EventInput): Promise<string | null> {
     description: input.description,
     createdBy: user.id,
   }).returning({ id: schema.events.id });
+  // 全メンバー(自分以外)に通知
+  await createNotificationForAll({
+    kind: 'event_created',
+    text: `新しいイベント「${input.name}」が登録されました`,
+    targetPath: `/event/${row.id}`,
+    excludeUserId: user.id,
+  });
   return row.id;
 }
 
@@ -268,6 +276,17 @@ export async function addEventComment(eventId: string, text: string): Promise<Ev
     eventId, userId: user.id, text: text.trim(),
   }).returning();
   const [profile] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
+  // イベント作成者に通知(自分のイベントには飛ばさない)
+  const [eventRow] = await db.select().from(schema.events).where(eq(schema.events.id, eventId));
+  if (eventRow) {
+    await createNotification({
+      userId: eventRow.createdBy,
+      kind: 'event_comment',
+      text: `${profile?.nickname || 'メンバー'}さんが「${eventRow.name}」にコメントしました`,
+      targetPath: `/event/${eventId}`,
+      excludeUserId: user.id,
+    });
+  }
   return {
     id: row.id,
     userId: row.userId,
