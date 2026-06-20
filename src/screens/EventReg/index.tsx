@@ -6,6 +6,7 @@ import { createEvent, updateEvent, getEventDetail } from '@/app/actions/events';
 import { Input } from '@/components/shared/Input';
 import { Textarea } from '@/components/shared/Textarea';
 import { Button } from '@/components/shared/Button';
+import { Loading } from '@/components/shared/Loading';
 import { paths } from '@/lib/routes';
 import { DateTimePicker } from '@/screens/MeetupCreate/DateTimePicker';
 import { Done } from './Done';
@@ -97,7 +98,7 @@ export function EventReg({ editingId }: { editingId?: string }) {
   };
 
   if (!loaded) {
-    return <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }} />;
+    return <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}><Loading /></div>;
   }
 
   if (done) {

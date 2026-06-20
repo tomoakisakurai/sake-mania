@@ -1,6 +1,7 @@
 import { useStore } from '@/store';
 import { deleteMeetup } from '@/app/actions/meetups';
 import type { Vals } from '@/useVals';
+import { Loading } from '@/components/shared/Loading';
 import { BeforePhase } from './BeforePhase';
 import { ReviewPhase } from './ReviewPhase';
 import { MeetupActions } from './MeetupActions';
@@ -23,6 +24,10 @@ export function Meetup({ vals }: { vals: Vals }) {
   const gcalUrl = meetupDetail?.eventDate
     ? buildGcalUrl(meetupDetail.eventDate, meetupDetail.dateLabel, meetupDetail.name, meetupDetail.place, meetupDetail.theme)
     : null;
+
+  if (!meetupDetail) {
+    return <div style={{ maxWidth: 920, margin: '0 auto', padding: vals.pagePadTight }}><Loading /></div>;
+  }
 
   const handleDelete = async () => {
     if (!meetupDetail) return;

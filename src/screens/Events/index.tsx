@@ -6,6 +6,7 @@ import { paths } from '@/lib/routes';
 import { getEvents, toggleEventStatus } from '@/app/actions/events';
 import type { EventView, EventStatus } from '@/app/actions/events';
 import { Button } from '@/components/shared/Button';
+import { Loading } from '@/components/shared/Loading';
 
 function shortDate(eventDate: string | null): string {
   if (!eventDate) return '';
@@ -72,6 +73,7 @@ export function Events() {
       <div className="font-serif text-[28px] font-bold mb-1.5">酒イベント情報</div>
       <div className="text-[13px] text-muted mb-7">社内外の日本酒イベントをチェック。「参加する」「興味あり」を表明すると、一緒に行く部員が見えます。</div>
 
+      {!loaded && <Loading />}
       {loaded && events.length === 0 && (
         <div className="border border-dashed border-line-strong rounded-xl py-12 text-center bg-surface text-[13px] text-muted">
           まだイベントが登録されていません。最初のイベントを登録しましょう。

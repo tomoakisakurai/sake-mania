@@ -11,6 +11,7 @@ import {
 import type { EventDetail, EventStatus } from '@/app/actions/events';
 import { paths } from '@/lib/routes';
 import { Button } from '@/components/shared/Button';
+import { Loading } from '@/components/shared/Loading';
 import { CommentList } from './CommentList';
 import { Menu } from './Menu';
 
@@ -47,7 +48,7 @@ export function Event({ eventId }: { eventId: string }) {
     refresh();
   }, [refresh]);
 
-  if (!loaded) return <div style={{ padding: pagePadding }} />;
+  if (!loaded) return <div style={{ padding: pagePadding }}><Loading /></div>;
   if (!event) {
     return (
       <div style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}>
