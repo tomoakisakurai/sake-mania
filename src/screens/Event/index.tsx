@@ -1,15 +1,18 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import {
   getEventDetail,
-  setEventStatus,
+  toggleEventStatus,
   addEventComment,
   deleteEvent,
 } from '@/app/actions/events';
 import type { EventDetail, EventStatus } from '@/app/actions/events';
+import { paths } from '@/lib/routes';
 import { Button } from '@/components/shared/Button';
 import { CommentList } from './CommentList';
+import { Menu } from './Menu';
 
 function buildGcalUrl(eventDate: string, hour: string, name: string, place: string, description: string) {
   const date = eventDate.replace(/-/g, '');
@@ -27,6 +30,7 @@ function parseHourFromLabel(dateLabel: string): string {
 
 export function Event({ eventId }: { eventId: string }) {
   const store = useStore();
+  const router = useRouter();
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
   const [event, setEvent] = useState<EventDetail | null>(null);
@@ -54,23 +58,14 @@ export function Event({ eventId }: { eventId: string }) {
     );
   }
 
-  const handleStatus = async (status: EventStatus) => {
+  const handleToggle = async (status: EventStatus) => {
     if (!store.requireLogin()) return;
-    const next: EventStatus | null = event.myStatus === status ? null : status;
-    const ok = await setEventStatus(event.id, next);
+    const ok = await toggleEventStatus(event.id, status);
     if (!ok) { store.flash('更新に失敗しました'); return; }
     refresh();
   };
 
-  const handleSendComment = async () => {
-    if (!commentDraft.trim()) return;
-    if (!store.requireLogin()) return;
-    const added = await addEventComment(event.id, commentDraft);
-    if (!added) { store.flash('送信に失敗しました'); return; }
-    setCommentDraft('');
-    refresh();
-  };
-
+  const handleEdit = () => router.push(paths.eventEdit(event.id));
   const handleDelete = async () => {
     if (!window.confirm(`「${event.name}」を削除しますか? この操作は取り消せません。`)) return;
     const ok = await deleteEvent(event.id);
@@ -80,6 +75,15 @@ export function Event({ eventId }: { eventId: string }) {
     } else {
       store.flash('削除できませんでした');
     }
+  };
+
+  const handleSendComment = async () => {
+    if (!commentDraft.trim()) return;
+    if (!store.requireLogin()) return;
+    const added = await addEventComment(event.id, commentDraft);
+    if (!added) { store.flash('送信に失敗しました'); return; }
+    setCommentDraft('');
+    refresh();
   };
 
   const hour = parseHourFromLabel(event.dateLabel);
@@ -94,7 +98,10 @@ export function Event({ eventId }: { eventId: string }) {
     <div style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}>
       <div onClick={() => store.nav('events')} className="text-[13px] text-muted cursor-pointer mb-6 hover:text-primary transition-colors">← イベント一覧にもどる</div>
       <div className="font-mono text-[11px] tracking-[0.18em] text-accent mb-2.5">EVENT</div>
-      <div className="font-serif text-[30px] font-bold leading-tight mb-2">{event.name}</div>
+      <div className="flex items-start gap-3 mb-2">
+        <div className="font-serif text-[30px] font-bold leading-tight flex-1 min-w-0">{event.name}</div>
+        {event.isCreator && <Menu onEdit={handleEdit} onDelete={handleDelete} />}
+      </div>
       <div className="text-[13.5px] text-muted mb-1">{event.dateLabel}</div>
       <div className="text-[13.5px] text-muted mb-6">
         {event.place}
@@ -103,16 +110,16 @@ export function Event({ eventId }: { eventId: string }) {
 
       <div className="flex gap-3 flex-wrap mb-7">
         <button
-          onClick={() => handleStatus('going')}
-          className={`rounded-full px-7 py-3 text-[14px] font-bold cursor-pointer transition-colors ${event.myStatus === 'going' ? 'bg-accent text-surface' : 'bg-accent text-surface hover:bg-accent-hover'}`}
+          onClick={() => handleToggle('going')}
+          className={`rounded-full border-[1.5px] border-accent px-6 py-2.5 text-[13.5px] font-bold cursor-pointer transition-colors ${event.iGoing ? 'bg-accent text-surface' : 'bg-card text-accent'}`}
         >
-          {event.myStatus === 'going' ? '参加予定 ✓' : '参加を申し込む'}
+          {event.iGoing ? '参加予定 ✓' : '参加する'}
         </button>
         <button
-          onClick={() => handleStatus('interested')}
-          className={`border border-[1.5px] border-primary rounded-full px-6 py-2.5 text-[13.5px] font-bold cursor-pointer transition-colors ${event.myStatus === 'interested' ? 'bg-primary text-surface' : 'bg-white text-primary'}`}
+          onClick={() => handleToggle('interested')}
+          className={`rounded-full border-[1.5px] border-primary px-6 py-2.5 text-[13.5px] font-bold cursor-pointer transition-colors ${event.iInterested ? 'bg-primary text-surface' : 'bg-card text-primary'}`}
         >
-          {event.myStatus === 'interested' ? '興味あり ✓' : '興味あり'}
+          {event.iInterested ? '興味あり ✓' : '興味あり'}
         </button>
         {event.officialUrl && (
           <a
@@ -144,18 +151,6 @@ export function Event({ eventId }: { eventId: string }) {
             </svg>
             Googleカレンダーに追加
           </a>
-        )}
-        {event.isCreator && (
-          <button
-            onClick={handleDelete}
-            className="inline-flex items-center gap-1.5 border border-line hover:border-danger hover:text-danger rounded-full px-5 py-2.5 text-[13px] font-bold text-faint cursor-pointer bg-surface transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-            このイベントを削除
-          </button>
         )}
       </div>
 

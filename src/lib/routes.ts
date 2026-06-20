@@ -38,6 +38,7 @@ export function routeStateFromPath(pathname: string): RouteState {
   if (p === '/events') return { ...base, screen: 'events' };
   if (p === '/members') return { ...base, screen: 'members' };
   if (p === '/event/create') return { ...base, screen: 'eventCreate' };
+  if (seg[0] === 'event' && seg[1] && seg[2] === 'edit') return { ...base, screen: 'eventEdit', eventId: decodeURIComponent(seg[1]) };
   if (seg[0] === 'event' && seg[1]) return { ...base, screen: 'event', eventId: decodeURIComponent(seg[1]) };
   if (seg[0] === 'meetup' && seg[1] && seg[2] === 'declare') return { ...base, screen: 'declare', meetupId: decodeURIComponent(seg[1]) };
   if (seg[0] === 'meetup' && seg[1]) return { ...base, screen: 'meetup', meetupId: decodeURIComponent(seg[1]) };
@@ -73,4 +74,5 @@ export const paths = {
   meetup: (id: string) => `/meetup/${encodeURIComponent(id)}`,
   declare: (id: string) => `/meetup/${encodeURIComponent(id)}/declare`,
   event: (id: string) => `/event/${encodeURIComponent(id)}`,
+  eventEdit: (id: string) => `/event/${encodeURIComponent(id)}/edit`,
 };

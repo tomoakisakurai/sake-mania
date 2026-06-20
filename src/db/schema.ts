@@ -205,13 +205,13 @@ export const events = pgTable('events', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// 参加表明（going / interested）
+// 参加表明（going と interested は独立トグル: 同時ONも可）
 export const eventAttendees = pgTable('event_attendees', {
   eventId: uuid('event_id').notNull(),
   userId: uuid('user_id').notNull(),
   status: text('status').notNull(), // 'going' | 'interested'
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [primaryKey({ columns: [t.eventId, t.userId] })]);
+}, (t) => [primaryKey({ columns: [t.eventId, t.userId, t.status] })]);
 
 // イベントコメント
 export const eventComments = pgTable('event_comments', {

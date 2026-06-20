@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import { paths } from '@/lib/routes';
-import { getEvents, setEventStatus } from '@/app/actions/events';
+import { getEvents, toggleEventStatus } from '@/app/actions/events';
 import type { EventView, EventStatus } from '@/app/actions/events';
 import { Button } from '@/components/shared/Button';
 
@@ -33,24 +33,26 @@ export function Events() {
 
   const toggleStatus = async (event: EventView, status: EventStatus) => {
     if (!store.requireLogin()) return;
-    const next: EventStatus | null = event.myStatus === status ? null : status;
+    const before = events;
     const optimistic: EventView[] = events.map((e) => {
       if (e.id !== event.id) return e;
-      const goingDelta = (next === 'going' ? 1 : 0) - (e.myStatus === 'going' ? 1 : 0);
-      const interestedDelta = (next === 'interested' ? 1 : 0) - (e.myStatus === 'interested' ? 1 : 0);
-      return {
-        ...e,
-        myStatus: next,
-        goingCount: e.goingCount + goingDelta,
-        interestedCount: e.interestedCount + interestedDelta,
-      };
+      if (status === 'going') {
+        const next = !e.iGoing;
+        return { ...e, iGoing: next, goingCount: e.goingCount + (next ? 1 : -1) };
+      }
+      const next = !e.iInterested;
+      return { ...e, iInterested: next, interestedCount: e.interestedCount + (next ? 1 : -1) };
     });
     setEvents(optimistic);
-    const ok = await setEventStatus(event.id, next);
+    const ok = await toggleEventStatus(event.id, status);
     if (!ok) {
       store.flash('更新に失敗しました');
-      setEvents(events);
+      setEvents(before);
+      return;
     }
+    // 参加アバター一覧などはサーバ側で算出するので再取得して同期する
+    const fresh = await getEvents();
+    setEvents(fresh);
   };
 
   return (
@@ -93,21 +95,34 @@ export function Events() {
               {event.kuras > 0 && ` ・ 参加蔵 ${event.kuras}`}
             </div>
             <div className="flex flex-wrap items-center gap-3.5 mb-3.5">
-              <span className="font-mono text-[11.5px] text-body">{event.goingCount}人参加</span>
-              <span className="font-mono text-[11.5px] text-muted">・ {event.interestedCount}人興味あり</span>
+              {event.goingAvatars.length > 0 && (
+                <div className="flex">
+                  {event.goingAvatars.map((member, i) => (
+                    <div
+                      key={i}
+                      style={{ background: member.avatarBg }}
+                      className="w-[26px] h-[26px] rounded-full border-2 border-card flex items-center justify-center text-[10px] font-bold -ml-1.5 first:ml-0"
+                    >
+                      {member.avatar}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <span className="font-mono text-[11.5px] text-body">{event.goingCount}人が参加予定</span>
+              <span className="font-mono text-[11.5px] text-muted">・ {event.interestedCount}人が興味あり</span>
             </div>
             <div className="flex flex-wrap gap-2.5">
               <button
                 onClick={(e) => { e.stopPropagation(); toggleStatus(event, 'going'); }}
-                className={`border border-[1.5px] border-accent rounded-full px-4 py-2 text-[12.5px] font-bold cursor-pointer transition-colors ${event.myStatus === 'going' ? 'bg-accent text-surface' : 'bg-white text-accent'}`}
+                className={`rounded-full border-[1.5px] border-accent px-4 py-2 text-[12.5px] font-bold cursor-pointer transition-colors ${event.iGoing ? 'bg-accent text-surface' : 'bg-card text-accent'}`}
               >
-                {event.myStatus === 'going' ? '参加予定 ✓' : '参加する'}
+                {event.iGoing ? '参加予定 ✓' : '参加する'}
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); toggleStatus(event, 'interested'); }}
-                className={`border border-[1.5px] border-primary rounded-full px-4 py-2 text-[12.5px] font-bold cursor-pointer transition-colors ${event.myStatus === 'interested' ? 'bg-primary text-surface' : 'bg-white text-primary'}`}
+                className={`rounded-full border-[1.5px] border-primary px-4 py-2 text-[12.5px] font-bold cursor-pointer transition-colors ${event.iInterested ? 'bg-primary text-surface' : 'bg-card text-primary'}`}
               >
-                {event.myStatus === 'interested' ? '興味あり ✓' : '興味あり'}
+                {event.iInterested ? '興味あり ✓' : '興味あり'}
               </button>
             </div>
           </div>

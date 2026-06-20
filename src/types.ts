@@ -19,6 +19,7 @@ export type Screen =
   | 'events'
   | 'event'
   | 'eventCreate'
+  | 'eventEdit'
   | 'members';
 
 export interface Brand {
