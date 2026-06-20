@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import type { Vals } from '@/useVals';
+import { Notifications } from './Notifications';
 
 export function Nav({ vals }: { vals: Vals }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,6 +27,7 @@ export function Nav({ vals }: { vals: Vals }) {
         )}
         {vals.loggedIn && (
           <>
+            <Notifications />
             <div onClick={vals.goMy} style={{ width: 36, height: 36, borderRadius: '50%', background: '#DDD3BE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>{vals.userAvatar}</div>
             {vals.isMobile && (
               <div onClick={() => setMenuOpen(true)} className="flex h-9 w-9 shrink-0 cursor-pointer flex-col items-center justify-center gap-[5px]">
