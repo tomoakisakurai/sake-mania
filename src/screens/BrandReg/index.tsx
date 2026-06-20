@@ -36,9 +36,9 @@ export function BrandReg() {
   if (!isAdmin) {
     return (
       <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}>
-        <div onClick={() => store.nav('zukan')} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 24 }}>← 図鑑にもどる</div>
+        <div onClick={() => store.nav('zukan')} style={{ fontSize: 13, color: 'var(--color-muted)', cursor: 'pointer', marginBottom: 24 }}>← 図鑑にもどる</div>
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>アクセスできません</div>
-        <div style={{ fontSize: 14, color: '#5C5547', lineHeight: 1.9 }}>銘柄の登録は管理者のみ行えます。</div>
+        <div style={{ fontSize: 14, color: 'var(--color-body)', lineHeight: 1.9 }}>銘柄の登録は管理者のみ行えます。</div>
       </div>
     );
   }
@@ -113,10 +113,10 @@ export function BrandReg() {
 
   return (
     <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}>
-      <div onClick={() => store.nav('zukan')} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 24 }}>← 図鑑にもどる</div>
-      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', color: '#8B8273', marginBottom: 10 }}>REGISTER A BRAND</div>
+      <div onClick={() => store.nav('zukan')} style={{ fontSize: 13, color: 'var(--color-muted)', cursor: 'pointer', marginBottom: 24 }}>← 図鑑にもどる</div>
+      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-muted)', marginBottom: 10 }}>REGISTER A BRAND</div>
       <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, marginBottom: 8 }}>銘柄を登録する</div>
-      <div style={{ fontSize: 13.5, lineHeight: 1.9, color: '#5C5547', marginBottom: 28 }}>図鑑にまだ載っていない銘柄を登録できます。登録するとすぐに図鑑に追加され、部のみんなが記録・検索できるようになります。飲んで気に入った一本をぜひ共有しましょう。</div>
+      <div style={{ fontSize: 13.5, lineHeight: 1.9, color: 'var(--color-body)', marginBottom: 28 }}>図鑑にまだ載っていない銘柄を登録できます。登録するとすぐに図鑑に追加され、部のみんなが記録・検索できるようになります。飲んで気に入った一本をぜひ共有しましょう。</div>
 
       <LabelReader
         photo={photo}
@@ -129,11 +129,11 @@ export function BrandReg() {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="col-span-2">
-          <div className="text-[12.5px] font-bold mb-1.5">銘柄名 <span className="text-[#BC6A2D]">必須</span></div>
+          <div className="text-[12.5px] font-bold mb-1.5">銘柄名 <span className="text-accent">必須</span></div>
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="例: 〇〇 純米大吟醸" />
         </div>
         <div>
-          <div className="text-[12.5px] font-bold mb-1.5">酒蔵 <span className="text-[#BC6A2D]">必須</span></div>
+          <div className="text-[12.5px] font-bold mb-1.5">酒蔵 <span className="text-accent">必須</span></div>
           <Input value={brewery} onChange={(e) => setBrewery(e.target.value)} placeholder="例: 〇〇酒造" />
         </div>
         <div>

@@ -45,24 +45,24 @@ export function Footer() {
   if (isMobile) return null;
 
   return (
-    <div className="bg-[#FDFBF5] border-t border-[#E3DBCB] px-10 pt-9 pb-7 mt-16">
+    <div className="bg-surface border-t border-line px-10 pt-9 pb-7 mt-16">
       <div className="max-w-[1140px] mx-auto grid grid-cols-[1.4fr_1fr_1fr_1.2fr] gap-8">
         <div>
           <div className="flex items-baseline gap-2.5 mb-2.5">
             <span className="font-serif text-[19px] font-extrabold tracking-[0.04em]">酒マニア</span>
-            <span className="font-mono text-[10px] tracking-[0.2em] text-[#8B8273]">SAKE MANIA</span>
+            <span className="font-mono text-[10px] tracking-[0.2em] text-muted">SAKE MANIA</span>
           </div>
-          <div className="text-[12px] leading-relaxed text-[#8B8273]">社内日本酒部の活動を、もっと愉しく。</div>
+          <div className="text-[12px] leading-relaxed text-muted">社内日本酒部の活動を、もっと愉しく。</div>
         </div>
         {SECTIONS.map((section) => (
           <div key={section.title}>
-            <div className="font-serif text-[13px] font-bold text-[#2E2A24] mb-3">{section.title}</div>
+            <div className="font-serif text-[13px] font-bold text-ink mb-3">{section.title}</div>
             <div className="flex flex-col gap-2">
               {section.links.map((link) => (
                 <span
                   key={link.screen}
                   onClick={() => handleClick(link.screen)}
-                  className="text-[12.5px] text-[#5C5547] cursor-pointer leading-snug hover:text-[#32507C] transition-colors"
+                  className="text-[12.5px] text-body cursor-pointer leading-snug hover:text-primary transition-colors"
                 >
                   {link.label}
                 </span>
@@ -71,7 +71,7 @@ export function Footer() {
           </div>
         ))}
       </div>
-      <div className="max-w-[1140px] mx-auto mt-7 pt-[18px] border-t border-[#E3DBCB] text-[11px] text-[#A89D8A] text-center tracking-[0.05em]">
+      <div className="max-w-[1140px] mx-auto mt-7 pt-[18px] border-t border-line text-[11px] text-faint text-center tracking-[0.05em]">
         © SAKE Mania ・ 社内日本酒部
       </div>
     </div>

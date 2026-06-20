@@ -53,19 +53,19 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
   })();
 
   return (
-    <div className="bg-[#FDFBF5] border border-[#E3DBCB] rounded-xl p-[18px_20px] mb-[18px]">
+    <div className="bg-surface border border-line rounded-xl p-[18px_20px] mb-[18px]">
       {/* 月ナビゲーション */}
       <div className="flex items-center justify-between mb-[14px]">
         <button
           type="button"
           onClick={prevMonth}
-          className="w-8 h-8 rounded-full bg-white border border-[#E3DBCB] flex items-center justify-center text-base text-[#5C5547] cursor-pointer hover:border-[#32507C]"
+          className="w-8 h-8 rounded-full bg-white border border-line flex items-center justify-center text-base text-body cursor-pointer hover:border-primary"
         >←</button>
         <div className="font-[Shippori_Mincho,serif] text-[15px] font-bold">{calTitle}</div>
         <button
           type="button"
           onClick={nextMonth}
-          className="w-8 h-8 rounded-full bg-white border border-[#E3DBCB] flex items-center justify-center text-base text-[#5C5547] cursor-pointer hover:border-[#32507C]"
+          className="w-8 h-8 rounded-full bg-white border border-line flex items-center justify-center text-base text-body cursor-pointer hover:border-primary"
         >→</button>
       </div>
 
@@ -74,7 +74,7 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
         {DOW.map((d, i) => (
           <div
             key={d}
-            className={`text-center text-[10.5px] font-bold py-1 ${i === 0 ? 'text-[#BC6A2D]' : i === 6 ? 'text-[#32507C]' : 'text-[#8B8273]'}`}
+            className={`text-center text-[10.5px] font-bold py-1 ${i === 0 ? 'text-accent' : i === 6 ? 'text-primary' : 'text-muted'}`}
           >{d}</div>
         ))}
       </div>
@@ -87,13 +87,13 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
             onClick={cd.past || !cd.label ? undefined : () => onChange(cd.iso)}
             className={[
               'text-center py-2 rounded-lg text-[13px]',
-              !cd.label || cd.past ? 'cursor-default' : 'cursor-pointer hover:bg-[#F0EADC]',
-              cd.selected ? 'bg-[#32507C] font-bold' : 'bg-transparent font-medium',
+              !cd.label || cd.past ? 'cursor-default' : 'cursor-pointer hover:bg-line-soft',
+              cd.selected ? 'bg-primary font-bold' : 'bg-transparent font-medium',
               !cd.label ? 'text-transparent' :
-                cd.selected ? 'text-[#FDFBF5]' :
-                cd.past ? 'text-[#D0C9BA]' :
-                cd.isSun ? 'text-[#BC6A2D]' :
-                cd.isSat ? 'text-[#32507C]' : 'text-[#2E2A24]',
+                cd.selected ? 'text-surface' :
+                cd.past ? 'text-line-strong' :
+                cd.isSun ? 'text-accent' :
+                cd.isSat ? 'text-primary' : 'text-ink',
             ].join(' ')}
           >{cd.label}</div>
         ))}
@@ -101,21 +101,21 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
 
       {/* 選択済み：日付ラベル＋時間チップ */}
       {value && (
-        <div className="mt-[14px] pt-3 border-t border-[#E3DBCB] flex flex-col gap-3">
-          <div className="text-[13px] text-[#5C5547]">
-            選択中: <span className="font-bold text-[#2E2A24]">{selectedDateLabel}</span>
+        <div className="mt-[14px] pt-3 border-t border-line flex flex-col gap-3">
+          <div className="text-[13px] text-body">
+            選択中: <span className="font-bold text-ink">{selectedDateLabel}</span>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-xs text-[#8B8273]">開始</div>
+            <div className="text-xs text-muted">開始</div>
             {HOURS.map((h) => (
               <button
                 key={h}
                 type="button"
                 onClick={() => onHourChange(h)}
-                className={`min-w-[44px] text-center px-[10px] py-[7px] rounded-lg text-[13px] font-bold cursor-pointer border hover:border-[#32507C] ${
+                className={`min-w-[44px] text-center px-[10px] py-[7px] rounded-lg text-[13px] font-bold cursor-pointer border hover:border-primary ${
                   hour === h
-                    ? 'bg-[#32507C] text-[#FDFBF5] border-[#32507C]'
-                    : 'bg-white text-[#2E2A24] border-[#E3DBCB]'
+                    ? 'bg-primary text-surface border-primary'
+                    : 'bg-white text-ink border-line'
                 }`}
               >{h}</button>
             ))}

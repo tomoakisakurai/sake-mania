@@ -71,12 +71,12 @@ export function EventReg() {
 
   return (
     <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}>
-      <div onClick={() => store.nav('events')} className="text-[13px] text-[#8B8273] cursor-pointer mb-6 hover:text-[#32507C] transition-colors">← イベント情報にもどる</div>
-      <div className="font-mono text-[11px] tracking-[0.18em] text-[#BC6A2D] mb-2.5">REGISTER AN EVENT</div>
+      <div onClick={() => store.nav('events')} className="text-[13px] text-muted cursor-pointer mb-6 hover:text-primary transition-colors">← イベント情報にもどる</div>
+      <div className="font-mono text-[11px] tracking-[0.18em] text-accent mb-2.5">REGISTER AN EVENT</div>
       <div className="font-serif text-[28px] font-bold mb-2">イベントを登録する</div>
-      <div className="text-[13.5px] leading-relaxed text-[#5C5547] mb-7">行きたい・知ってほしい日本酒イベントを部のみんなに共有しましょう。登録すると、すぐにイベント情報フィードに掲載されます。</div>
+      <div className="text-[13.5px] leading-relaxed text-body mb-7">行きたい・知ってほしい日本酒イベントを部のみんなに共有しましょう。登録すると、すぐにイベント情報フィードに掲載されます。</div>
 
-      <div className="text-[12.5px] font-bold mb-1.5">イベント名 <span className="text-[#BC6A2D]">必須</span></div>
+      <div className="text-[12.5px] font-bold mb-1.5">イベント名 <span className="text-accent">必須</span></div>
       <Input
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -84,7 +84,7 @@ export function EventReg() {
         className="mb-4"
       />
 
-      <div className="text-[12.5px] font-bold mb-2">開催日 <span className="text-[#BC6A2D]">必須</span></div>
+      <div className="text-[12.5px] font-bold mb-2">開催日 <span className="text-accent">必須</span></div>
       <DateTimePicker
         value={eventDate}
         hour={hour}
@@ -93,7 +93,7 @@ export function EventReg() {
         onHourChange={setHour}
       />
 
-      <div className="text-[12.5px] font-bold mb-1.5">会場 <span className="text-[#BC6A2D]">必須</span></div>
+      <div className="text-[12.5px] font-bold mb-1.5">会場 <span className="text-accent">必須</span></div>
       <Input
         value={place}
         onChange={(e) => setPlace(e.target.value)}

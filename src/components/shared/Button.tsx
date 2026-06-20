@@ -12,15 +12,15 @@ type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> & {
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   // 紺ベタ塗り(主要アクション)
-  primary: 'bg-[#32507C] hover:bg-[#263d5f] text-[#FDFBF5] border border-[#32507C]',
+  primary: 'bg-primary hover:bg-primary-dark text-surface border border-primary',
   // 紺アウトライン(任意アクション)
-  secondary: 'bg-white hover:bg-[#EEF1F7] text-[#32507C] hover:text-[#263d5f] border border-[#32507C]',
+  secondary: 'bg-card hover:bg-primary-tint text-primary hover:text-primary-dark border border-primary',
   // 朱ベタ塗り(参加など強調アクション)
-  accent: 'bg-[#BC6A2D] hover:bg-[#A4581F] text-[#FDFBF5] border border-[#BC6A2D]',
+  accent: 'bg-accent hover:bg-accent-hover text-surface border border-accent',
   // グレー枠(セカンダリ/キャンセル)
-  outline: 'bg-[#FDFBF5] hover:border-[#32507C] text-[#5C5547] border border-[#E3DBCB]',
+  outline: 'bg-surface hover:border-primary text-body border border-line',
   // 削除など破壊的アクション
-  danger: 'bg-[#FDFBF5] hover:border-[#B0402A] hover:text-[#B0402A] text-[#A89D8A] border border-[#E3DBCB]',
+  danger: 'bg-surface hover:border-danger hover:text-danger text-faint border border-line',
 };
 
 const SIZE_CLASSES: Record<Size, string> = {

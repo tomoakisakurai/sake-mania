@@ -8,19 +8,35 @@
 
 /* デザイントークン（新規コードで bg-bg / text-primary / font-serif などが使える） */
 @theme {
-  --color-bg: #F6F1E7;
-  --color-surface: #FDFBF5;
-  --color-card: #FFFFFF;
+  /* ===== Brand: 紺(primary) ===== */
+  --color-primary-tint: #EEF1F7;
   --color-primary: #32507C;
   --color-primary-dark: #263d5f;
+
+  /* ===== Brand: 朱(accent) ===== */
   --color-accent: #BC6A2D;
+  --color-accent-hover: #A4581F;
   --color-accent-dark: #9A5A20;
+
+  /* ===== Semantic ===== */
+  --color-success: #5A7D64;
+  --color-danger: #B0402A;
+
+  /* ===== Surface(明るい和紙系) ===== */
+  --color-card: #FFFFFF;
+  --color-surface: #FDFBF5;
+  --color-bg: #F6F1E7;
+
+  /* ===== Border ===== */
+  --color-line-soft: #F0EADC;
+  --color-line: #E3DBCB;
+  --color-line-strong: #D9D0BC;
+
+  /* ===== Text(暗→淡) ===== */
   --color-ink: #2E2A24;
   --color-body: #5C5547;
   --color-muted: #8B8273;
   --color-faint: #A89D8A;
-  --color-line: #E3DBCB;
-  --color-line-soft: #F0EADC;
 
   --font-serif: 'Shippori Mincho', serif;
   --font-sans: 'Zen Kaku Gothic New', sans-serif;
