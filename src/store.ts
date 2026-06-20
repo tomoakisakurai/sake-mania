@@ -52,7 +52,7 @@ export interface State {
   openMeetup: (id: string) => void;
   openDeclare: (id: string) => void;
   openKuraReg: () => void;
-  openEventCreate: () => void;
+  openMeetupCreate: () => void;
   flash: (msg: string) => void;
   requireLogin: () => boolean;
   loadDeferredReference: () => void;
@@ -212,7 +212,7 @@ export const useStore = create<State>((set, get) => ({
     get()._navigate('/kura/register');
   },
 
-  openEventCreate: () => {
+  openMeetupCreate: () => {
     if (!get().requireLogin()) return;
     get()._navigate('/meetup/create');
   },

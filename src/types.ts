@@ -15,7 +15,11 @@ export type Screen =
   | 'meetups'
   | 'meetup'
   | 'declare'
-  | 'eventCreate';
+  | 'meetupCreate'
+  | 'events'
+  | 'event'
+  | 'eventCreate'
+  | 'members';
 
 export interface Brand {
   id: string;

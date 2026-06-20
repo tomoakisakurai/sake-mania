@@ -430,11 +430,15 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     goMy: () => { if (store.requireLogin()) store.nav('mypage'); },
     // SP ハンバーガーメニュー項目（タブバーから外れた導線をここで補う）
     menuItems: [
+      { label: '銘柄図鑑', click: () => store.nav('zukan') },
       { label: '酒蔵マップ', click: () => store.nav('map') },
-      { label: '飲める店', click: () => store.nav('map') },
+      { label: 'メンバー', click: () => store.nav('members') },
       { label: 'みんなの利き酒帳', click: () => store.nav('feed') },
-      { label: 'イベントを立てる', click: () => store.openEventCreate() },
-      ...(store.user?.isAdmin ? [{ label: '酒蔵を登録する', click: () => store.openKuraReg() }] : []),
+      { label: 'SAKE MEETUPを立てる', click: () => store.openMeetupCreate() },
+      ...(store.user?.isAdmin ? [
+        { label: '酒蔵を登録する', click: () => store.openKuraReg() },
+        { label: '銘柄を登録する', click: () => store.nav('brandReg') },
+      ] : []),
     ],
     // login
     isLogin: route.screen === 'login',
@@ -530,8 +534,8 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     homeNext, homePast, homeVoting, hasVoting: !!homeVoting, meetup, declare,
     meetupsList, isMeetups: route.screen === 'meetups', goMeetups: () => store.nav('meetups'),
     isMeetup: route.screen === 'meetup', isDeclare: route.screen === 'declare',
-    isMeetupCreate: route.screen === 'eventCreate',
-    openMeetupCreate: () => store.openEventCreate(),
+    isMeetupCreate: route.screen === 'meetupCreate',
+    openMeetupCreate: () => store.openMeetupCreate(),
     isKuraReg: route.screen === 'kuraReg',
     openKuraReg: () => store.openKuraReg(),
     meetCols: isMobile ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',

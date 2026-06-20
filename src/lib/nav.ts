@@ -13,20 +13,17 @@ interface NavStore {
 // ナビ項目(PC) の定義
 const NAV_DEF: [Screen, string][] = [
   ['home', 'ホーム'],
-  ['zukan', '図鑑'],
   ['meetups', 'MEETUP'],
-  ['map', '酒蔵マップ'],
-  ['feed', 'みんなの利き酒帳'],
+  ['events', 'イベント'],
+  ['members', 'メンバー'],
   ['mypage', 'マイページ'],
 ];
 
 // 現在のルートで、そのナビ/タブ項目をアクティブ表示するか
 function screenActive(route: RouteState, key: Screen): boolean {
   return route.screen === key
-    || (key === 'zukan' && route.screen === 'detail')
-    || (key === 'feed' && route.screen === 'post')
-    || (key === 'map' && (route.screen === 'kura' || route.screen === 'kuraReg'))
-    || (key === 'meetups' && (route.screen === 'meetup' || route.screen === 'declare' || route.screen === 'eventCreate'));
+    || (key === 'meetups' && (route.screen === 'meetup' || route.screen === 'declare' || route.screen === 'meetupCreate'))
+    || (key === 'events' && (route.screen === 'event' || route.screen === 'eventCreate'));
 }
 
 // 遷移（マイページのみ要ログイン）
@@ -59,6 +56,6 @@ export function buildNavModel(route: RouteState, st: NavStore) {
   return {
     navItems,
     tabLeft: [mkTab('home', 'ホーム'), mkTab('meetups', 'MEETUP')],
-    tabRight: [mkTab('zukan', '銘柄図鑑'), mkTab('mypage', 'マイページ')],
+    tabRight: [mkTab('events', 'イベント'), mkTab('mypage', 'マイページ')],
   };
 }

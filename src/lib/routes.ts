@@ -8,12 +8,13 @@ export interface RouteState {
   detailId: string | null;
   kuraName: string | null;
   meetupId: string | null;
+  eventId: string | null;
   postRef: PostRef | null;
 }
 
 /** Parse a Next.js pathname into screen + ids. */
 export function routeStateFromPath(pathname: string): RouteState {
-  const base: RouteState = { screen: 'home', detailId: null, kuraName: null, meetupId: null, postRef: null };
+  const base: RouteState = { screen: 'home', detailId: null, kuraName: null, meetupId: null, eventId: null, postRef: null };
   const p = pathname.replace(/\/+$/, '') || '/';
   const seg = p.split('/').filter(Boolean);
 
@@ -33,7 +34,11 @@ export function routeStateFromPath(pathname: string): RouteState {
   if (p === '/kura/register') return { ...base, screen: 'kuraReg' };
   if (p === '/brand/register') return { ...base, screen: 'brandReg' };
   if (seg[0] === 'kura' && seg[1]) return { ...base, screen: 'kura', kuraName: decodeURIComponent(seg[1]) };
-  if (p === '/meetup/create') return { ...base, screen: 'eventCreate' };
+  if (p === '/meetup/create') return { ...base, screen: 'meetupCreate' };
+  if (p === '/events') return { ...base, screen: 'events' };
+  if (p === '/members') return { ...base, screen: 'members' };
+  if (p === '/event/create') return { ...base, screen: 'eventCreate' };
+  if (seg[0] === 'event' && seg[1]) return { ...base, screen: 'event', eventId: decodeURIComponent(seg[1]) };
   if (seg[0] === 'meetup' && seg[1] && seg[2] === 'declare') return { ...base, screen: 'declare', meetupId: decodeURIComponent(seg[1]) };
   if (seg[0] === 'meetup' && seg[1]) return { ...base, screen: 'meetup', meetupId: decodeURIComponent(seg[1]) };
 
@@ -51,7 +56,10 @@ export function pathForScreen(screen: Screen): string {
     case 'feed': return '/feed';
     case 'mypage': return '/mypage';
     case 'record': return '/record';
-    case 'eventCreate': return '/meetup/create';
+    case 'meetupCreate': return '/meetup/create';
+    case 'events': return '/events';
+    case 'eventCreate': return '/event/create';
+    case 'members': return '/members';
     case 'kuraReg': return '/kura/register';
     case 'brandReg': return '/brand/register';
     default: return '/';
@@ -64,4 +72,5 @@ export const paths = {
   kura: (name: string) => `/kura/${encodeURIComponent(name)}`,
   meetup: (id: string) => `/meetup/${encodeURIComponent(id)}`,
   declare: (id: string) => `/meetup/${encodeURIComponent(id)}/declare`,
+  event: (id: string) => `/event/${encodeURIComponent(id)}`,
 };

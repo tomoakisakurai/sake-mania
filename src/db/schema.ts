@@ -186,3 +186,38 @@ export const meetupVotes = pgTable('meetup_votes', {
   brandId: text('brand_id').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [primaryKey({ columns: [t.meetupId, t.userId] })]);
+
+// ===== 酒イベント（外部・社内イベント情報共有）=====
+export const events = pgTable('events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  dateLabel: text('date_label').notNull(),
+  eventDate: date('event_date'),
+  place: text('place').notNull(),
+  venueQ: text('venue_q').notNull().default(''),
+  kuras: integer('kuras').notNull().default(0),
+  fee: text('fee').notNull().default(''),
+  officialUrl: text('official_url').notNull().default(''),
+  description: text('description').notNull().default(''),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 参加表明（going / interested）
+export const eventAttendees = pgTable('event_attendees', {
+  eventId: uuid('event_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  status: text('status').notNull(), // 'going' | 'interested'
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.eventId, t.userId] })]);
+
+// イベントコメント
+export const eventComments = pgTable('event_comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  text: text('text').notNull(),
+  edited: boolean('edited').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
