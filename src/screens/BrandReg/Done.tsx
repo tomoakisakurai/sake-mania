@@ -1,3 +1,5 @@
+import { Button } from '@/components/shared/Button';
+
 type Props = {
   registeredName: string;
   registeredId: string;
@@ -19,18 +21,8 @@ export function Done({ registeredName, onAnother, onViewBrand }: Props) {
       </div>
       <div className="text-[12.5px] text-[#8B8273] mb-8">スペックや写真はあとから詳細ページで補えます。</div>
       <div className="flex gap-3 justify-center flex-wrap">
-        <button
-          onClick={onAnother}
-          className="border border-[#E3DBCB] rounded-full px-6 py-3 text-[13.5px] font-bold text-[#5C5547] bg-[#FDFBF5] cursor-pointer"
-        >
-          続けて登録する
-        </button>
-        <button
-          onClick={onViewBrand}
-          className="bg-[#32507C] text-[#FDFBF5] rounded-full px-6 py-3 text-[13.5px] font-bold cursor-pointer"
-        >
-          登録した銘柄を見る
-        </button>
+        <Button variant="outline" onClick={onAnother}>続けて登録する</Button>
+        <Button onClick={onViewBrand}>登録した銘柄を見る</Button>
       </div>
     </div>
   );

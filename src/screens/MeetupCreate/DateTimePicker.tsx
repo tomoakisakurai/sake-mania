@@ -1,16 +1,18 @@
 import { useState, useMemo } from 'react';
 
 const DOW = ['日', '月', '火', '水', '木', '金', '土'];
-const HOURS = ['18:00', '18:30', '19:00', '19:30', '20:00'];
+const DEFAULT_HOURS = ['18:00', '18:30', '19:00', '19:30', '20:00'];
 
 type Props = {
   value: string;
   hour: string;
+  hours?: string[];
   onChange: (iso: string) => void;
   onHourChange: (hour: string) => void;
 };
 
-export function DateTimePicker({ value, hour, onChange, onHourChange }: Props) {
+export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: Props) {
+  const HOURS = hours ?? DEFAULT_HOURS;
   const now = new Date();
   const [calYear, setCalYear] = useState(now.getFullYear());
   const [calMonth, setCalMonth] = useState(now.getMonth());
@@ -99,11 +101,11 @@ export function DateTimePicker({ value, hour, onChange, onHourChange }: Props) {
 
       {/* 選択済み：日付ラベル＋時間チップ */}
       {value && (
-        <div className="mt-[14px] pt-3 border-t border-[#E3DBCB] flex items-center gap-[14px] flex-wrap">
+        <div className="mt-[14px] pt-3 border-t border-[#E3DBCB] flex flex-col gap-3">
           <div className="text-[13px] text-[#5C5547]">
             選択中: <span className="font-bold text-[#2E2A24]">{selectedDateLabel}</span>
           </div>
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="text-xs text-[#8B8273]">開始</div>
             {HOURS.map((h) => (
               <button

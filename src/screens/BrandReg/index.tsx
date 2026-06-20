@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { useStore } from '@/store';
 import { createBrand } from '@/app/actions/brands';
 import { analyzeLabel } from '@/app/actions/analyzeLabel';
+import { Input } from '@/components/shared/Input';
+import { Textarea } from '@/components/shared/Textarea';
+import { Button } from '@/components/shared/Button';
 import { Done } from './Done';
 import { LabelReader } from './LabelReader';
 
@@ -127,81 +130,39 @@ export function BrandReg() {
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="col-span-2">
           <div className="text-[12.5px] font-bold mb-1.5">銘柄名 <span className="text-[#BC6A2D]">必須</span></div>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="例: 〇〇 純米大吟醸"
-            className="w-full bg-[#FDFBF5] border border-[#E3DBCB] rounded-[10px] px-4 py-3 text-[14px] text-[#2E2A24]"
-          />
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="例: 〇〇 純米大吟醸" />
         </div>
         <div>
           <div className="text-[12.5px] font-bold mb-1.5">酒蔵 <span className="text-[#BC6A2D]">必須</span></div>
-          <input
-            type="text"
-            value={brewery}
-            onChange={(e) => setBrewery(e.target.value)}
-            placeholder="例: 〇〇酒造"
-            className="w-full bg-[#FDFBF5] border border-[#E3DBCB] rounded-[10px] px-4 py-3 text-[14px] text-[#2E2A24]"
-          />
+          <Input value={brewery} onChange={(e) => setBrewery(e.target.value)} placeholder="例: 〇〇酒造" />
         </div>
         <div>
           <div className="text-[12.5px] font-bold mb-1.5">都道府県</div>
-          <input
-            type="text"
-            value={pref}
-            onChange={(e) => setPref(e.target.value)}
-            placeholder="例: 新潟"
-            className="w-full bg-[#FDFBF5] border border-[#E3DBCB] rounded-[10px] px-4 py-3 text-[14px] text-[#2E2A24]"
-          />
+          <Input value={pref} onChange={(e) => setPref(e.target.value)} placeholder="例: 新潟" />
         </div>
         <div>
           <div className="text-[12.5px] font-bold mb-1.5">分類</div>
-          <input
-            type="text"
-            value={cls}
-            onChange={(e) => setCls(e.target.value)}
-            placeholder="例: 純米吟醸 無濾過生原酒"
-            className="w-full bg-[#FDFBF5] border border-[#E3DBCB] rounded-[10px] px-4 py-3 text-[14px] text-[#2E2A24]"
-          />
+          <Input value={cls} onChange={(e) => setCls(e.target.value)} placeholder="例: 純米吟醸 無濾過生原酒" />
         </div>
         <div>
           <div className="text-[12.5px] font-bold mb-1.5">精米歩合</div>
-          <input
-            type="text"
-            value={polish}
-            onChange={(e) => setPolish(e.target.value)}
-            placeholder="例: 50%"
-            className="w-full bg-[#FDFBF5] border border-[#E3DBCB] rounded-[10px] px-4 py-3 text-[14px] text-[#2E2A24]"
-          />
+          <Input value={polish} onChange={(e) => setPolish(e.target.value)} placeholder="例: 50%" />
         </div>
         <div>
           <div className="text-[12.5px] font-bold mb-1.5">使用酒米</div>
-          <input
-            type="text"
-            value={rice}
-            onChange={(e) => setRice(e.target.value)}
-            placeholder="例: 山田錦"
-            className="w-full bg-[#FDFBF5] border border-[#E3DBCB] rounded-[10px] px-4 py-3 text-[14px] text-[#2E2A24]"
-          />
+          <Input value={rice} onChange={(e) => setRice(e.target.value)} placeholder="例: 山田錦" />
         </div>
       </div>
 
       <div className="text-[12.5px] font-bold mb-1.5">銘柄の紹介・味わい</div>
-      <textarea
+      <Textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        rows={4}
         placeholder="味わいの特徴やおすすめの飲み方など"
-        className="w-full bg-[#FDFBF5] border border-[#E3DBCB] rounded-[10px] px-4 py-3 text-[14px] leading-relaxed text-[#2E2A24] resize-y mb-6"
+        className="mb-6"
       />
 
-      <button
-        onClick={handleSubmit}
-        className="w-full bg-[#32507C] hover:bg-[#263d5f] text-[#FDFBF5] rounded-full py-4 text-[15px] font-bold cursor-pointer transition-colors"
-      >
-        図鑑に登録する
-      </button>
+      <Button onClick={handleSubmit} size="lg" fullWidth>図鑑に登録する</Button>
     </div>
   );
 }
