@@ -523,6 +523,8 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     allBrands: brands,
     allBars: bars,
     allMembers: members,
+    allMeetups: meetups,
+    allOthers: others,
     kuraByPref,
     drunkPrefSet: drunkPrefs,
     prefGrid,

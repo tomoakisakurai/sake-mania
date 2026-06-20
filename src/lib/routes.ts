@@ -9,12 +9,13 @@ export interface RouteState {
   kuraName: string | null;
   meetupId: string | null;
   eventId: string | null;
+  memberName: string | null;
   postRef: PostRef | null;
 }
 
 /** Parse a Next.js pathname into screen + ids. */
 export function routeStateFromPath(pathname: string): RouteState {
-  const base: RouteState = { screen: 'home', detailId: null, kuraName: null, meetupId: null, eventId: null, postRef: null };
+  const base: RouteState = { screen: 'home', detailId: null, kuraName: null, meetupId: null, eventId: null, memberName: null, postRef: null };
   const p = pathname.replace(/\/+$/, '') || '/';
   const seg = p.split('/').filter(Boolean);
 
@@ -37,6 +38,7 @@ export function routeStateFromPath(pathname: string): RouteState {
   if (p === '/meetup/create') return { ...base, screen: 'meetupCreate' };
   if (p === '/events') return { ...base, screen: 'events' };
   if (p === '/members') return { ...base, screen: 'members' };
+  if (seg[0] === 'member' && seg[1]) return { ...base, screen: 'member', memberName: decodeURIComponent(seg[1]) };
   if (p === '/event/create') return { ...base, screen: 'eventCreate' };
   if (seg[0] === 'event' && seg[1] && seg[2] === 'edit') return { ...base, screen: 'eventEdit', eventId: decodeURIComponent(seg[1]) };
   if (seg[0] === 'event' && seg[1]) return { ...base, screen: 'event', eventId: decodeURIComponent(seg[1]) };
@@ -75,4 +77,5 @@ export const paths = {
   declare: (id: string) => `/meetup/${encodeURIComponent(id)}/declare`,
   event: (id: string) => `/event/${encodeURIComponent(id)}`,
   eventEdit: (id: string) => `/event/${encodeURIComponent(id)}/edit`,
+  member: (name: string) => `/member/${encodeURIComponent(name)}`,
 };

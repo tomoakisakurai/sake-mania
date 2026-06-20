@@ -23,6 +23,7 @@ import { Events } from '@/screens/Events';
 import { Event } from '@/screens/Event';
 import { EventReg } from '@/screens/EventReg';
 import { Members } from '@/screens/Members';
+import { Member } from '@/screens/Member';
 import { Post } from '@/screens/Post';
 
 export const HomeClient = () => <Home vals={useV()} />;
@@ -48,6 +49,11 @@ export const EventEditClient = () => {
   return <EventReg editingId={decodeURIComponent(id)} />;
 };
 export const MembersClient = () => <Members vals={useV()} />;
+export const MemberClient = () => {
+  const params = useParams<{ name: string }>();
+  const name = typeof params?.name === 'string' ? params.name : '';
+  return <Member vals={useV()} memberName={decodeURIComponent(name)} />;
+};
 export const EventClient = () => {
   const params = useParams<{ id: string }>();
   const id = typeof params?.id === 'string' ? params.id : '';

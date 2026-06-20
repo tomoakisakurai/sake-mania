@@ -1,11 +1,14 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import type { Member } from '@/types';
+import { paths } from '@/lib/routes';
 
 export function Members({ vals }: { vals: Vals }) {
   const store = useStore();
+  const router = useRouter();
   const [selectedPref, setSelectedPref] = useState<string | null>(null);
 
   // 出身地ごとにメンバーを集計
@@ -65,13 +68,18 @@ export function Members({ vals }: { vals: Vals }) {
               <div className="font-serif text-[19px] font-bold border-b border-line pb-2.5 mb-4">{selectedPref} 出身のメンバー</div>
               <div className="flex flex-col gap-3">
                 {selectedMembers.map((member) => (
-                  <div key={member.name} className="bg-card border border-line rounded-xl px-5 py-4 hover:border-primary transition-colors">
+                  <div
+                    key={member.name}
+                    onClick={() => router.push(paths.member(member.name))}
+                    className="bg-card border border-line rounded-xl px-5 py-4 hover:border-primary cursor-pointer transition-colors"
+                  >
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold flex-shrink-0" style={{ background: member.avatarBg }}>{member.avatar}</div>
                       <div className="min-w-0 flex-1">
                         <div className="font-serif text-[16px] font-bold">{member.display}</div>
                         <div className="text-[11.5px] text-muted">{member.dept} ・ {member.taste}</div>
                       </div>
+                      <span className="text-primary font-bold text-[13px] flex-shrink-0">→</span>
                     </div>
                     {member.hometownNote && (
                       <div className="text-[12.5px] leading-relaxed text-body pt-2.5 border-t border-line-soft">「{member.hometownNote}」</div>
