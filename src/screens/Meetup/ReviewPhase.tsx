@@ -1,5 +1,6 @@
 import type { Vals } from '@/useVals';
-// 投票受付中 / 結果確定フェーズ: 投票バナー + MVPカード + 得票ランキング
+import { AttendedMembers } from './AttendedMembers';
+// 投票受付中 / 結果確定フェーズ: 投票バナー + MVPカード + 参加メンバー + 得票ランキング
 export function ReviewPhase({ vals }: { vals: Vals }) {
   const m = vals.meetup;
   return (
@@ -21,6 +22,7 @@ export function ReviewPhase({ vals }: { vals: Vals }) {
         <div style={{ fontSize: 12.5, opacity: 0.85, marginTop: 4 }}>{m.mvp.brandSub} ・ {m.mvp.broughtBy}さんが持参 ・ {m.mvp.votesLabel}</div>
         <div style={{ fontSize: 13, lineHeight: 1.9, opacity: 0.95, marginTop: 12 }}>「{m.mvp.comment}」</div>
       </div>
+      <AttendedMembers />
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 18 }}>
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700 }}>得票ランキング</div>
         <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: '#8B8273' }}>{m.attendees}名参加 ・ 計{m.totalVotesLabel}</span>
