@@ -96,6 +96,8 @@ export interface Member {
   avatarBg: string;
   dept?: string;
   taste?: string;
+  hometown?: string;
+  hometownNote?: string;
 }
 
 export interface MeetupBring {

@@ -34,6 +34,8 @@ export const members = pgTable('members', {
   avatarBg: text('avatar_bg').notNull(),
   dept: text('dept'),
   taste: text('taste'),
+  hometown: text('hometown'),
+  hometownNote: text('hometown_note'),
   sortOrder: integer('sort_order').notNull().default(0),
 });
 

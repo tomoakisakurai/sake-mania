@@ -51,12 +51,23 @@ export const others: OtherRec[] = [
 ];
 
 export const members: Member[] = [
-  { name: 'yuu_sake_log', display: 'あなた', avatar: '悠', avatarBg: '#DDD3BE', dept: 'プロダクト部', taste: 'ジューシー・華やか派' },
-  { name: 'kuramoto_taro', display: '蔵本 太郎', avatar: '蔵', avatarBg: '#C9D3E3', dept: '営業部', taste: '芳醇旨口ハンター' },
-  { name: 'tanrei_niigata', display: '新潟 淡麗', avatar: '辛', avatarBg: '#C9D3E3', dept: '管理部', taste: '淡麗辛口の伝道師' },
-  { name: 'kanzake_kaori', display: '燗 かおり', avatar: '燗', avatarBg: '#E0CDB9', dept: '広報部', taste: 'お燗マイスター' },
-  { name: 'awa_hajime', display: '泡 はじめ', avatar: '泡', avatarBg: '#CBD8C9', dept: '開発部', taste: '発泡・低アル党' },
-  { name: 'meigara_hunter', display: '銘柄 探', avatar: '探', avatarBg: '#D9C9B8', dept: '企画部', taste: 'レア銘柄ハンター' },
+  { name: 'yuu_sake_log', display: 'あなた', avatar: '悠', avatarBg: '#DDD3BE', dept: 'プロダクト部', taste: 'ジューシー・華やか派', hometown: '東京', hometownNote: '生まれも育ちも東京。地方の銘酒を巡るのが楽しみ。' },
+  { name: 'kuramoto_taro', display: '蔵本 太郎', avatar: '蔵', avatarBg: '#C9D3E3', dept: '営業部', taste: '芳醇旨口ハンター', hometown: '山形', hometownNote: '実家が酒屋。山形の名酒は語らせると止まりません。' },
+  { name: 'tanrei_niigata', display: '新潟 淡麗', avatar: '辛', avatarBg: '#C9D3E3', dept: '管理部', taste: '淡麗辛口の伝道師', hometown: '新潟', hometownNote: '長岡出身。雪国の水と米が育てた淡麗の良さを布教中。' },
+  { name: 'kanzake_kaori', display: '燗 かおり', avatar: '燗', avatarBg: '#E0CDB9', dept: '広報部', taste: 'お燗マイスター', hometown: '石川', hometownNote: '能登出身。地元の海の幸とお燗の組み合わせは至高。' },
+  { name: 'awa_hajime', display: '泡 はじめ', avatar: '泡', avatarBg: '#CBD8C9', dept: '開発部', taste: '発泡・低アル党', hometown: '広島', hometownNote: '広島の軟水仕込みが原体験。発泡系を発掘するのが好き。' },
+  { name: 'meigara_hunter', display: '銘柄 探', avatar: '探', avatarBg: '#D9C9B8', dept: '企画部', taste: 'レア銘柄ハンター', hometown: '福島', hometownNote: '会津若松出身。地元の蔵巡りで磨いた目利きが武器。' },
+  { name: 'edomae_haru', display: '江戸前 はる', avatar: '江', avatarBg: '#C9D9D3', dept: 'デザイン部', taste: '寿司に合う食中酒派', hometown: '東京', hometownNote: '生粋の江戸っ子。寿司屋で覚えた食中酒のキレが原体験。' },
+  { name: 'shitamachi_ken', display: '下町 健', avatar: '町', avatarBg: '#E3D5B8', dept: '営業部', taste: '辛口端麗派', hometown: '東京', hometownNote: '下町出身。もんじゃと辛口の組み合わせをこよなく愛す。' },
+  { name: 'yamada_nishiki', display: '山田 錦', avatar: '錦', avatarBg: '#D6C5DD', dept: '管理部', taste: 'スッキリ淡麗派', hometown: '新潟', hometownNote: '魚沼出身。雪国の水と米のミネラル感に育てられました。' },
+  { name: 'akita_jizake', display: '秋田 自然', avatar: '秋', avatarBg: '#CADDDB', dept: '開発部', taste: 'モダン酒母派', hometown: '秋田', hometownNote: '横手出身。新政の6号酵母には特別な思い入れがあります。' },
+  { name: 'kyoto_fushimi', display: '京都 伏見', avatar: '京', avatarBg: '#DDC9C9', dept: '広報部', taste: '柔らか口当たり派', hometown: '京都', hometownNote: '伏見の伏流水で育った身。やわらかい京都の女酒が原点。' },
+  { name: 'hyogo_nada', display: '兵庫 灘', avatar: '灘', avatarBg: '#CBD3DD', dept: '管理部', taste: '生酛力強い派', hometown: '兵庫', hometownNote: '灘五郷のお膝元出身。男酒の骨太な旨みに惚れ込んでいます。' },
+  { name: 'fukuoka_genmai', display: '福岡 元気', avatar: '玄', avatarBg: '#D9DDC9', dept: '営業部', taste: '九州の食中派', hometown: '福岡', hometownNote: '博多出身。明太子や水炊きに合う酒を探すのが趣味です。' },
+  { name: 'iwate_nanbu', display: '岩手 南部', avatar: '南', avatarBg: '#C9DDD9', dept: 'プロダクト部', taste: '南部杜氏の系譜派', hometown: '岩手', hometownNote: '盛岡出身。南部杜氏が醸す端正な吟醸酒が原風景です。' },
+  { name: 'kochi_tosa', display: '高知 土佐', avatar: '土', avatarBg: '#E0CABF', dept: '企画部', taste: '辛口で飲み続け派', hometown: '高知', hometownNote: '高知出身。土佐の宴会文化「おきゃく」で鍛えられた肝臓が誇り。' },
+  { name: 'hokkaido_yuki', display: '北海道 雪', avatar: '雪', avatarBg: '#CFD9E0', dept: '広報部', taste: '低温熟成派', hometown: '北海道', hometownNote: '札幌出身。北の銘酒「上川大雪」を全国に広めたい。' },
+  { name: 'shiga_omi', display: '滋賀 近江', avatar: '近', avatarBg: '#D4CFE0', dept: 'デザイン部', taste: '湖国の食文化派', hometown: '滋賀', hometownNote: '彦根出身。鮒寿司と燗酒のマリアージュは外せません。' },
 ];
 
 export const meetups: Meetup[] = [

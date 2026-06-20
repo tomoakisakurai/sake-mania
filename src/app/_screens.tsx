@@ -42,7 +42,7 @@ export const KuraRegClient = () => <KuraReg vals={useV()} />;
 export const BrandRegClient = () => <BrandReg />;
 export const EventsClient = () => <Events />;
 export const EventRegClient = () => <EventReg />;
-export const MembersClient = () => <Members />;
+export const MembersClient = () => <Members vals={useV()} />;
 export const EventClient = () => {
   const params = useParams<{ id: string }>();
   const id = typeof params?.id === 'string' ? params.id : '';

@@ -36,7 +36,9 @@ async function main() {
   await db.insert(schema.members).values(
     members.map((m, i) => ({
       name: m.name, display: m.display, avatar: m.avatar, avatarBg: m.avatarBg,
-      dept: m.dept ?? null, taste: m.taste ?? null, sortOrder: i,
+      dept: m.dept ?? null, taste: m.taste ?? null,
+      hometown: m.hometown ?? null, hometownNote: m.hometownNote ?? null,
+      sortOrder: i,
     })),
   );
 

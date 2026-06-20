@@ -79,6 +79,7 @@ function mapMembers(rows: (typeof schema.members.$inferSelect)[]): Member[] {
   return rows.map((r) => ({
     name: r.name, display: r.display, avatar: r.avatar, avatarBg: r.avatarBg,
     dept: r.dept ?? undefined, taste: r.taste ?? undefined,
+    hometown: r.hometown ?? undefined, hometownNote: r.hometownNote ?? undefined,
   }));
 }
 

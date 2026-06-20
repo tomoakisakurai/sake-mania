@@ -521,6 +521,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     // kura map（Map画面のuseMapStateで使う生データ）
     allBrands: brands,
     allBars: bars,
+    allMembers: members,
     kuraByPref,
     drunkPrefSet: drunkPrefs,
     prefGrid,
