@@ -1,37 +1,18 @@
 'use client';
-import { useEffect, useState, useOptimistic, startTransition } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import clsx from 'clsx';
 import { useStore } from '@/store';
 import { paths } from '@/lib/routes';
 import { getEvents, toggleEventStatus } from '@/app/actions/events';
 import type { EventView, EventStatus } from '@/app/actions/events';
 import { Button } from '@/components/shared/Button';
 import { Loading } from '@/components/shared/Loading';
+import { EventStatusButton } from './EventStatusButton';
 
 function shortDate(eventDate: string | null): string {
   if (!eventDate) return '';
   const [, monthStr, dayStr] = eventDate.split('-');
   return `${parseInt(monthStr)}/${parseInt(dayStr)}`;
-}
-
-// アクションには目標state(冪等)を渡し、再適用時にも結果が同じになるようにする
-type OptimisticAction = {
-  eventId: string;
-  status: EventStatus;
-  nextValue: boolean;
-};
-
-function optimisticReducer(state: EventView[], action: OptimisticAction): EventView[] {
-  return state.map((event) => {
-    if (event.id !== action.eventId) return event;
-    if (action.status === 'going') {
-      const delta = (action.nextValue ? 1 : 0) - (event.iGoing ? 1 : 0);
-      return { ...event, iGoing: action.nextValue, goingCount: event.goingCount + delta };
-    }
-    const delta = (action.nextValue ? 1 : 0) - (event.iInterested ? 1 : 0);
-    return { ...event, iInterested: action.nextValue, interestedCount: event.interestedCount + delta };
-  });
 }
 
 export function Events() {
@@ -40,7 +21,6 @@ export function Events() {
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
   const [events, setEvents] = useState<EventView[]>([]);
-  const [optimisticEvents, applyOptimistic] = useOptimistic(events, optimisticReducer);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -53,27 +33,21 @@ export function Events() {
     return () => { active = false; };
   }, []);
 
-  const toggleStatus = (event: EventView, status: EventStatus) => {
+  const toggleStatus = async (event: EventView, status: EventStatus) => {
     if (!store.requireLogin()) return;
-    const currentValue = status === 'going' ? event.iGoing : event.iInterested;
-    const nextValue = !currentValue;
-    startTransition(async () => {
-      applyOptimistic({ eventId: event.id, status, nextValue });
-      const ok = await toggleEventStatus(event.id, status);
-      if (!ok) {
-        store.flash('更新に失敗しました');
-        return;
-      }
-      // サーバー側で算出される参加アバター一覧などを同期するため再取得
-      const fresh = await getEvents();
-      setEvents(fresh);
-    });
+    const ok = await toggleEventStatus(event.id, status);
+    if (!ok) {
+      store.flash('更新に失敗しました');
+      return;
+    }
+    const fresh = await getEvents();
+    setEvents(fresh);
   };
 
   return (
     <main style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}>
-      <a onClick={() => store.nav('home')} className="block text-[13px] text-muted cursor-pointer mb-6 hover:text-primary transition-colors">← ホームにもどる</a>
-      <header className="flex flex-wrap items-center gap-3.5 mb-2.5">
+      <a onClick={() => store.nav('home')} className="mb-6 block cursor-pointer text-[13px] text-muted transition-colors hover:text-primary">← ホームにもどる</a>
+      <header className="mb-2.5 flex flex-wrap items-center gap-3.5">
         <span className="font-mono text-[11px] tracking-[0.18em] text-accent">EVENTS</span>
         <Button
           variant="secondary"
@@ -84,40 +58,40 @@ export function Events() {
           ＋ イベントを登録する
         </Button>
       </header>
-      <h1 className="font-serif text-[28px] font-bold mb-1.5 m-0">酒イベント情報</h1>
-      <p className="text-[13px] text-muted mb-7 m-0">社内外の日本酒イベントをチェック。「参加する」「興味あり」を表明すると、一緒に行く部員が見えます。</p>
+      <h1 className="m-0 mb-1.5 font-serif text-[28px] font-bold">酒イベント情報</h1>
+      <p className="m-0 mb-7 text-[13px] text-muted">社内外の日本酒イベントをチェック。「参加する」「興味あり」を表明すると、一緒に行く部員が見えます。</p>
 
       {!loaded && <Loading />}
-      {loaded && optimisticEvents.length === 0 && (
-        <p className="border border-dashed border-line-strong rounded-xl py-12 text-center bg-surface text-[13px] text-muted m-0">
+      {loaded && events.length === 0 && (
+        <p className="m-0 rounded-xl border border-dashed border-line-strong bg-surface py-12 text-center text-[13px] text-muted">
           まだイベントが登録されていません。最初のイベントを登録しましょう。
         </p>
       )}
 
-      <ul className="flex flex-col gap-4 m-0 p-0 list-none">
-        {optimisticEvents.map((event) => (
+      <ul className="m-0 flex flex-col gap-4 p-0 list-none">
+        {events.map((event) => (
           <li
             key={event.id}
             onClick={() => router.push(paths.event(event.id))}
-            className="bg-card border border-line hover:border-primary rounded-2xl p-5 sm:p-6 cursor-pointer transition-colors"
+            className="cursor-pointer rounded-2xl border border-line bg-card p-5 transition-colors hover:border-primary sm:p-6"
           >
-            <header className="flex flex-wrap items-baseline gap-3 mb-2">
-              <span className="font-mono text-[11.5px] text-accent font-bold">{shortDate(event.eventDate)}</span>
-              <h2 className="font-serif text-[19px] font-bold leading-snug m-0">{event.name}</h2>
+            <header className="mb-2 flex flex-wrap items-baseline gap-3">
+              <span className="font-mono text-[11.5px] font-bold text-accent">{shortDate(event.eventDate)}</span>
+              <h2 className="m-0 font-serif text-[19px] font-bold leading-snug">{event.name}</h2>
             </header>
-            <p className="text-[12.5px] text-muted mb-1.5 m-0">{event.dateLabel}</p>
-            <p className="text-[12.5px] text-muted mb-4 m-0">
+            <p className="m-0 mb-1.5 text-[12.5px] text-muted">{event.dateLabel}</p>
+            <p className="m-0 mb-4 text-[12.5px] text-muted">
               {event.place}
               {event.kuras > 0 && ` ・ 参加蔵 ${event.kuras}`}
             </p>
-            <div className="flex flex-wrap items-center gap-3.5 mb-3.5">
+            <div className="mb-3.5 flex flex-wrap items-center gap-3.5">
               {event.goingAvatars.length > 0 && (
                 <span className="flex">
                   {event.goingAvatars.map((member, i) => (
                     <span
                       key={i}
                       style={{ background: member.avatarBg }}
-                      className="w-6.5 h-6.5 rounded-full border-2 border-card flex items-center justify-center text-[10px] font-bold -ml-1.5 first:ml-0"
+                      className="-ml-1.5 flex h-6.5 w-6.5 items-center justify-center rounded-full border-2 border-card text-[10px] font-bold first:ml-0"
                     >
                       {member.avatar}
                     </span>
@@ -128,24 +102,20 @@ export function Events() {
               <span className="font-mono text-[11.5px] text-muted">・ {event.interestedCount}人が興味あり</span>
             </div>
             <div className="flex flex-wrap gap-2.5">
-              <span
-                onClick={(e) => { e.stopPropagation(); toggleStatus(event, 'going'); }}
-                className={clsx(
-                  'cursor-pointer rounded-full border-[1.5px] border-accent px-4 py-2 text-[12.5px] font-bold transition-colors',
-                  event.iGoing ? 'bg-accent text-surface' : 'bg-card text-accent',
-                )}
-              >
-                {event.iGoing ? '参加予定 ✓' : '参加する'}
-              </span>
-              <span
-                onClick={(e) => { e.stopPropagation(); toggleStatus(event, 'interested'); }}
-                className={clsx(
-                  'cursor-pointer rounded-full border-[1.5px] border-primary px-4 py-2 text-[12.5px] font-bold transition-colors',
-                  event.iInterested ? 'bg-primary text-surface' : 'bg-card text-primary',
-                )}
-              >
-                {event.iInterested ? '興味あり ✓' : '興味あり'}
-              </span>
+              <EventStatusButton
+                status="going"
+                active={event.iGoing}
+                labelOn="参加予定 ✓"
+                labelOff="参加する"
+                onToggle={() => toggleStatus(event, 'going')}
+              />
+              <EventStatusButton
+                status="interested"
+                active={event.iInterested}
+                labelOn="興味あり ✓"
+                labelOff="興味あり"
+                onToggle={() => toggleStatus(event, 'interested')}
+              />
             </div>
           </li>
         ))}

@@ -1,45 +1,48 @@
 'use client';
-import { useOptimistic, startTransition } from 'react';
+import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { useStore } from '@/store';
+import { Spinner } from '@/components/shared/Spinner';
 
 type Props = {
   meetupId: string;
   iGoing: boolean;
 };
 
-type OptimisticTarget = { iGoing: boolean };
-
 // MEETUP一覧カード内の参加トグルボタン。
-// 押下直後に見た目を先行反映するため useOptimistic を使う。
-// リデューサーは冪等にするため絶対値(target)を渡す。
+// 通信中は spinner を出すだけで文言・背景は据え置き。
+// サーバー応答後 props.iGoing が更新されたタイミングで spinner と表示が
+// 同じ render で同時に切り替わる(target state パターン)。連打防止に disabled。
 export function MeetupGoButton({ meetupId, iGoing }: Props) {
   const store = useStore();
-  const [optimistic, applyOptimistic] = useOptimistic<OptimisticTarget, OptimisticTarget>(
-    { iGoing },
-    (_state, target) => target,
-  );
+  const [target, setTarget] = useState<boolean | null>(null);
+  const isUpdating = target !== null && target !== iGoing;
 
-  const handleClick = (e: React.MouseEvent) => {
+  useEffect(() => {
+    if (target !== null && target === iGoing) setTarget(null);
+  }, [iGoing, target]);
+
+  const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!store.requireLogin()) return;
-    const nextIGoing = !iGoing;
-    startTransition(async () => {
-      applyOptimistic({ iGoing: nextIGoing });
-      await store.toggleGoing(meetupId);
-    });
+    if (target !== null) return;
+    setTarget(!iGoing);
+    await store.toggleGoing(meetupId);
   };
 
   return (
     <button
       type="button"
       onClick={handleClick}
+      disabled={isUpdating}
       className={clsx(
-        'ml-auto cursor-pointer whitespace-nowrap rounded-full border-[1.5px] border-primary px-5 py-[7px] text-[12.5px] font-bold',
-        optimistic.iGoing ? 'bg-primary text-surface' : 'bg-surface text-primary',
+        'ml-auto inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border-[1.5px] border-primary px-5 py-[7px] text-[12.5px] font-bold',
+        isUpdating ? 'cursor-wait' : 'cursor-pointer',
+        iGoing ? 'bg-primary text-surface' : 'bg-surface text-primary',
       )}
     >
-      {optimistic.iGoing ? '参加予定 ✓' : '参加する'}
+      {isUpdating && <Spinner className="h-3.5 w-3.5" />}
+      {iGoing ? '参加予定 ✓' : '参加する'}
     </button>
   );
 }

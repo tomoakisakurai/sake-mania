@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { Spinner } from './Spinner';
 
 type Props = {
   label?: string;
@@ -7,8 +8,8 @@ type Props = {
 
 export function Loading({ label = '読み込み中...', className }: Props) {
   return (
-    <div className={clsx('flex flex-col items-center justify-center gap-3 py-16', className)}>
-      <span className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-line border-t-primary" />
+    <div className={clsx('flex flex-col items-center justify-center gap-3 py-16 text-primary', className)}>
+      <Spinner className="h-8 w-8" />
       <span className="text-[12px] text-muted">{label}</span>
     </div>
   );

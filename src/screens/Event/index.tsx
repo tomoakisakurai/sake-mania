@@ -1,7 +1,6 @@
 'use client';
-import { useEffect, useState, useCallback, useOptimistic, startTransition } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import clsx from 'clsx';
 import { useStore } from '@/store';
 import {
   getEventDetail,
@@ -14,6 +13,7 @@ import { paths } from '@/lib/routes';
 import { Button } from '@/components/shared/Button';
 import { Loading } from '@/components/shared/Loading';
 import { KebabMenu } from '@/components/shared/KebabMenu';
+import { EventStatusButton } from '@/screens/Events/EventStatusButton';
 import { CommentList } from './CommentList';
 
 const EDIT_ICON = (
@@ -44,27 +44,12 @@ function parseHourFromLabel(dateLabel: string): string {
   return match ? `${match[1].padStart(2, '0')}:${match[2]}` : '13:00';
 }
 
-// 保留中アクションは基底state更新時に再適用されるため、相対トグルだと
-// ちらつく。アクションには目標state(冪等)を渡す。
-type OptimisticAction = { status: EventStatus; nextValue: boolean };
-
-function optimisticReducer(state: EventDetail | null, action: OptimisticAction): EventDetail | null {
-  if (!state) return state;
-  if (action.status === 'going') {
-    const delta = (action.nextValue ? 1 : 0) - (state.iGoing ? 1 : 0);
-    return { ...state, iGoing: action.nextValue, goingCount: state.goingCount + delta };
-  }
-  const delta = (action.nextValue ? 1 : 0) - (state.iInterested ? 1 : 0);
-  return { ...state, iInterested: action.nextValue, interestedCount: state.interestedCount + delta };
-}
-
 export function Event({ eventId }: { eventId: string }) {
   const store = useStore();
   const router = useRouter();
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
   const [event, setEvent] = useState<EventDetail | null>(null);
-  const [optimisticEvent, applyOptimistic] = useOptimistic(event, optimisticReducer);
   const [loaded, setLoaded] = useState(false);
   const [commentDraft, setCommentDraft] = useState('');
 
@@ -79,32 +64,27 @@ export function Event({ eventId }: { eventId: string }) {
   }, [refresh]);
 
   if (!loaded) return <main style={{ padding: pagePadding }}><Loading /></main>;
-  if (!optimisticEvent) {
+  if (!event) {
     return (
       <main style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}>
-        <a onClick={() => store.nav('events')} className="block text-[13px] text-muted cursor-pointer mb-6 hover:text-primary transition-colors">← イベント一覧にもどる</a>
-        <h1 className="font-serif text-[22px] font-bold mb-3 m-0">イベントが見つかりません</h1>
-        <p className="text-[14px] text-body leading-relaxed m-0">削除されたか、URLが間違っている可能性があります。</p>
+        <a onClick={() => store.nav('events')} className="mb-6 block cursor-pointer text-[13px] text-muted transition-colors hover:text-primary">← イベント一覧にもどる</a>
+        <h1 className="m-0 mb-3 font-serif text-[22px] font-bold">イベントが見つかりません</h1>
+        <p className="m-0 text-[14px] leading-relaxed text-body">削除されたか、URLが間違っている可能性があります。</p>
       </main>
     );
   }
 
-  const handleToggle = (status: EventStatus) => {
+  const handleToggle = async (status: EventStatus) => {
     if (!store.requireLogin()) return;
-    const currentValue = status === 'going' ? optimisticEvent.iGoing : optimisticEvent.iInterested;
-    const nextValue = !currentValue;
-    startTransition(async () => {
-      applyOptimistic({ status, nextValue });
-      const ok = await toggleEventStatus(optimisticEvent.id, status);
-      if (!ok) { store.flash('更新に失敗しました'); return; }
-      await refresh();
-    });
+    const ok = await toggleEventStatus(event.id, status);
+    if (!ok) { store.flash('更新に失敗しました'); return; }
+    await refresh();
   };
 
-  const handleEdit = () => router.push(paths.eventEdit(optimisticEvent.id));
+  const handleEdit = () => router.push(paths.eventEdit(event.id));
   const handleDelete = async () => {
-    if (!window.confirm(`「${optimisticEvent.name}」を削除しますか? この操作は取り消せません。`)) return;
-    const ok = await deleteEvent(optimisticEvent.id);
+    if (!window.confirm(`「${event.name}」を削除しますか? この操作は取り消せません。`)) return;
+    const ok = await deleteEvent(event.id);
     if (ok) {
       store.flash('イベントを削除しました');
       store.nav('events');
@@ -116,27 +96,27 @@ export function Event({ eventId }: { eventId: string }) {
   const handleSendComment = async () => {
     if (!commentDraft.trim()) return;
     if (!store.requireLogin()) return;
-    const added = await addEventComment(optimisticEvent.id, commentDraft);
+    const added = await addEventComment(event.id, commentDraft);
     if (!added) { store.flash('送信に失敗しました'); return; }
     setCommentDraft('');
     refresh();
   };
 
-  const hour = parseHourFromLabel(optimisticEvent.dateLabel);
-  const gcalUrl = optimisticEvent.eventDate
-    ? buildGcalUrl(optimisticEvent.eventDate, hour, optimisticEvent.name, optimisticEvent.place, optimisticEvent.description)
+  const hour = parseHourFromLabel(event.dateLabel);
+  const gcalUrl = event.eventDate
+    ? buildGcalUrl(event.eventDate, hour, event.name, event.place, event.description)
     : null;
-  const mapQuery = encodeURIComponent(optimisticEvent.venueQ || optimisticEvent.place);
+  const mapQuery = encodeURIComponent(event.venueQ || event.place);
   const mapSrc = `https://www.google.com/maps?q=${mapQuery}&output=embed&hl=ja&z=15`;
   const mapLink = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
 
   return (
     <main style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}>
-      <a onClick={() => store.nav('events')} className="block text-[13px] text-muted cursor-pointer mb-6 hover:text-primary transition-colors">← イベント一覧にもどる</a>
-      <p className="font-mono text-[11px] tracking-[0.18em] text-accent mb-2.5 m-0">EVENT</p>
-      <header className="flex items-start gap-3 mb-2">
-        <h1 className="font-serif text-[30px] font-bold leading-tight flex-1 min-w-0 m-0">{optimisticEvent.name}</h1>
-        {optimisticEvent.isCreator && (
+      <a onClick={() => store.nav('events')} className="mb-6 block cursor-pointer text-[13px] text-muted transition-colors hover:text-primary">← イベント一覧にもどる</a>
+      <p className="m-0 mb-2.5 font-mono text-[11px] tracking-[0.18em] text-accent">EVENT</p>
+      <header className="mb-2 flex items-start gap-3">
+        <h1 className="m-0 min-w-0 flex-1 font-serif text-[30px] font-bold leading-tight">{event.name}</h1>
+        {event.isCreator && (
           <KebabMenu
             items={[
               { label: 'このイベントを編集', icon: EDIT_ICON, onClick: handleEdit },
@@ -145,37 +125,35 @@ export function Event({ eventId }: { eventId: string }) {
           />
         )}
       </header>
-      <p className="text-[13.5px] text-muted mb-1 m-0">{optimisticEvent.dateLabel}</p>
-      <p className="text-[13.5px] text-muted mb-6 m-0">
-        {optimisticEvent.place}
-        {optimisticEvent.fee && ` ・ ${optimisticEvent.fee}`}
+      <p className="m-0 mb-1 text-[13.5px] text-muted">{event.dateLabel}</p>
+      <p className="m-0 mb-6 text-[13.5px] text-muted">
+        {event.place}
+        {event.fee && ` ・ ${event.fee}`}
       </p>
 
-      <div className="flex gap-3 flex-wrap mb-7">
-        <span
-          onClick={() => handleToggle('going')}
-          className={clsx(
-            'cursor-pointer rounded-full border-[1.5px] border-accent px-6 py-2.5 text-[13.5px] font-bold transition-colors',
-            optimisticEvent.iGoing ? 'bg-accent text-surface' : 'bg-card text-accent',
-          )}
-        >
-          {optimisticEvent.iGoing ? '参加予定 ✓' : '参加する'}
-        </span>
-        <span
-          onClick={() => handleToggle('interested')}
-          className={clsx(
-            'cursor-pointer rounded-full border-[1.5px] border-primary px-6 py-2.5 text-[13.5px] font-bold transition-colors',
-            optimisticEvent.iInterested ? 'bg-primary text-surface' : 'bg-card text-primary',
-          )}
-        >
-          {optimisticEvent.iInterested ? '興味あり ✓' : '興味あり'}
-        </span>
-        {optimisticEvent.officialUrl && (
+      <div className="mb-7 flex flex-wrap gap-3">
+        <EventStatusButton
+          status="going"
+          active={event.iGoing}
+          labelOn="参加予定 ✓"
+          labelOff="参加する"
+          size="md"
+          onToggle={() => handleToggle('going')}
+        />
+        <EventStatusButton
+          status="interested"
+          active={event.iInterested}
+          labelOn="興味あり ✓"
+          labelOff="興味あり"
+          size="md"
+          onToggle={() => handleToggle('interested')}
+        />
+        {event.officialUrl && (
           <a
-            href={optimisticEvent.officialUrl}
+            href={event.officialUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 border border-line hover:border-primary rounded-full px-5 py-2.5 text-[13px] font-bold text-ink no-underline bg-surface transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-5 py-2.5 text-[13px] font-bold text-ink no-underline transition-colors hover:border-primary"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -190,7 +168,7 @@ export function Event({ eventId }: { eventId: string }) {
             href={gcalUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 border border-line hover:border-primary rounded-full px-5 py-2.5 text-[13px] font-bold text-ink no-underline bg-surface transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-5 py-2.5 text-[13px] font-bold text-ink no-underline transition-colors hover:border-primary"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -203,17 +181,17 @@ export function Event({ eventId }: { eventId: string }) {
         )}
       </div>
 
-      {optimisticEvent.description && (
-        <p className="text-[14px] leading-loose text-body mb-7 whitespace-pre-wrap m-0">{optimisticEvent.description}</p>
+      {event.description && (
+        <p className="m-0 mb-7 text-[14px] leading-loose whitespace-pre-wrap text-body">{event.description}</p>
       )}
 
-      {optimisticEvent.goingMembers.length > 0 && (
+      {event.goingMembers.length > 0 && (
         <section className="mb-7">
-          <h2 className="font-serif text-[16px] font-bold border-b border-line pb-2 mb-3.5 m-0">参加メンバー</h2>
-          <ul className="flex flex-wrap gap-2 m-0 p-0 list-none">
-            {optimisticEvent.goingMembers.map((member, i) => (
-              <li key={i} className="inline-flex items-center gap-2 bg-surface border border-line rounded-full pl-1 pr-3 py-1">
-                <span style={{ background: member.avatarBg }} className="w-6 h-6 rounded-full flex items-center justify-center text-[10.5px] font-bold">{member.avatar}</span>
+          <h2 className="m-0 mb-3.5 border-b border-line pb-2 font-serif text-[16px] font-bold">参加メンバー</h2>
+          <ul className="m-0 flex flex-wrap gap-2 p-0 list-none">
+            {event.goingMembers.map((member, i) => (
+              <li key={i} className="inline-flex items-center gap-2 rounded-full border border-line bg-surface py-1 pl-1 pr-3">
+                <span style={{ background: member.avatarBg }} className="flex h-6 w-6 items-center justify-center rounded-full text-[10.5px] font-bold">{member.avatar}</span>
                 <span className="text-[12px] font-bold">{member.name}</span>
               </li>
             ))}
@@ -222,21 +200,21 @@ export function Event({ eventId }: { eventId: string }) {
       )}
 
       <section className="mb-9">
-        <h2 className="font-serif text-[16px] font-bold border-b border-line pb-2 mb-3.5 m-0">会場</h2>
+        <h2 className="m-0 mb-3.5 border-b border-line pb-2 font-serif text-[16px] font-bold">会場</h2>
         <iframe
           src={mapSrc}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          className="w-full h-70 border-0 rounded-lg block bg-line-soft mb-2.5"
+          className="mb-2.5 block h-70 w-full rounded-lg border-0 bg-line-soft"
         />
-        <a href={mapLink} target="_blank" rel="noreferrer" className="text-[12.5px] text-primary font-bold no-underline hover:underline">Googleマップで開く →</a>
+        <a href={mapLink} target="_blank" rel="noreferrer" className="text-[12.5px] font-bold text-primary no-underline hover:underline">Googleマップで開く →</a>
       </section>
 
       <section>
-        <h2 className="font-serif text-[16px] font-bold border-b border-line pb-2 mb-4 m-0">
-          コメント <span className="font-mono text-[12px] font-normal text-muted">{optimisticEvent.comments.length}件</span>
+        <h2 className="m-0 mb-4 border-b border-line pb-2 font-serif text-[16px] font-bold">
+          コメント <span className="font-mono text-[12px] font-normal text-muted">{event.comments.length}件</span>
         </h2>
-        <CommentList comments={optimisticEvent.comments} onChanged={refresh} />
+        <CommentList comments={event.comments} onChanged={refresh} />
 
         <form
           onSubmit={(e) => { e.preventDefault(); handleSendComment(); }}
