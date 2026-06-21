@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from 'react';
+import clsx from 'clsx';
 
 type Variant = 'primary' | 'secondary' | 'accent' | 'accent-outline' | 'outline' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
@@ -40,12 +41,11 @@ export function Button({
   ...rest
 }: Props) {
   const base = 'rounded-full font-bold cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-60 inline-flex items-center justify-center gap-2';
-  const width = fullWidth ? 'w-full' : '';
   return (
     <button
       type={type}
       {...rest}
-      className={`${base} ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${width} ${className}`}
+      className={clsx(base, VARIANT_CLASSES[variant], SIZE_CLASSES[size], fullWidth && 'w-full', className)}
     />
   );
 }

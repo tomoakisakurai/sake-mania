@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 import { MeetupGoButton } from './MeetupGoButton';
 // SAKE MEETUP一覧のカード。フェーズ別(開催前/投票受付中/結果確定)に統計・CTAを出し分ける。
@@ -6,7 +7,7 @@ export function MeetupCard({ ml }: { ml: Vals['meetupsList'][number] }) {
   return (
     <article onClick={ml.click} className="flex cursor-pointer flex-col gap-3 rounded-2xl border border-line bg-card py-5.5 px-6.5">
       <header className="flex flex-wrap items-center gap-3">
-        <span className={`shrink-0 rounded-full px-3 py-[3px] text-[11px] font-bold text-surface ${phaseBg}`}>{ml.phaseLabel}</span>
+        <span className={clsx('shrink-0 rounded-full px-3 py-[3px] text-[11px] font-bold text-surface', phaseBg)}>{ml.phaseLabel}</span>
         <h2 className="m-0 font-serif text-[19px] font-bold leading-[1.4]">{ml.name}</h2>
       </header>
 

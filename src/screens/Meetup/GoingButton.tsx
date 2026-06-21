@@ -1,5 +1,6 @@
 'use client';
 import { useOptimistic, startTransition } from 'react';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 
 type Props = {
@@ -31,19 +32,17 @@ export function GoingButton({ meetupId, iGoing, goingCount }: Props) {
     });
   };
 
-  const label = optimisticState.iGoing ? '参加予定です ✓' : '参加する';
-  const buttonClass = optimisticState.iGoing
-    ? 'bg-primary text-surface'
-    : 'bg-surface text-primary';
-
   return (
-    <div className="flex items-center gap-4 flex-wrap">
+    <div className="flex flex-wrap items-center gap-4">
       <button
         type="button"
         onClick={handleClick}
-        className={`border-[1.5px] border-primary rounded-full px-7 py-3 text-[14.5px] font-bold cursor-pointer ${buttonClass}`}
+        className={clsx(
+          'cursor-pointer rounded-full border-[1.5px] border-primary px-7 py-3 text-[14.5px] font-bold',
+          optimisticState.iGoing ? 'bg-primary text-surface' : 'bg-surface text-primary',
+        )}
       >
-        {label}
+        {optimisticState.iGoing ? '参加予定です ✓' : '参加する'}
       </button>
       <span className="font-mono text-[12px] text-muted">{optimisticState.goingCount}人が参加予定</span>
     </div>

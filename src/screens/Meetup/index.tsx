@@ -1,4 +1,5 @@
 'use client';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 import { deleteMeetup } from '@/app/actions/meetups';
 import type { Vals } from '@/useVals';
@@ -55,7 +56,7 @@ export function Meetup({ vals }: { vals: Vals }) {
       <header>
         <p className="m-0 mb-1 flex flex-wrap items-center gap-3">
           <span className="font-mono text-[11px] tracking-[0.18em] text-accent">SAKE MEETUP</span>
-          <span className={`rounded-full px-3 py-0.5 text-[11px] font-bold text-surface ${phaseBg}`}>{meetup.phaseLabel}</span>
+          <span className={clsx('rounded-full px-3 py-0.5 text-[11px] font-bold text-surface', phaseBg)}>{meetup.phaseLabel}</span>
         </p>
         <div className="mb-2 flex items-start gap-3">
           <h1 className="m-0 min-w-0 flex-1 font-serif text-[32px] font-bold leading-tight">{meetup.name}</h1>

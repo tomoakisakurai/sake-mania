@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useOptimistic, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 import { paths } from '@/lib/routes';
 import { getEvents, toggleEventStatus } from '@/app/actions/events';
@@ -129,13 +130,19 @@ export function Events() {
             <div className="flex flex-wrap gap-2.5">
               <span
                 onClick={(e) => { e.stopPropagation(); toggleStatus(event, 'going'); }}
-                className={`rounded-full border-[1.5px] border-accent px-4 py-2 text-[12.5px] font-bold cursor-pointer transition-colors ${event.iGoing ? 'bg-accent text-surface' : 'bg-card text-accent'}`}
+                className={clsx(
+                  'cursor-pointer rounded-full border-[1.5px] border-accent px-4 py-2 text-[12.5px] font-bold transition-colors',
+                  event.iGoing ? 'bg-accent text-surface' : 'bg-card text-accent',
+                )}
               >
                 {event.iGoing ? '参加予定 ✓' : '参加する'}
               </span>
               <span
                 onClick={(e) => { e.stopPropagation(); toggleStatus(event, 'interested'); }}
-                className={`rounded-full border-[1.5px] border-primary px-4 py-2 text-[12.5px] font-bold cursor-pointer transition-colors ${event.iInterested ? 'bg-primary text-surface' : 'bg-card text-primary'}`}
+                className={clsx(
+                  'cursor-pointer rounded-full border-[1.5px] border-primary px-4 py-2 text-[12.5px] font-bold transition-colors',
+                  event.iInterested ? 'bg-primary text-surface' : 'bg-card text-primary',
+                )}
               >
                 {event.iInterested ? '興味あり ✓' : '興味あり'}
               </span>

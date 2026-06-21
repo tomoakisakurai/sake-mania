@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import type { Member } from '@/types';
@@ -43,13 +44,16 @@ export function Members({ vals }: { vals: Vals }) {
               const memberList = membersByPref.get(name) ?? [];
               const hasMembers = memberList.length > 0;
               const isSelected = selectedPref === name;
-              const tileBg = hasMembers ? (isSelected ? 'bg-accent' : 'bg-primary') : 'bg-line-soft';
-              const tileColor = hasMembers ? 'text-surface' : 'text-faint';
               return (
                 <div
                   key={i}
                   onClick={hasMembers ? () => setSelectedPref(isSelected ? null : name) : undefined}
-                  className={`${tileBg} ${tileColor} aspect-square rounded-md flex flex-col items-center justify-center gap-px ${hasMembers ? 'cursor-pointer' : 'cursor-default'}`}
+                  className={clsx(
+                    'flex aspect-square flex-col items-center justify-center gap-px rounded-md',
+                    hasMembers ? (isSelected ? 'bg-accent' : 'bg-primary') : 'bg-line-soft',
+                    hasMembers ? 'text-surface' : 'text-faint',
+                    hasMembers ? 'cursor-pointer' : 'cursor-default',
+                  )}
                   style={{ gridColumn: p[1], gridRow: p[2] }}
                 >
                   <span className="font-bold leading-none" style={{ fontSize: name.length >= 4 ? (vals.isMobile ? '6.5px' : '8.5px') : (vals.isMobile ? '8.5px' : '11px') }}>{name}</span>

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import clsx from 'clsx';
 
 const DOW = ['日', '月', '火', '水', '木', '金', '土'];
 const DEFAULT_HOURS = ['18:00', '18:30', '19:00', '19:30', '20:00'];
@@ -74,7 +75,10 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
         {DOW.map((d, i) => (
           <div
             key={d}
-            className={`text-center text-[10.5px] font-bold py-1 ${i === 0 ? 'text-accent' : i === 6 ? 'text-primary' : 'text-muted'}`}
+            className={clsx(
+              'py-1 text-center text-[10.5px] font-bold',
+              i === 0 ? 'text-accent' : i === 6 ? 'text-primary' : 'text-muted',
+            )}
           >{d}</div>
         ))}
       </div>
@@ -85,16 +89,18 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
           <div
             key={i}
             onClick={cd.past || !cd.label ? undefined : () => onChange(cd.iso)}
-            className={[
-              'text-center py-2 rounded-lg text-[13px]',
+            className={clsx(
+              'rounded-lg py-2 text-center text-[13px]',
               !cd.label || cd.past ? 'cursor-default' : 'cursor-pointer hover:bg-line-soft',
               cd.selected ? 'bg-primary font-bold' : 'bg-transparent font-medium',
-              !cd.label ? 'text-transparent' :
+              !cd.label && 'text-transparent',
+              cd.label && (
                 cd.selected ? 'text-surface' :
                 cd.past ? 'text-line-strong' :
                 cd.isSun ? 'text-accent' :
-                cd.isSat ? 'text-primary' : 'text-ink',
-            ].join(' ')}
+                cd.isSat ? 'text-primary' : 'text-ink'
+              ),
+            )}
           >{cd.label}</div>
         ))}
       </div>
@@ -112,11 +118,12 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
                 key={h}
                 type="button"
                 onClick={() => onHourChange(h)}
-                className={`min-w-11 text-center px-2.5 py-[7px] rounded-lg text-[13px] font-bold cursor-pointer border hover:border-primary ${
+                className={clsx(
+                  'min-w-11 cursor-pointer rounded-lg border px-2.5 py-[7px] text-center text-[13px] font-bold hover:border-primary',
                   hour === h
-                    ? 'bg-primary text-surface border-primary'
-                    : 'bg-white text-ink border-line'
-                }`}
+                    ? 'border-primary bg-primary text-surface'
+                    : 'border-line bg-white text-ink',
+                )}
               >{h}</button>
             ))}
           </div>

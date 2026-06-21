@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 // みんなの利き酒帳の投稿カード。ホーム(サイドの抜粋)とフィード一覧で共有する。
 
@@ -11,7 +12,7 @@ function NomiCup() {
 
 export function FeedCard({ feed, padClass = 'p-5.5 px-6.5' }: { feed: Vals['feedAll'][number]; padClass?: string }) {
   return (
-    <article onClick={feed.click} className={`cursor-pointer rounded-xl border border-line bg-card ${padClass}`}>
+    <article onClick={feed.click} className={clsx('cursor-pointer rounded-xl border border-line bg-card', padClass)}>
       <header className="mb-3 flex items-center gap-2.5">
         <span className="flex h-7.5 w-7.5 items-center justify-center rounded-full text-[11px] font-bold" style={{ background: feed.avatarBg }}>{feed.avatar}</span>
         <p className="m-0 text-[13px] font-bold">{feed.user} <span className="font-normal text-faint">{feed.mine}</span></p>
@@ -43,7 +44,10 @@ export function FeedCard({ feed, padClass = 'p-5.5 px-6.5' }: { feed: Vals['feed
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); feed.nomiClick(e); }}
-            className={`inline-flex cursor-pointer items-center gap-[7px] rounded-full border border-accent px-4 py-1.5 text-[12px] font-bold ${feed.nomiLiked ? 'bg-accent text-surface' : 'bg-surface text-accent'}`}
+            className={clsx(
+              'inline-flex cursor-pointer items-center gap-[7px] rounded-full border border-accent px-4 py-1.5 text-[12px] font-bold',
+              feed.nomiLiked ? 'bg-accent text-surface' : 'bg-surface text-accent',
+            )}
           >
             <NomiCup />
             のみたいね <span className="font-mono text-[11.5px]">{feed.nomiCount}</span>

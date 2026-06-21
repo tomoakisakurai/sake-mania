@@ -1,18 +1,20 @@
 'use client';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import type { MapVM } from './useMapState';
 
 function tileClasses(tile: MapVM['prefTiles'][number]) {
-  const bg = tile.drunk ? 'bg-accent' : tile.hasKura ? 'bg-primary' : 'bg-line-soft';
-  const color = tile.hasKura ? 'text-surface' : 'text-faint';
-  const border = tile.selected
-    ? 'border-2 border-ink'
-    : tile.hasKura
-      ? 'border border-transparent'
-      : 'border border-line-soft';
-  const cursor = tile.hasKura ? 'cursor-pointer' : 'cursor-default';
-  return `${bg} ${color} ${border} ${cursor}`;
+  return clsx(
+    tile.drunk ? 'bg-accent' : tile.hasKura ? 'bg-primary' : 'bg-line-soft',
+    tile.hasKura ? 'text-surface' : 'text-faint',
+    tile.selected
+      ? 'border-2 border-ink'
+      : tile.hasKura
+        ? 'border border-transparent'
+        : 'border border-line-soft',
+    tile.hasKura ? 'cursor-pointer' : 'cursor-default',
+  );
 }
 
 // 酒蔵マップモード: 47都道府県タイル + 凡例 と、選択県の蔵リスト(未選択時は県チップ)
@@ -28,7 +30,7 @@ export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
               <li
                 key={i}
                 onClick={tile.click}
-                className={`flex aspect-square flex-col items-center justify-center gap-0.25 rounded-md ${tileClasses(tile)}`}
+                className={clsx('flex aspect-square flex-col items-center justify-center gap-0.25 rounded-md', tileClasses(tile))}
                 style={{ gridColumn: tile.col, gridRow: tile.row }}
               >
                 <span className="font-bold leading-tight" style={{ fontSize: tile.fontSize }}>{tile.name}</span>
@@ -75,7 +77,10 @@ export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
                     <li
                       key={i}
                       onClick={chip.click}
-                      className={`cursor-pointer rounded-full px-4 py-1.75 text-[12.5px] font-bold text-surface ${chip.drunk ? 'bg-accent' : 'bg-primary'}`}
+                      className={clsx(
+                        'cursor-pointer rounded-full px-4 py-1.75 text-[12.5px] font-bold text-surface',
+                        chip.drunk ? 'bg-accent' : 'bg-primary',
+                      )}
                     >{chip.label}</li>
                   ))}
                 </ul>

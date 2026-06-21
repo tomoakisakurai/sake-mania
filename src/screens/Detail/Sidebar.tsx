@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 import { Button } from '@/components/shared/Button';
 // 銘柄詳細の左カラム: ボトル写真 + 記録/飲みたい + 「この銘柄を買う」導線
@@ -15,7 +16,10 @@ export function Sidebar({ vals }: { vals: Vals }) {
       <button
         type="button"
         onClick={vals.dWantClick}
-        className={`cursor-pointer rounded-full border border-primary px-6 py-3.25 text-center text-[14px] font-bold ${vals.dWanted ? 'bg-primary text-surface' : 'bg-surface text-primary'}`}
+        className={clsx(
+          'cursor-pointer rounded-full border border-primary px-6 py-3.25 text-center text-[14px] font-bold',
+          vals.dWanted ? 'bg-primary text-surface' : 'bg-surface text-primary',
+        )}
       >{vals.dWantLabel}</button>
       <section className="rounded-xl border border-line bg-surface px-4.5 py-4">
         <h2 className="m-0 mb-1 font-serif text-[14px] font-bold">この銘柄を買う</h2>

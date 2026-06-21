@@ -1,10 +1,11 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 
 function Stat({ value, label, divider = false }: { value: string | number; label: string; divider?: boolean }) {
   return (
-    <li className={`${divider ? 'border-l border-line pl-8' : ''}`}>
-      <p className="font-serif text-[30px] font-bold m-0">{value}</p>
-      <p className="text-[12px] text-muted m-0">{label}</p>
+    <li className={clsx(divider && 'border-l border-line pl-8')}>
+      <p className="m-0 font-serif text-[30px] font-bold">{value}</p>
+      <p className="m-0 text-[12px] text-muted">{label}</p>
     </li>
   );
 }

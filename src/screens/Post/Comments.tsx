@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 import type { CommentState } from './index';
 import { CommentItem } from './CommentItem';
@@ -12,7 +13,10 @@ export function Comments({ vals, commentState }: { vals: Vals; commentState: Com
           <button
             type="button"
             onClick={vals.post.nomiClick}
-            className={`inline-flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-accent px-6 py-2.5 text-[13.5px] font-bold ${vals.post.nomiLiked ? 'bg-accent text-surface' : 'bg-surface text-accent'}`}
+            className={clsx(
+              'inline-flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-accent px-6 py-2.5 text-[13.5px] font-bold',
+              vals.post.nomiLiked ? 'bg-accent text-surface' : 'bg-surface text-accent',
+            )}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h16c0 6.2-3.5 9.8-7 10.7V18h4v2.5H7V18h4v-4.3C7.5 12.8 4 9.2 4 3z"></path></svg>
             のみたいね <span className="font-mono text-[12.5px]">{vals.post.nomiCount}</span>

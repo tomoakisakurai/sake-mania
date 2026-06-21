@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, useOptimistic, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 import {
   getNotifications,
@@ -140,7 +141,10 @@ export function Notifications() {
                 <li
                   key={notification.id}
                   onClick={() => handleClick(notification)}
-                  className={`flex gap-3 px-4.5 py-3 border-b border-line-soft cursor-pointer hover:bg-bg ${notification.isUnread ? '' : 'opacity-70'}`}
+                  className={clsx(
+                    'flex cursor-pointer gap-3 border-b border-line-soft px-4.5 py-3 hover:bg-bg',
+                    !notification.isUnread && 'opacity-70',
+                  )}
                 >
                   <span
                     style={{ background: KIND_BG[notification.kind] }}

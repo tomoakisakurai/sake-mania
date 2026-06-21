@@ -1,5 +1,6 @@
 'use client';
 import { useOptimistic, startTransition } from 'react';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 
 type Props = {
@@ -33,7 +34,10 @@ export function MeetupGoButton({ meetupId, iGoing }: Props) {
     <button
       type="button"
       onClick={handleClick}
-      className={`ml-auto cursor-pointer whitespace-nowrap rounded-full border-[1.5px] border-primary px-5 py-[7px] text-[12.5px] font-bold ${optimistic.iGoing ? 'bg-primary text-surface' : 'bg-surface text-primary'}`}
+      className={clsx(
+        'ml-auto cursor-pointer whitespace-nowrap rounded-full border-[1.5px] border-primary px-5 py-[7px] text-[12.5px] font-bold',
+        optimistic.iGoing ? 'bg-primary text-surface' : 'bg-surface text-primary',
+      )}
     >
       {optimistic.iGoing ? '参加予定 ✓' : '参加する'}
     </button>

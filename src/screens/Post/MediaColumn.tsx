@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 import { Button } from '@/components/shared/Button';
 // 投稿詳細の左カラム: 写真 + アクション(図鑑/記録/公開トグル)
@@ -16,7 +17,10 @@ export function MediaColumn({ vals }: { vals: Vals }) {
         <button
           type="button"
           onClick={vals.post.publishToggle}
-          className={`cursor-pointer rounded-full px-6 py-2.5 text-center text-[13px] font-bold ${vals.post.isPublic ? 'border-[1.5px] border-accent bg-accent-tint text-accent-dark' : 'border-[1.5px] border-line bg-surface text-body'}`}
+          className={clsx(
+            'cursor-pointer rounded-full border-[1.5px] px-6 py-2.5 text-center text-[13px] font-bold',
+            vals.post.isPublic ? 'border-accent bg-accent-tint text-accent-dark' : 'border-line bg-surface text-body',
+          )}
         >{vals.post.publishLabel}</button>
       )}
       {vals.post.canDelete && (

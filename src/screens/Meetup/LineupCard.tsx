@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 
 type Lineup = Vals['meetup']['lineup'][number];
@@ -23,7 +24,10 @@ export function LineupCard({ lineup }: { lineup: Lineup }) {
           <button
             type="button"
             onClick={lineup.voteClick}
-            className={`inline-flex cursor-pointer items-center gap-[7px] rounded-full border-[1.5px] border-accent px-4.5 py-1.75 text-[12.5px] font-bold ${lineup.voted ? 'bg-accent text-surface' : 'bg-surface text-accent'}`}
+            className={clsx(
+              'inline-flex cursor-pointer items-center gap-[7px] rounded-full border-[1.5px] border-accent px-4.5 py-1.75 text-[12.5px] font-bold',
+              lineup.voted ? 'bg-accent text-surface' : 'bg-surface text-accent',
+            )}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z" /></svg>
             {lineup.voteLabel}

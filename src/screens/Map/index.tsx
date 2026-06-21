@@ -1,4 +1,5 @@
 'use client';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import { Button } from '@/components/shared/Button';
@@ -22,12 +23,18 @@ export function Map({ vals }: { vals: Vals }) {
         <button
           type="button"
           onClick={() => map.setMapMode('kura')}
-          className={`cursor-pointer rounded-full px-5.5 py-2 text-[13px] font-bold ${!map.isBars ? 'bg-primary text-surface' : 'bg-transparent text-muted'}`}
+          className={clsx(
+            'cursor-pointer rounded-full px-5.5 py-2 text-[13px] font-bold',
+            !map.isBars ? 'bg-primary text-surface' : 'bg-transparent text-muted',
+          )}
         >酒蔵マップ</button>
         <button
           type="button"
           onClick={() => map.setMapMode('bars')}
-          className={`cursor-pointer rounded-full px-5.5 py-2 text-[13px] font-bold ${map.isBars ? 'bg-accent text-surface' : 'bg-transparent text-muted'}`}
+          className={clsx(
+            'cursor-pointer rounded-full px-5.5 py-2 text-[13px] font-bold',
+            map.isBars ? 'bg-accent text-surface' : 'bg-transparent text-muted',
+          )}
         >飲める店</button>
       </nav>
       {!map.isBars && <KuraMode vals={vals} map={map} />}

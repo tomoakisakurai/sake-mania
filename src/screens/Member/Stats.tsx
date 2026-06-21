@@ -1,3 +1,5 @@
+import clsx from 'clsx';
+
 type Props = {
   recCount: number;
   bringCount: number;
@@ -7,7 +9,7 @@ type Props = {
 function StatBlock({ value, label, accent = false }: { value: number; label: string; accent?: boolean }) {
   return (
     <div>
-      <div className={`font-serif text-[28px] font-bold ${accent ? 'text-accent' : ''}`}>{value}</div>
+      <div className={clsx('font-serif text-[28px] font-bold', accent && 'text-accent')}>{value}</div>
       <div className="text-[11.5px] text-muted">{label}</div>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import clsx from 'clsx';
 
 export type KebabMenuItem = {
   label: string;
@@ -41,7 +42,10 @@ export function KebabMenu({ items }: Props) {
               <div
                 key={i}
                 onClick={() => handleItemClick(item)}
-                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-[7px] text-[13px] cursor-pointer ${item.danger ? 'text-danger hover:bg-[#F6EEEA]' : 'text-ink hover:bg-line-soft'}`}
+                className={clsx(
+                  'flex cursor-pointer items-center gap-2.5 rounded-[7px] px-3.5 py-2.5 text-[13px]',
+                  item.danger ? 'text-danger hover:bg-[#F6EEEA]' : 'text-ink hover:bg-line-soft',
+                )}
               >
                 {item.icon}
                 {item.label}

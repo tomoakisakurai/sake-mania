@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 import { Textarea } from '@/components/shared/Textarea';
 // 記録ステップ4: メモ + まとめ + 公開トグル
@@ -23,10 +24,19 @@ export function Step4Memo({ vals }: { vals: Vals }) {
       <button
         type="button"
         onClick={vals.toggleRecPublic}
-        className={`mt-4 flex w-full cursor-pointer items-center gap-3 rounded-xl border px-4.5 py-3.5 ${vals.recPublic ? 'border-accent-tint-strong bg-accent-tint' : 'border-line bg-card'}`}
+        className={clsx(
+          'mt-4 flex w-full cursor-pointer items-center gap-3 rounded-xl border px-4.5 py-3.5',
+          vals.recPublic ? 'border-accent-tint-strong bg-accent-tint' : 'border-line bg-card',
+        )}
       >
-        <span className={`relative h-6 w-[42px] shrink-0 rounded-full transition-colors duration-200 ${vals.recPublic ? 'bg-accent' : 'bg-line-strong'}`}>
-          <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-surface transition-[left] duration-200 ${vals.recPublic ? 'left-5' : 'left-0.5'}`} />
+        <span className={clsx(
+          'relative h-6 w-[42px] shrink-0 rounded-full transition-colors duration-200',
+          vals.recPublic ? 'bg-accent' : 'bg-line-strong',
+        )}>
+          <span className={clsx(
+            'absolute top-0.5 h-5 w-5 rounded-full bg-surface transition-[left] duration-200',
+            vals.recPublic ? 'left-5' : 'left-0.5',
+          )} />
         </span>
         <hgroup className="min-w-0 text-left">
           <h3 className="m-0 text-[13.5px] font-bold">みんなの利き酒帳に公開する</h3>

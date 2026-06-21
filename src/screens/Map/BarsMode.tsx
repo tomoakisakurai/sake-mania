@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 import type { MapVM } from './useMapState';
 
@@ -12,13 +13,16 @@ export function BarsMode({ vals, map }: { vals: Vals; map: MapVM }) {
             <li
               key={i}
               onClick={bar.click}
-              className={`cursor-pointer rounded-xl border border-line px-4.5 py-4 ${bar.selected ? 'bg-primary text-surface' : 'bg-card text-ink'}`}
+              className={clsx(
+                'cursor-pointer rounded-xl border border-line px-4.5 py-4',
+                bar.selected ? 'bg-primary text-surface' : 'bg-card text-ink',
+              )}
             >
               <header className="flex flex-wrap items-center gap-2.5">
                 <h3 className="m-0 font-serif text-[16px] font-bold">{bar.name}</h3>
                 <span className="rounded-full border border-current px-2.25 py-px text-[10.5px] opacity-75">{bar.type}</span>
               </header>
-              <p className={`m-0 mt-1 text-[11.5px] ${bar.selected ? 'opacity-70' : 'text-muted'}`}>{bar.area}</p>
+              <p className={clsx('m-0 mt-1 text-[11.5px]', bar.selected ? 'opacity-70' : 'text-muted')}>{bar.area}</p>
             </li>
           ))}
         </ul>

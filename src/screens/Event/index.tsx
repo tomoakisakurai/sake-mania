@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, useOptimistic, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import clsx from 'clsx';
 import { useStore } from '@/store';
 import {
   getEventDetail,
@@ -153,13 +154,19 @@ export function Event({ eventId }: { eventId: string }) {
       <div className="flex gap-3 flex-wrap mb-7">
         <span
           onClick={() => handleToggle('going')}
-          className={`rounded-full border-[1.5px] border-accent px-6 py-2.5 text-[13.5px] font-bold cursor-pointer transition-colors ${optimisticEvent.iGoing ? 'bg-accent text-surface' : 'bg-card text-accent'}`}
+          className={clsx(
+            'cursor-pointer rounded-full border-[1.5px] border-accent px-6 py-2.5 text-[13.5px] font-bold transition-colors',
+            optimisticEvent.iGoing ? 'bg-accent text-surface' : 'bg-card text-accent',
+          )}
         >
           {optimisticEvent.iGoing ? '参加予定 ✓' : '参加する'}
         </span>
         <span
           onClick={() => handleToggle('interested')}
-          className={`rounded-full border-[1.5px] border-primary px-6 py-2.5 text-[13.5px] font-bold cursor-pointer transition-colors ${optimisticEvent.iInterested ? 'bg-primary text-surface' : 'bg-card text-primary'}`}
+          className={clsx(
+            'cursor-pointer rounded-full border-[1.5px] border-primary px-6 py-2.5 text-[13.5px] font-bold transition-colors',
+            optimisticEvent.iInterested ? 'bg-primary text-surface' : 'bg-card text-primary',
+          )}
         >
           {optimisticEvent.iInterested ? '興味あり ✓' : '興味あり'}
         </span>
