@@ -56,6 +56,6 @@ export function buildNavModel(route: RouteState, st: NavStore) {
   return {
     navItems,
     tabLeft: [mkTab('home', 'ホーム'), mkTab('meetups', 'MEETUP')],
-    tabRight: [mkTab('events', 'イベント'), mkTab('mypage', 'マイページ')],
+    tabRight: [mkTab('events', 'イベント'), mkTab('members', 'メンバー')],
   };
 }
