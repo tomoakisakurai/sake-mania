@@ -1,70 +1,62 @@
 import type { Vals } from '@/useVals';
+import { Button } from '@/components/shared/Button';
 import { GoingButton } from './GoingButton';
+import { BringCard } from './BringCard';
 // 開催前フェーズ: 出欠トグル + 持ち寄りラインナップ + あなたの一本 + 幹事メニュー
 export function BeforePhase({ vals }: { vals: Vals }) {
-  const m = vals.meetup;
+  const meetup = vals.meetup;
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28, flexWrap: 'wrap' }}>
-        <GoingButton meetupId={m.id} iGoing={m.iGo} goingCount={m.goCount} />
-        <div style={{ display: 'flex' }}>
-          {m.goingAvatars.map((ga, i: number) => (
-            <div key={i} style={{ width: 30, height: 30, borderRadius: '50%', background: ga.bg, border: '2px solid #E9E6DF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginLeft: -8 }}>{ga.avatar}</div>
+      <section className="mb-7 flex flex-wrap items-center gap-4">
+        <GoingButton meetupId={meetup.id} iGoing={meetup.iGo} goingCount={meetup.goCount} />
+        <ul className="m-0 flex p-0 list-none">
+          {meetup.goingAvatars.map((avatar, i) => (
+            <li key={i} className="-ml-2 flex h-7.5 w-7.5 items-center justify-center rounded-full border-2 border-line text-[11px] font-bold first:ml-0" style={{ background: avatar.bg }}>{avatar.avatar}</li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: vals.meetCols, gap: 28, alignItems: 'start' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 16 }}>
-            <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700 }}>持ち寄りラインナップ</div>
-            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: '#8B8273' }}>{m.bringCount}本 宣言済み</span>
-          </div>
-          {m.hasDup && (
-            <div style={{ background: '#FBF0E6', border: '1px solid #E8C9A8', borderRadius: 10, padding: '12px 16px', fontSize: 12.5, color: '#9A5A20', marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>
+      <div className="grid items-start gap-7" style={{ gridTemplateColumns: vals.meetCols }}>
+        <section>
+          <header className="mb-4 flex items-baseline justify-between border-b border-line pb-2.5">
+            <h2 className="m-0 font-serif text-[18px] font-bold">持ち寄りラインナップ</h2>
+            <span className="font-mono text-[11px] text-muted">{meetup.bringCount}本 宣言済み</span>
+          </header>
+          {meetup.hasDup && (
+            <aside className="mb-4 flex items-center gap-2 rounded-[10px] border border-accent-tint-strong bg-accent-tint px-4 py-3 text-[12.5px] text-accent-dark">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
               銘柄がかぶっています。誰かが変えると、当日の種類が増えてもっと楽しめます。
-            </div>
+            </aside>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {m.bringList.map((bl, i: number) => (
-              <div key={i} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 18px', display: 'flex', gap: 14, alignItems: 'center' }}>
-                <div style={{ width: 38, height: 38, flexShrink: 0, borderRadius: '50%', background: bl.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{bl.avatar}</div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 11.5, color: '#8B8273' }}>{bl.memberName}</span>
-                    {bl.mine && (<span style={{ background: '#DDD3BE', borderRadius: 999, padding: '1px 8px', fontSize: 10, fontWeight: 700 }}>あなた</span>)}
-                    {bl.dup && (<span style={{ background: '#F3D9C0', color: '#9A5A20', borderRadius: 999, padding: '1px 9px', fontSize: 10, fontWeight: 700 }}>かぶり</span>)}
-                  </div>
-                  <div onClick={bl.brandClick} style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 2 }}>{bl.brandName}</div>
-                  <div style={{ fontSize: 11, color: '#8B8273' }}>{bl.brandSub}</div>
-                  {bl.note && (<div style={{ fontSize: 12, color: '#5C5547', marginTop: 4 }}>「{bl.note}」</div>)}
-                </div>
-              </div>
+          <ul className="m-0 flex flex-col gap-3 p-0 list-none">
+            {meetup.bringList.map((bring, i) => (
+              <li key={i}>
+                <BringCard bring={bring} />
+              </li>
             ))}
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: '20px 22px' }}>
-            <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 15, fontWeight: 700, marginBottom: 6 }}>あなたの一本</div>
-            {m.myDeclared && (
+          </ul>
+        </section>
+        <aside className="flex flex-col gap-4">
+          <section className="rounded-xl border border-line bg-surface px-5.5 py-5">
+            <h2 className="m-0 mb-1.5 font-serif text-[15px] font-bold">あなたの一本</h2>
+            {meetup.myDeclared && (
               <>
-                <div style={{ fontSize: 12.5, color: '#5C5547', lineHeight: 1.8, marginBottom: 12 }}>持ち寄りを宣言済みです。当日をお楽しみに。</div>
-                <div onClick={m.declareClick} style={{ background: '#32507C', color: '#FDFBF5', borderRadius: 999, padding: 11, textAlign: 'center', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', marginBottom: 8 }}>{m.declareLabel}</div>
-                <div onClick={m.cancelDeclare} style={{ textAlign: 'center', fontSize: 12, color: '#A89D8A', cursor: 'pointer' }}>宣言を取り消す</div>
+                <p className="m-0 mb-3 text-[12.5px] leading-[1.8] text-body">持ち寄りを宣言済みです。当日をお楽しみに。</p>
+                <Button variant="primary" size="md" onClick={meetup.declareClick} fullWidth className="mb-2">{meetup.declareLabel}</Button>
+                <a onClick={meetup.cancelDeclare} className="block cursor-pointer text-center text-[12px] text-faint">宣言を取り消す</a>
               </>
             )}
-            {m.notMyDeclared && (
+            {meetup.notMyDeclared && (
               <>
-                <div style={{ fontSize: 12.5, color: '#5C5547', lineHeight: 1.8, marginBottom: 12 }}>何を持っていくか宣言しましょう。先に宣言された銘柄は「かぶり」で分かるので、自然と種類が散らばります。</div>
-                <div onClick={m.declareClick} style={{ background: '#BC6A2D', color: '#FDFBF5', borderRadius: 999, padding: 12, textAlign: 'center', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>{m.declareLabel}</div>
+                <p className="m-0 mb-3 text-[12.5px] leading-[1.8] text-body">何を持っていくか宣言しましょう。先に宣言された銘柄は「かぶり」で分かるので、自然と種類が散らばります。</p>
+                <Button variant="accent" size="md" onClick={meetup.declareClick} fullWidth>{meetup.declareLabel}</Button>
               </>
             )}
-          </div>
-        </div>
+          </section>
+        </aside>
       </div>
-      {m.hostCanStart && (
-        <div onClick={m.startVoting} style={{ display: 'inline-block', border: '1.5px solid #BC6A2D', color: '#BC6A2D', borderRadius: 999, padding: '10px 24px', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 22 }}>幹事メニュー:会を終えてMVP投票を開始する</div>
+      {meetup.hostCanStart && (
+        <Button variant="accent-outline" size="md" onClick={meetup.startVoting} className="mt-5.5">幹事メニュー:会を終えてMVP投票を開始する</Button>
       )}
     </>
   );

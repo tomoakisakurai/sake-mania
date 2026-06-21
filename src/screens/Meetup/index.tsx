@@ -1,3 +1,4 @@
+'use client';
 import { useStore } from '@/store';
 import { deleteMeetup } from '@/app/actions/meetups';
 import type { Vals } from '@/useVals';
@@ -25,15 +26,16 @@ const DELETE_ICON = (
 );
 
 export function Meetup({ vals }: { vals: Vals }) {
-  const m = vals.meetup;
+  const meetup = vals.meetup;
   const store = useStore();
   const meetupDetail = store.meetupDetail;
   const gcalUrl = meetupDetail?.eventDate
     ? buildGcalUrl(meetupDetail.eventDate, meetupDetail.dateLabel, meetupDetail.name, meetupDetail.place, meetupDetail.theme)
     : null;
+  const phaseBg = meetup.isVoting ? 'bg-accent' : meetup.isClosed ? 'bg-body' : 'bg-primary';
 
   if (!meetupDetail) {
-    return <div style={{ maxWidth: 920, margin: '0 auto', padding: vals.pagePadTight }}><Loading /></div>;
+    return <main className="mx-auto max-w-230" style={{ padding: vals.pagePadTight }}><Loading /></main>;
   }
 
   const handleDelete = async () => {
@@ -48,46 +50,48 @@ export function Meetup({ vals }: { vals: Vals }) {
   };
 
   return (
-    <main style={{ maxWidth: 920, margin: '0 auto', padding: vals.pagePadTight }}>
-      <a onClick={m.backHome} className="block text-[13px] text-muted cursor-pointer mb-6 hover:text-primary transition-colors">← ホームにもどる</a>
-      <div className="flex items-center gap-3 mb-1 flex-wrap">
-        <span className="font-mono text-[11px] tracking-[0.18em] text-accent">SAKE MEETUP</span>
-        <span style={{ background: m.phaseBg }} className="rounded-full px-3 py-0.5 text-[11px] font-bold text-surface">{m.phaseLabel}</span>
-      </div>
-      <div className="flex items-start gap-3 mb-2">
-        <h1 className="font-serif text-[32px] font-bold leading-tight flex-1 min-w-0 m-0">{m.name}</h1>
-        {m.isHost && (
-          <KebabMenu
-            items={[
-              { label: 'この会を削除', icon: DELETE_ICON, onClick: handleDelete, danger: true },
-            ]}
-          />
-        )}
-      </div>
-      <p className="text-[13.5px] text-muted mb-1 m-0">{m.dateLabel} ・ {m.place}</p>
-      <p className="text-[13px] text-body mb-6 m-0">テーマ:{m.theme} ・ 幹事 {m.hostName}</p>
-
-      {gcalUrl && (
-        <div className="mb-6">
-          <a
-            href={gcalUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 border border-line hover:border-primary rounded-full px-4 py-2 text-[12.5px] font-bold text-ink no-underline bg-surface shrink-0 transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            Googleカレンダーに追加
-          </a>
+    <main className="mx-auto max-w-230" style={{ padding: vals.pagePadTight }}>
+      <a onClick={meetup.backHome} className="mb-6 block cursor-pointer text-[13px] text-muted transition-colors hover:text-primary">← ホームにもどる</a>
+      <header>
+        <p className="m-0 mb-1 flex flex-wrap items-center gap-3">
+          <span className="font-mono text-[11px] tracking-[0.18em] text-accent">SAKE MEETUP</span>
+          <span className={`rounded-full px-3 py-0.5 text-[11px] font-bold text-surface ${phaseBg}`}>{meetup.phaseLabel}</span>
+        </p>
+        <div className="mb-2 flex items-start gap-3">
+          <h1 className="m-0 min-w-0 flex-1 font-serif text-[32px] font-bold leading-tight">{meetup.name}</h1>
+          {meetup.isHost && (
+            <KebabMenu
+              items={[
+                { label: 'この会を削除', icon: DELETE_ICON, onClick: handleDelete, danger: true },
+              ]}
+            />
+          )}
         </div>
-      )}
+        <p className="m-0 mb-1 text-[13.5px] text-muted">{meetup.dateLabel} ・ {meetup.place}</p>
+        <p className="m-0 mb-6 text-[13px] text-body">テーマ:{meetup.theme} ・ 幹事 {meetup.hostName}</p>
 
-      {m.isBefore && <BeforePhase vals={vals} />}
-      {m.showLineup && <ReviewPhase vals={vals} />}
+        {gcalUrl && (
+          <p className="m-0 mb-6">
+            <a
+              href={gcalUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-[12.5px] font-bold text-ink no-underline transition-colors hover:border-primary"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Googleカレンダーに追加
+            </a>
+          </p>
+        )}
+      </header>
+
+      {meetup.isBefore && <BeforePhase vals={vals} />}
+      {meetup.showLineup && <ReviewPhase vals={vals} />}
     </main>
   );
 }

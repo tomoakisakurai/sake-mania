@@ -1,63 +1,43 @@
 import type { Vals } from '@/useVals';
 import { AttendedMembers } from './AttendedMembers';
+import { LineupCard } from './LineupCard';
 // 投票受付中 / 結果確定フェーズ: 投票バナー + MVPカード + 参加メンバー + 得票ランキング
 export function ReviewPhase({ vals }: { vals: Vals }) {
-  const m = vals.meetup;
+  const meetup = vals.meetup;
   return (
     <>
-      {m.isVoting && (
+      {meetup.isVoting && (
         <>
-          <div style={{ background: '#FBF0E6', border: '1px solid #E8C9A8', borderRadius: 12, padding: '14px 18px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ background: '#BC6A2D', color: '#FDFBF5', borderRadius: 999, padding: '3px 12px', fontSize: 11, fontWeight: 700 }}>MVP投票受付中</span>
-            <span style={{ fontSize: 12.5, color: '#9A5A20' }}>今日の一本に1人1票。締切 {m.voteDeadline}。締切後にMVPが確定します。</span>
-          </div>
-          {m.hostCanClose && (
-            <div onClick={m.closeVoting} style={{ display: 'inline-block', border: '1.5px solid #5C5547', color: '#5C5547', borderRadius: 999, padding: '9px 22px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', marginBottom: 20 }}>幹事メニュー:投票を締め切ってMVPを確定する</div>
+          <aside className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-accent-tint-strong bg-accent-tint px-4.5 py-3.5">
+            <span className="rounded-full bg-accent px-3 py-0.5 text-[11px] font-bold text-surface">MVP投票受付中</span>
+            <span className="text-[12.5px] text-accent-dark">今日の一本に1人1票。締切 {meetup.voteDeadline}。締切後にMVPが確定します。</span>
+          </aside>
+          {meetup.hostCanClose && (
+            <button type="button" onClick={meetup.closeVoting} className="mb-5 inline-flex cursor-pointer items-center rounded-full border-[1.5px] border-body bg-card px-5.5 py-2.25 text-[12.5px] font-bold text-body">幹事メニュー:投票を締め切ってMVPを確定する</button>
           )}
         </>
       )}
-      <div style={{ background: 'linear-gradient(135deg, #32507C, #263d5f)', borderRadius: 14, padding: '24px 28px', color: '#FDFBF5', marginBottom: 28 }}>
-        <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, letterSpacing: '0.18em', opacity: 0.7, marginBottom: 10 }}>{m.mvpLabel}</div>
-        <div onClick={m.mvp.brandClick} style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 24, fontWeight: 700, cursor: 'pointer' }}>{m.mvp.brandName}</div>
-        <div style={{ fontSize: 12.5, opacity: 0.85, marginTop: 4 }}>{m.mvp.brandSub} ・ {m.mvp.broughtBy}さんが持参 ・ {m.mvp.votesLabel}</div>
-        <div style={{ fontSize: 13, lineHeight: 1.9, opacity: 0.95, marginTop: 12 }}>「{m.mvp.comment}」</div>
-      </div>
+      <section className="mb-7 rounded-2xl px-7 py-6 text-surface" style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))' }}>
+        <p className="m-0 mb-2.5 font-mono text-[10px] tracking-[0.18em] opacity-70">{meetup.mvpLabel}</p>
+        <h2 onClick={meetup.mvp.brandClick} className="m-0 cursor-pointer font-serif text-[24px] font-bold">{meetup.mvp.brandName}</h2>
+        <p className="m-0 mt-1 text-[12.5px] opacity-85">{meetup.mvp.brandSub} ・ {meetup.mvp.broughtBy}さんが持参 ・ {meetup.mvp.votesLabel}</p>
+        <p className="m-0 mt-3 text-[13px] leading-[1.9] opacity-95">「{meetup.mvp.comment}」</p>
+      </section>
       <AttendedMembers />
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 18 }}>
-        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700 }}>得票ランキング</div>
-        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: '#8B8273' }}>{m.attendees}名参加 ・ 計{m.totalVotesLabel}</span>
-      </div>
-      {m.isClosed && (
-        <div style={{ fontSize: 11.5, color: '#A89D8A', marginBottom: 14 }}>この会の投票は締め切られ、MVPは確定しています。</div>
+      <header className="mb-4.5 flex items-baseline justify-between border-b border-line pb-2.5">
+        <h2 className="m-0 font-serif text-[18px] font-bold">得票ランキング</h2>
+        <span className="font-mono text-[11px] text-muted">{meetup.attendees}名参加 ・ 計{meetup.totalVotesLabel}</span>
+      </header>
+      {meetup.isClosed && (
+        <p className="m-0 mb-3.5 text-[11.5px] text-faint">この会の投票は締め切られ、MVPは確定しています。</p>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {m.lineup.map((lp, i: number) => (
-          <div key={i} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '18px 20px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, color: '#BC6A2D', width: 26, flexShrink: 0, textAlign: 'center' }}>{lp.rankLabel}</div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <div onClick={lp.brandClick} style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 17, fontWeight: 700, cursor: 'pointer' }}>{lp.brandName}</div>
-                {lp.isMvp && (<span style={{ background: '#BC6A2D', color: '#FDFBF5', borderRadius: 999, padding: '2px 10px', fontSize: 10, fontWeight: 700 }}>MVP</span>)}
-              </div>
-              <div style={{ fontSize: 11.5, color: '#8B8273', marginBottom: 6 }}>{lp.brandSub}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: '#BC6A2D', fontWeight: 700 }}>得票 {lp.votes}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: lp.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>{lp.avatar}</div>
-                <span style={{ fontSize: 11.5, color: '#8B8273' }}>{lp.broughtBy}さんが持参</span>
-              </div>
-              <div style={{ fontSize: 12.5, lineHeight: 1.8, color: '#5C5547', marginBottom: 12 }}>「{lp.comment}」</div>
-              {lp.canVote && (
-                <div onClick={lp.voteClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: '1.5px solid #BC6A2D', borderRadius: 999, padding: '7px 18px', cursor: 'pointer', background: lp.voteBg, color: lp.voteColor, fontSize: 12.5, fontWeight: 700 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"></path></svg>
-                  {lp.voteLabel}
-                </div>
-              )}
-            </div>
-          </div>
+      <ul className="m-0 flex flex-col gap-3.5 p-0 list-none">
+        {meetup.lineup.map((lineup, i) => (
+          <li key={i}>
+            <LineupCard lineup={lineup} />
+          </li>
         ))}
-      </div>
+      </ul>
     </>
   );
 }

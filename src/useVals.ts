@@ -270,7 +270,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     return {
       meetupId: m.id,
       phaseLabel: m.phase === 'voting' ? '投票受付中' : m.phase === 'closed' ? '結果確定' : '開催前',
-      phaseBg: m.phase === 'voting' ? '#BC6A2D' : m.phase === 'closed' ? '#5C5547' : '#32507C',
       name: m.name, dateLabel: m.dateLabel, place: m.place, theme: m.theme,
       isUpcoming: m.phase === 'before', isVoting: m.phase === 'voting', isClosed: m.phase === 'closed',
       iGoing: m.iGoing, goingCount: m.goingCount, bringCount: m.bringCount,
@@ -312,13 +311,9 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     closeVoting: () => store.setPhase(meId, 'closed'),
     voteDeadline: md?.voteDeadline || '',
     phaseLabel: isVoting ? '投票受付中' : isClosed ? '結果確定' : '開催前',
-    phaseBg: isVoting ? '#BC6A2D' : isClosed ? '#5C5547' : '#32507C',
     mvpLabel: isVoting ? '★ 暫定トップ（投票受付中）' : '★ その日のMVP酒 — 最多得票',
     iGo, goCount: md?.goingCount || 0, attendees: md?.goingCount || 0,
     goingAvatars,
-    goToggle: () => store.toggleGoing(meId),
-    goLabel: iGo ? '参加予定です ✓' : '参加する',
-    goBg: iGo ? '#32507C' : '#FDFBF5', goColor: iGo ? '#FDFBF5' : '#32507C',
     bringList, bringCount: allBring.length,
     hasBring: allBring.length > 0,
     hasDup: Object.keys(brandCounts).some((k) => brandCounts[k] > 1),
@@ -337,7 +332,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
       const br = byId(l.brandId) || EMPTY_BRAND;
       const vc = voteCounts[l.brandId] || 0;
       const voted = myVote === l.brandId;
-      return { rank: i + 1, rankLabel: ['壱', '弐', '参', '四', '五'][i] || (i + 1), isMvp: mvpBrandId === l.brandId, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: l.memberName, avatar: l.avatar, avatarBg: l.avatarBg, score: '', stars: '', votes: vc + '票', comment: l.note || '', brandClick: () => store.openDetail(l.brandId), canVote: isVoting, voted, voteLabel: voted ? '投票済み ✓' : 'MVPに投票', voteBg: voted ? '#BC6A2D' : '#FDFBF5', voteColor: voted ? '#FDFBF5' : '#BC6A2D', voteClick: () => store.voteMvp(meId, l.brandId) };
+      return { rank: i + 1, rankLabel: ['壱', '弐', '参', '四', '五'][i] || (i + 1), isMvp: mvpBrandId === l.brandId, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: l.memberName, avatar: l.avatar, avatarBg: l.avatarBg, votes: vc + '票', comment: l.note || '', brandClick: () => store.openDetail(l.brandId), canVote: isVoting, voted, voteLabel: voted ? '投票済み ✓' : 'MVPに投票', voteClick: () => store.voteMvp(meId, l.brandId) };
     }),
     mvp: showLineup && mvpBrandId ? (() => { const br = byId(mvpBrandId) || EMPTY_BRAND; const lp = allBring.find((x) => x.brandId === mvpBrandId); return { brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: lp?.memberName || '', votesLabel: (voteCounts[mvpBrandId] || 0) + '票', comment: lp?.note || '', brandClick: () => store.openDetail(mvpBrandId) }; })() : { brandName: '', brandSub: '', broughtBy: '', votesLabel: '', comment: '', brandClick: () => {} },
   };

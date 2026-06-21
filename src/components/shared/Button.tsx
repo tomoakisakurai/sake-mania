@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'accent' | 'outline' | 'danger';
+type Variant = 'primary' | 'secondary' | 'accent' | 'accent-outline' | 'outline' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
 type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> & {
@@ -17,6 +17,8 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   secondary: 'bg-card hover:bg-primary-tint text-primary hover:text-primary-dark border border-primary',
   // 朱ベタ塗り(参加など強調アクション)
   accent: 'bg-accent hover:bg-accent-hover text-surface border border-accent',
+  // 朱アウトライン(幹事メニュー等)
+  'accent-outline': 'bg-card hover:bg-accent-tint text-accent border border-accent',
   // グレー枠(セカンダリ/キャンセル)
   outline: 'bg-surface hover:border-primary text-body border border-line',
   // 削除など破壊的アクション
