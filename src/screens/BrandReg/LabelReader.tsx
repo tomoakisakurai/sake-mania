@@ -32,7 +32,7 @@ export function LabelReader({ photo, reading, readDone, onPick, onRead, onRemove
       : '✦ AIでラベルを読み取る';
 
   return (
-    <div className="bg-surface border border-line rounded-2xl p-[18px] mb-7">
+    <div className="bg-surface border border-line rounded-2xl p-4.5 mb-7">
       <input
         ref={fileInputRef}
         type="file"
@@ -61,13 +61,13 @@ export function LabelReader({ photo, reading, readDone, onPick, onRead, onRemove
             <img
               src={photo}
               alt="ラベルプレビュー"
-              className="w-[88px] h-[116px] flex-shrink-0 object-cover rounded-lg border border-line"
+              className="w-22 h-29 shrink-0 object-cover rounded-lg border border-line"
             />
             <div className="flex-1 min-w-0">
               <button
                 onClick={onRead}
                 disabled={reading}
-                className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary-dark text-surface rounded-full px-[22px] py-2.5 text-[13.5px] font-bold cursor-pointer transition-colors disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary-dark text-surface rounded-full px-5.5 py-2.5 text-[13.5px] font-bold cursor-pointer transition-colors disabled:cursor-not-allowed"
               >
                 {reading && (
                   <span className="w-3.5 h-3.5 border-2 border-[rgba(253,251,245,0.4)] border-t-surface rounded-full inline-block animate-spin" />

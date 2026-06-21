@@ -10,7 +10,7 @@ export function ProfileHeader({ member, onHometownClick }: Props) {
     <header className="flex gap-4 items-center mb-6 flex-wrap">
       <div
         style={{ background: member.avatarBg }}
-        className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-[26px] font-bold flex-shrink-0"
+        className="w-18 h-18 rounded-full flex items-center justify-center text-[26px] font-bold shrink-0"
       >
         {member.avatar}
       </div>

@@ -109,7 +109,7 @@ export function Events() {
                     <span
                       key={i}
                       style={{ background: member.avatarBg }}
-                      className="w-[26px] h-[26px] rounded-full border-2 border-card flex items-center justify-center text-[10px] font-bold -ml-1.5 first:ml-0"
+                      className="w-6.5 h-6.5 rounded-full border-2 border-card flex items-center justify-center text-[10px] font-bold -ml-1.5 first:ml-0"
                     >
                       {member.avatar}
                     </span>

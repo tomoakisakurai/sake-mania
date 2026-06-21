@@ -46,7 +46,7 @@ export function Footer() {
 
   return (
     <div className="bg-surface border-t border-line px-10 pt-9 pb-7 mt-16">
-      <div className="max-w-[1140px] mx-auto grid grid-cols-[1.4fr_1fr_1fr_1.2fr] gap-8">
+      <div className="max-w-285 mx-auto grid grid-cols-[1.4fr_1fr_1fr_1.2fr] gap-8">
         <div>
           <div className="flex items-baseline gap-2.5 mb-2.5">
             <span className="font-serif text-[19px] font-extrabold tracking-[0.04em]">酒マニア</span>
@@ -71,7 +71,7 @@ export function Footer() {
           </div>
         ))}
       </div>
-      <div className="max-w-[1140px] mx-auto mt-7 pt-[18px] border-t border-line text-[11px] text-faint text-center tracking-[0.05em]">
+      <div className="max-w-285 mx-auto mt-7 pt-4.5 border-t border-line text-[11px] text-faint text-center tracking-[0.05em]">
         © SAKE Mania ・ 社内日本酒部
       </div>
     </div>

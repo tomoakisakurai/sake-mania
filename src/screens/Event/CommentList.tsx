@@ -52,7 +52,7 @@ export function CommentList({ comments, onChanged }: Props) {
         <div key={comment.id} className="flex gap-3 py-3.5 border-b border-bg">
           <div
             style={{ background: comment.avatarBg }}
-            className="w-[30px] h-[30px] flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold"
+            className="w-7.5 h-7.5 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold"
           >
             {comment.avatar}
           </div>
@@ -73,7 +73,7 @@ export function CommentList({ comments, onChanged }: Props) {
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   rows={2}
-                  className="flex-1 min-w-[180px] bg-white border border-primary rounded-xl px-4 py-2.5 text-[13px] leading-relaxed text-ink resize-y"
+                  className="flex-1 min-w-45 bg-white border border-primary rounded-xl px-4 py-2.5 text-[13px] leading-relaxed text-ink resize-y"
                 />
                 <div onClick={() => save(comment.id)} className="bg-primary hover:bg-primary-dark text-surface rounded-full px-5 py-2 text-[12.5px] font-bold cursor-pointer transition-colors">保存</div>
                 <div onClick={() => { setEditingId(null); setDraft(''); }} className="border border-line text-body rounded-full px-4 py-2 text-[12.5px] cursor-pointer bg-surface">キャンセル</div>

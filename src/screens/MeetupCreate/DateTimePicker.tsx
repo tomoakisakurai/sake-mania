@@ -53,9 +53,9 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
   })();
 
   return (
-    <div className="bg-surface border border-line rounded-xl p-[18px_20px] mb-[18px]">
+    <div className="bg-surface border border-line rounded-xl p-[18px_20px] mb-4.5">
       {/* 月ナビゲーション */}
-      <div className="flex items-center justify-between mb-[14px]">
+      <div className="flex items-center justify-between mb-3.5">
         <button
           type="button"
           onClick={prevMonth}
@@ -70,7 +70,7 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
       </div>
 
       {/* 曜日ヘッダー */}
-      <div className="grid grid-cols-7 gap-1 mb-[6px]">
+      <div className="grid grid-cols-7 gap-1 mb-1.5">
         {DOW.map((d, i) => (
           <div
             key={d}
@@ -101,7 +101,7 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
 
       {/* 選択済み：日付ラベル＋時間チップ */}
       {value && (
-        <div className="mt-[14px] pt-3 border-t border-line flex flex-col gap-3">
+        <div className="mt-3.5 pt-3 border-t border-line flex flex-col gap-3">
           <div className="text-[13px] text-body">
             選択中: <span className="font-bold text-ink">{selectedDateLabel}</span>
           </div>
@@ -112,7 +112,7 @@ export function DateTimePicker({ value, hour, hours, onChange, onHourChange }: P
                 key={h}
                 type="button"
                 onClick={() => onHourChange(h)}
-                className={`min-w-[44px] text-center px-[10px] py-[7px] rounded-lg text-[13px] font-bold cursor-pointer border hover:border-primary ${
+                className={`min-w-11 text-center px-2.5 py-[7px] rounded-lg text-[13px] font-bold cursor-pointer border hover:border-primary ${
                   hour === h
                     ? 'bg-primary text-surface border-primary'
                     : 'bg-white text-ink border-line'

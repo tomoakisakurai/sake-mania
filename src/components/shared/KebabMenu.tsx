@@ -36,7 +36,7 @@ export function KebabMenu({ items }: Props) {
       {open && (
         <>
           <div onClick={() => setOpen(false)} className="fixed inset-0 z-[80]" />
-          <div className="absolute right-0 top-[38px] z-[81] bg-card border border-line rounded-[10px] shadow-[0_4px_20px_rgba(46,42,36,0.12)] min-w-[200px] p-1 animate-[fadeUp_0.15s_ease_both]">
+          <div className="absolute right-0 top-9.5 z-[81] bg-card border border-line rounded-[10px] shadow-[0_4px_20px_rgba(46,42,36,0.12)] min-w-50 p-1 animate-[fadeUp_0.15s_ease_both]">
             {items.map((item, i) => (
               <div
                 key={i}

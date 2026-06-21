@@ -74,12 +74,12 @@ export function Members({ vals }: { vals: Vals }) {
                     className="bg-card border border-line rounded-xl px-5 py-4 hover:border-primary cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold flex-shrink-0" style={{ background: member.avatarBg }}>{member.avatar}</div>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold shrink-0" style={{ background: member.avatarBg }}>{member.avatar}</div>
                       <div className="min-w-0 flex-1">
                         <div className="font-serif text-[16px] font-bold">{member.display}</div>
                         <div className="text-[11.5px] text-muted">{member.dept} ・ {member.taste}</div>
                       </div>
-                      <span className="text-primary font-bold text-[13px] flex-shrink-0">→</span>
+                      <span className="text-primary font-bold text-[13px] shrink-0">→</span>
                     </div>
                     {member.hometownNote && (
                       <div className="text-[12.5px] leading-relaxed text-body pt-2.5 border-t border-line-soft">「{member.hometownNote}」</div>

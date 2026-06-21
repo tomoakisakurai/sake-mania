@@ -31,9 +31,9 @@ export function Nav({ vals }: { vals: Vals }) {
             <div onClick={vals.goMy} style={{ width: 36, height: 36, borderRadius: '50%', background: '#DDD3BE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>{vals.userAvatar}</div>
             {vals.isMobile && (
               <div onClick={() => setMenuOpen(true)} className="flex h-9 w-9 shrink-0 cursor-pointer flex-col items-center justify-center gap-[5px]">
-                <span className="block h-[2px] w-5 rounded-[2px] bg-ink"></span>
-                <span className="block h-[2px] w-5 rounded-[2px] bg-ink"></span>
-                <span className="block h-[2px] w-5 rounded-[2px] bg-ink"></span>
+                <span className="block h-0.5 w-5 rounded-[2px] bg-ink"></span>
+                <span className="block h-0.5 w-5 rounded-[2px] bg-ink"></span>
+                <span className="block h-0.5 w-5 rounded-[2px] bg-ink"></span>
               </div>
             )}
           </>
@@ -47,8 +47,8 @@ export function Nav({ vals }: { vals: Vals }) {
       {menuOpen && (
         <>
           <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[70] animate-[fadeInOverlay_0.2s_ease_both] bg-[rgba(46,42,36,0.35)]"></div>
-          <div className="fixed bottom-0 right-0 top-0 z-[71] flex w-[78vw] max-w-[300px] animate-[slideInRight_0.25s_cubic-bezier(0.32,0.72,0,1)_both] flex-col bg-surface pb-8 shadow-[-4px_0_24px_rgba(46,42,36,0.18)]">
-            <div className="flex items-center justify-between border-b border-line px-[22px] py-[18px]">
+          <div className="fixed bottom-0 right-0 top-0 z-[71] flex w-[78vw] max-w-75 animate-[slideInRight_0.25s_cubic-bezier(0.32,0.72,0,1)_both] flex-col bg-surface pb-8 shadow-[-4px_0_24px_rgba(46,42,36,0.18)]">
+            <div className="flex items-center justify-between border-b border-line px-5.5 py-4.5">
               <div className="font-serif text-[17px] font-bold tracking-[0.04em]">酒マニア</div>
               <div onClick={() => setMenuOpen(false)} className="flex h-8 w-8 cursor-pointer items-center justify-center text-[20px] text-muted">✕</div>
             </div>

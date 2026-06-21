@@ -130,9 +130,9 @@ export function Notifications() {
                 </span>
               )}
             </header>
-            <ul className="max-h-[420px] overflow-y-auto m-0 p-0 list-none">
+            <ul className="max-h-105 overflow-y-auto m-0 p-0 list-none">
               {optimisticNotifications.length === 0 && (
-                <li className="px-[18px] py-10 text-center text-[12.5px] text-faint">
+                <li className="px-4.5 py-10 text-center text-[12.5px] text-faint">
                   まだお知らせはありません
                 </li>
               )}
@@ -140,11 +140,11 @@ export function Notifications() {
                 <li
                   key={notification.id}
                   onClick={() => handleClick(notification)}
-                  className={`flex gap-3 px-[18px] py-3 border-b border-line-soft cursor-pointer hover:bg-bg ${notification.isUnread ? '' : 'opacity-70'}`}
+                  className={`flex gap-3 px-4.5 py-3 border-b border-line-soft cursor-pointer hover:bg-bg ${notification.isUnread ? '' : 'opacity-70'}`}
                 >
                   <span
                     style={{ background: KIND_BG[notification.kind] }}
-                    className="w-8 h-8 flex-shrink-0 rounded-full text-surface flex items-center justify-center font-serif text-[13px] font-bold"
+                    className="w-8 h-8 shrink-0 rounded-full text-surface flex items-center justify-center font-serif text-[13px] font-bold"
                   >
                     {KIND_ICON[notification.kind]}
                   </span>
@@ -153,7 +153,7 @@ export function Notifications() {
                     <p className="text-[10.5px] text-faint mt-1 m-0">{relativeTime(notification.createdAt)}</p>
                   </article>
                   {notification.isUnread && (
-                    <span className="w-2 h-2 rounded-full bg-accent flex-shrink-0 mt-1.5" />
+                    <span className="w-2 h-2 rounded-full bg-accent shrink-0 mt-1.5" />
                   )}
                 </li>
               ))}

@@ -20,7 +20,7 @@ export function BringCard({ bring, brand, onClick }: Props) {
       onClick={onClick}
       className="bg-card border border-line rounded-xl px-5 py-4 cursor-pointer hover:border-primary transition-colors flex gap-3.5 items-baseline"
     >
-      <span className="font-mono text-[11px] text-accent font-bold flex-shrink-0 w-9">{bring.dateShort}</span>
+      <span className="font-mono text-[11px] text-accent font-bold shrink-0 w-9">{bring.dateShort}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 flex-wrap">
           <h3 className="font-serif text-[15px] font-bold m-0">{brand?.name ?? bring.brandId}</h3>

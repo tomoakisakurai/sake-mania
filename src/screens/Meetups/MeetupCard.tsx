@@ -17,10 +17,10 @@ export function MeetupCard({ ml }: { ml: Vals['meetupsList'][number] }) {
       </div>
 
       {/* stats row */}
-      <div className="flex flex-wrap items-center gap-[18px]">
+      <div className="flex flex-wrap items-center gap-4.5">
         {ml.isUpcoming && (
           <>
-            <div className="flex items-center gap-[14px]">
+            <div className="flex items-center gap-3.5">
               <span className="font-mono text-[12px] text-muted">参加 <strong className="text-ink">{ml.goCount}</strong>人</span>
               <span className="font-mono text-[12px] text-muted">持ち寄り宣言 <strong className="text-ink">{ml.bringCount}</strong>本</span>
             </div>
@@ -36,7 +36,7 @@ export function MeetupCard({ ml }: { ml: Vals['meetupsList'][number] }) {
         {ml.isClosed && (
           <>
             {ml.hasMvp && (
-              <div className="flex items-center gap-[10px]">
+              <div className="flex items-center gap-2.5">
                 <span className="rounded-full bg-bg px-3 py-[3px] text-[11px] font-bold text-body">★ MVP</span>
                 <span className="font-serif text-[15px] font-bold">{ml.mvpName}</span>
               </div>

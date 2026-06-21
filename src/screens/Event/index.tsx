@@ -214,7 +214,7 @@ export function Event({ eventId }: { eventId: string }) {
           src={mapSrc}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          className="w-full h-[280px] border-0 rounded-lg block bg-line-soft mb-2.5"
+          className="w-full h-70 border-0 rounded-lg block bg-line-soft mb-2.5"
         />
         <a href={mapLink} target="_blank" rel="noreferrer" className="text-[12.5px] text-primary font-bold no-underline hover:underline">Googleマップで開く →</a>
       </section>
@@ -236,7 +236,7 @@ export function Event({ eventId }: { eventId: string }) {
             placeholder="このイベントについて語ろう — 一緒に行く部員に呼びかけ"
             className="flex-1 min-w-0 bg-card border border-line rounded-2xl px-4 py-2.5 text-[13.5px] leading-relaxed text-ink resize-y"
           />
-          <Button type="submit" className="flex-shrink-0 self-end">送る</Button>
+          <Button type="submit" className="shrink-0 self-end">送る</Button>
         </form>
       </section>
     </main>
