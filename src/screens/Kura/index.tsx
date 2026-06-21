@@ -4,24 +4,35 @@ import { Sidebar } from './Sidebar';
 
 export function Kura({ vals }: { vals: Vals }) {
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: vals.pagePadTight }}>
-      <div onClick={vals.goMap} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 24 }}>← 酒蔵マップにもどる</div>
-      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', color: '#8B8273', marginBottom: 10 }}>SAKE BREWERY</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14, marginBottom: 6 }}>
-        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 34, fontWeight: 700 }}>{vals.ku.name}</div>
-        {vals.ku.hasCups && (<span style={{ background: '#BC6A2D', color: '#FDFBF5', borderRadius: 999, padding: '4px 14px', fontSize: 11.5, fontWeight: 700 }}>呑んだことのある蔵</span>)}
-      </div>
-      <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 18 }}>{vals.ku.meta}</div>
-      <div style={{ fontSize: 14, lineHeight: 2.1, color: '#5C5547', maxWidth: 620, marginBottom: 28 }}>{vals.ku.desc}</div>
-      <div style={{ display: 'flex', gap: 32, marginBottom: 36 }}>
-        <div><div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700 }}>{vals.ku.brandCount}</div><div style={{ fontSize: 12, color: '#8B8273' }}>図鑑の銘柄</div></div>
-        <div style={{ borderLeft: '1px solid #E3DBCB', paddingLeft: 32 }}><div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700 }}>{vals.ku.totalRecs}</div><div style={{ fontSize: 12, color: '#8B8273' }}>みんなの記録</div></div>
-        <div style={{ borderLeft: '1px solid #E3DBCB', paddingLeft: 32 }}><div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, color: '#BC6A2D' }}>{vals.ku.myCupCount}</div><div style={{ fontSize: 12, color: '#8B8273' }}>わたしの盃</div></div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: vals.kuraCols, gap: 28, alignItems: 'start' }}>
+    <main className="mx-auto max-w-250" style={{ padding: vals.pagePadTight }}>
+      <a onClick={vals.goMap} className="mb-6 block cursor-pointer text-[13px] text-muted">← 酒蔵マップにもどる</a>
+      <header>
+        <p className="m-0 mb-2.5 font-mono text-[11px] tracking-[0.18em] text-muted">SAKE BREWERY</p>
+        <div className="mb-1.5 flex flex-wrap items-center gap-3.5">
+          <h1 className="m-0 font-serif text-[34px] font-bold">{vals.ku.name}</h1>
+          {vals.ku.hasCups && (<span className="rounded-full bg-accent px-3.5 py-1 text-[11.5px] font-bold text-surface">呑んだことのある蔵</span>)}
+        </div>
+        <p className="m-0 mb-4.5 text-[13px] text-muted">{vals.ku.meta}</p>
+        <p className="m-0 mb-7 max-w-155 text-[14px] leading-[2.1] text-body">{vals.ku.desc}</p>
+        <dl className="m-0 mb-9 flex gap-8">
+          <div>
+            <dd className="m-0 font-serif text-[28px] font-bold">{vals.ku.brandCount}</dd>
+            <dt className="text-[12px] text-muted">図鑑の銘柄</dt>
+          </div>
+          <div className="border-l border-line pl-8">
+            <dd className="m-0 font-serif text-[28px] font-bold">{vals.ku.totalRecs}</dd>
+            <dt className="text-[12px] text-muted">みんなの記録</dt>
+          </div>
+          <div className="border-l border-line pl-8">
+            <dd className="m-0 font-serif text-[28px] font-bold text-accent">{vals.ku.myCupCount}</dd>
+            <dt className="text-[12px] text-muted">わたしの盃</dt>
+          </div>
+        </dl>
+      </header>
+      <div className="grid items-start gap-7" style={{ gridTemplateColumns: vals.kuraCols }}>
         <BrandGrid vals={vals} />
         <Sidebar vals={vals} />
       </div>
-    </div>
+    </main>
   );
 }
