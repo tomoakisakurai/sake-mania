@@ -2,7 +2,7 @@
 
 /* Tailwind v4: テーマ + ユーティリティのみ。preflight(リセット)は既存の
    インラインスタイル中心UIの見た目を変えうるため意図的に読み込まない。 */
-@layer theme, utilities;
+@layer base, theme, utilities;
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
@@ -67,6 +67,13 @@ html, body {
 }
 
 input, textarea, button, select { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 16px; }
+
+/* preflight無し環境のための<button>リセット。border/bg/paddingは
+   Tailwindで明示する前提。@layer baseに入れることでTailwind utilitiesが
+   上書きできるようにする。 */
+@layer base {
+  button { appearance: none; background: none; border: 0; padding: 0; color: inherit; cursor: pointer; }
+}
 input::placeholder, textarea::placeholder { color: #A89D8A; }
 input:focus, textarea:focus { outline: 2px solid #32507C; outline-offset: -1px; }
 

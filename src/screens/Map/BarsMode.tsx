@@ -5,36 +5,40 @@ import type { MapVM } from './useMapState';
 export function BarsMode({ vals, map }: { vals: Vals; map: MapVM }) {
   return (
     <>
-      <div style={{ fontSize: 13, color: '#8B8273', marginBottom: 24 }}>銘酒を飲める居酒屋・角打ちを集めました。店をタップすると地図と提供銘柄が見られます。</div>
-      <div style={{ display: 'grid', gridTemplateColumns: vals.mapCols, gap: 24, alignItems: 'start' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {map.barList.map((bar, i: number) => (
-            <div key={i} onClick={bar.click} style={{ border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 18px', cursor: 'pointer', background: bar.bg, color: bar.color }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 16, fontWeight: 700 }}>{bar.name}</div>
-                <span style={{ fontSize: 10.5, border: '1px solid currentColor', borderRadius: 999, padding: '1px 9px', opacity: 0.75 }}>{bar.type}</span>
-              </div>
-              <div style={{ fontSize: 11.5, marginTop: 3, color: bar.subColor }}>{bar.area}</div>
-            </div>
+      <p className="m-0 mb-6 text-[13px] text-muted">銘酒を飲める居酒屋・角打ちを集めました。店をタップすると地図と提供銘柄が見られます。</p>
+      <div className="grid items-start gap-6" style={{ gridTemplateColumns: vals.mapCols }}>
+        <ul className="m-0 flex flex-col gap-3 p-0 list-none">
+          {map.barList.map((bar, i) => (
+            <li
+              key={i}
+              onClick={bar.click}
+              className={`cursor-pointer rounded-xl border border-line px-4.5 py-4 ${bar.selected ? 'bg-primary text-surface' : 'bg-card text-ink'}`}
+            >
+              <header className="flex flex-wrap items-center gap-2.5">
+                <h3 className="m-0 font-serif text-[16px] font-bold">{bar.name}</h3>
+                <span className="rounded-full border border-current px-2.25 py-px text-[10.5px] opacity-75">{bar.type}</span>
+              </header>
+              <p className={`m-0 mt-1 text-[11.5px] ${bar.selected ? 'opacity-70' : 'text-muted'}`}>{bar.area}</p>
+            </li>
           ))}
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: '20px 22px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
-              <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700 }}>{map.barView.name}</div>
-              <span style={{ fontSize: 11, color: '#8B8273' }}>{map.barView.type} ・ {map.barView.area}</span>
-            </div>
-            <div style={{ fontSize: 13, lineHeight: 1.9, color: '#5C5547', marginBottom: 14 }}>{map.barView.note}</div>
-            <iframe src={map.barView.mapSrc} loading="lazy" referrerPolicy="no-referrer-when-downgrade" style={{ width: '100%', height: 240, border: 0, borderRadius: 8, display: 'block', background: '#EFE8D8', marginBottom: 12 }}></iframe>
-            <a href={map.barView.mapLink} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#32507C', fontWeight: 700, textDecoration: 'none' }}>Googleマップで開く →</a>
-            <div style={{ fontSize: 12, fontWeight: 700, margin: '16px 0 8px', borderTop: '1px solid #E3DBCB', paddingTop: 14 }}>飲める銘柄</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {map.barView.brands.map((bb, i: number) => (
-                <span key={i} onClick={bb.click} style={{ cursor: 'pointer', background: '#F6F1E7', border: '1px solid #E3DBCB', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 500 }}>{bb.label} →</span>
+        </ul>
+        <div className="flex flex-col gap-3.5">
+          <article className="rounded-xl border border-line bg-surface px-5.5 py-5">
+            <header className="mb-1 flex flex-wrap items-baseline gap-2.5">
+              <h2 className="m-0 font-serif text-[18px] font-bold">{map.barView.name}</h2>
+              <span className="text-[11px] text-muted">{map.barView.type} ・ {map.barView.area}</span>
+            </header>
+            <p className="m-0 mb-3.5 text-[13px] leading-[1.9] text-body">{map.barView.note}</p>
+            <iframe src={map.barView.mapSrc} loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="mb-3 block h-60 w-full rounded-lg border-0 bg-[#EFE8D8]" />
+            <a href={map.barView.mapLink} target="_blank" rel="noreferrer" className="text-[12px] font-bold text-primary no-underline">Googleマップで開く →</a>
+            <h3 className="m-0 mt-4 mb-2 border-t border-line pt-3.5 text-[12px] font-bold">飲める銘柄</h3>
+            <ul className="m-0 flex flex-wrap gap-2 p-0 list-none">
+              {map.barView.brands.map((brand, i) => (
+                <li key={i} onClick={brand.click} className="cursor-pointer rounded-full border border-line bg-bg px-3.5 py-1.5 text-[12px]">{brand.label} →</li>
               ))}
-            </div>
-          </div>
-          <div style={{ fontSize: 11, color: '#A89D8A', lineHeight: 1.7 }}>※ 提供銘柄は時期により変わります。お出かけ前にお店へご確認ください。</div>
+            </ul>
+          </article>
+          <p className="m-0 text-[11px] leading-[1.7] text-faint">※ 提供銘柄は時期により変わります。お出かけ前にお店へご確認ください。</p>
         </div>
       </div>
     </>
