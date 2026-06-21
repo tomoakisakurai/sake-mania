@@ -5,6 +5,8 @@ import { deleteMeetup } from '@/app/actions/meetups';
 import type { Vals } from '@/useVals';
 import { Loading } from '@/components/shared/Loading';
 import { KebabMenu } from '@/components/shared/KebabMenu';
+import { isMeetupOngoing } from '@/lib/meetupStatus';
+import { useNow } from '@/lib/useNow';
 import { BeforePhase } from './BeforePhase';
 import { ReviewPhase } from './ReviewPhase';
 
@@ -30,10 +32,15 @@ export function Meetup({ vals }: { vals: Vals }) {
   const meetup = vals.meetup;
   const store = useStore();
   const meetupDetail = store.meetupDetail;
+  const now = useNow();
+  const ongoing = meetup.isBefore && isMeetupOngoing(meetupDetail?.eventDate, now);
   const gcalUrl = meetupDetail?.eventDate
     ? buildGcalUrl(meetupDetail.eventDate, meetupDetail.dateLabel, meetupDetail.name, meetupDetail.place, meetupDetail.theme)
     : null;
-  const phaseBg = meetup.isVoting ? 'bg-accent' : meetup.isClosed ? 'bg-body' : 'bg-primary';
+  const phaseLabel = ongoing ? '開催中' : meetup.phaseLabel;
+  const phaseBg = ongoing
+    ? 'bg-success'
+    : meetup.isVoting ? 'bg-accent' : meetup.isClosed ? 'bg-body' : 'bg-primary';
 
   if (!meetupDetail) {
     return <main className="mx-auto max-w-230" style={{ padding: vals.pagePadTight }}><Loading /></main>;
@@ -56,7 +63,7 @@ export function Meetup({ vals }: { vals: Vals }) {
       <header>
         <p className="m-0 mb-1 flex flex-wrap items-center gap-3">
           <span className="font-mono text-[11px] tracking-[0.18em] text-accent">SAKE MEETUP</span>
-          <span className={clsx('rounded-full px-3 py-0.5 text-[11px] font-bold text-surface', phaseBg)}>{meetup.phaseLabel}</span>
+          <span className={clsx('rounded-full px-3 py-0.5 text-[11px] font-bold text-surface', phaseBg)}>{phaseLabel}</span>
         </p>
         <div className="mb-2 flex items-start gap-3">
           <h1 className="m-0 min-w-0 flex-1 font-serif text-[32px] font-bold leading-tight">{meetup.name}</h1>
