@@ -3,33 +3,46 @@ import type { Vals } from '@/useVals';
 export function Achievements({ vals }: { vals: Vals }) {
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: vals.myCols, gap: 32, alignItems: 'start', marginBottom: 32 }}>
-        <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 14, padding: '22px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 16, fontWeight: 700 }}>利き酒師ランク</div>
-            <span style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 20, fontWeight: 700, color: '#32507C' }}>{vals.rankName}</span>
+      <section className="mb-8 grid items-start gap-8" style={{ gridTemplateColumns: vals.myCols }}>
+        <article className="rounded-2xl border border-line bg-card p-5.5 px-6">
+          <header className="mb-3 flex items-baseline justify-between">
+            <h2 className="m-0 font-serif text-[16px] font-bold">利き酒師ランク</h2>
+            <span className="font-serif text-[20px] font-bold text-primary">{vals.rankName}</span>
+          </header>
+          <div className="relative mb-2 h-2 rounded-sm bg-line-soft">
+            <div className="absolute top-0 left-0 h-2 rounded-sm bg-accent" style={{ width: `${vals.rankPct}%` }} />
           </div>
-          <div style={{ height: 8, background: '#EFEAE0', borderRadius: 4, position: 'relative', marginBottom: 8 }}><div style={{ position: 'absolute', left: 0, top: 0, height: 8, borderRadius: 4, background: '#BC6A2D', width: `${vals.rankPct}%` }}></div></div>
-          <div style={{ fontSize: 12, color: '#8B8273' }}>{vals.rankNextLabel}</div>
-        </div>
-        <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 14, padding: '22px 24px' }}>
-          <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 16, fontWeight: 700, marginBottom: 4 }}>制覇状況</div>
-          <div style={{ display: 'flex', gap: 24, marginTop: 10 }}>
-            <div><div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 24, fontWeight: 700, color: '#BC6A2D' }}>{vals.badgePref}<span style={{ fontSize: 13, color: '#8B8273' }}> / 47</span></div><div style={{ fontSize: 11, color: '#8B8273' }}>都道府県</div></div>
-            <div style={{ borderLeft: '1px solid #E3DBCB', paddingLeft: 24 }}><div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 24, fontWeight: 700 }}>{vals.badgeKura}</div><div style={{ fontSize: 11, color: '#8B8273' }}>蔵数</div></div>
-            <div style={{ borderLeft: '1px solid #E3DBCB', paddingLeft: 24 }}><div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 24, fontWeight: 700 }}>{vals.achievedCount}<span style={{ fontSize: 13, color: '#8B8273' }}> / {vals.badgeTotal}</span></div><div style={{ fontSize: 11, color: '#8B8273' }}>バッジ</div></div>
-          </div>
-        </div>
-      </div>
-      <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: '1px solid #E3DBCB', paddingBottom: 10, marginBottom: 16 }}>実績バッジ</div>
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 36 }}>
-        {vals.badges.map((bdg, i: number) => (
-          <div key={i} style={{ width: 92, textAlign: 'center' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: bdg.bg, color: bdg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Shippori Mincho', serif", fontSize: 26, fontWeight: 700, margin: '0 auto 8px' }}>{bdg.icon}</div>
-            <div style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.4, color: bdg.labelColor }}>{bdg.label}</div>
-          </div>
-        ))}
-      </div>
+          <p className="m-0 text-[12px] text-muted">{vals.rankNextLabel}</p>
+        </article>
+        <article className="rounded-2xl border border-line bg-surface p-5.5 px-6">
+          <h2 className="m-0 mb-1 font-serif text-[16px] font-bold">制覇状況</h2>
+          <dl className="m-0 mt-2.5 flex gap-6">
+            <div>
+              <dd className="m-0 font-serif text-[24px] font-bold text-accent">{vals.badgePref}<span className="text-[13px] text-muted"> / 47</span></dd>
+              <dt className="text-[11px] text-muted">都道府県</dt>
+            </div>
+            <div className="border-l border-line pl-6">
+              <dd className="m-0 font-serif text-[24px] font-bold">{vals.badgeKura}</dd>
+              <dt className="text-[11px] text-muted">蔵数</dt>
+            </div>
+            <div className="border-l border-line pl-6">
+              <dd className="m-0 font-serif text-[24px] font-bold">{vals.achievedCount}<span className="text-[13px] text-muted"> / {vals.badgeTotal}</span></dd>
+              <dt className="text-[11px] text-muted">バッジ</dt>
+            </div>
+          </dl>
+        </article>
+      </section>
+      <section>
+        <h2 className="m-0 mb-4 border-b border-line pb-2.5 font-serif text-[18px] font-bold">実績バッジ</h2>
+        <ul className="m-0 mb-9 flex flex-wrap gap-4 p-0 list-none">
+          {vals.badges.map((badge, i) => (
+            <li key={i} className="w-23 text-center">
+              <span className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full font-serif text-[26px] font-bold" style={{ background: badge.bg, color: badge.color }}>{badge.icon}</span>
+              <p className="m-0 text-[11px] font-bold leading-snug" style={{ color: badge.labelColor }}>{badge.label}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
     </>
   );
 }

@@ -2,17 +2,21 @@ import type { Vals } from '@/useVals';
 import { ProfileHeader } from './ProfileHeader';
 import { Achievements } from './Achievements';
 import { RecordList } from './RecordList';
-import { Sidebar } from './Sidebar';
+import { TasteMap } from './TasteMap';
+import { WantList } from './WantList';
 
 export function MyPage({ vals }: { vals: Vals }) {
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: vals.pagePad }}>
+    <main className="mx-auto max-w-300" style={{ padding: vals.pagePad }}>
       <ProfileHeader vals={vals} />
       <Achievements vals={vals} />
-      <div style={{ display: 'grid', gridTemplateColumns: vals.myCols, gap: 32, alignItems: 'start' }}>
+      <div className="grid items-start gap-8" style={{ gridTemplateColumns: vals.myCols }}>
         <RecordList vals={vals} />
-        <Sidebar vals={vals} />
+        <aside className="flex flex-col gap-6">
+          <TasteMap vals={vals} />
+          <WantList vals={vals} />
+        </aside>
       </div>
-    </div>
+    </main>
   );
 }

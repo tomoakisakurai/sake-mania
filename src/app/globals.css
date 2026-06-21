@@ -32,6 +32,9 @@
   --color-line: #E3DBCB;
   --color-line-strong: #D9D0BC;
 
+  /* ===== Mark(アバター背景・トラック等) ===== */
+  --color-mark: #DDD3BE;
+
   /* ===== Text(暗→淡) ===== */
   --color-ink: #2E2A24;
   --color-body: #5C5547;
