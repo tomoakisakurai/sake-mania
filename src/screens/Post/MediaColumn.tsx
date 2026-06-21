@@ -1,18 +1,27 @@
 import type { Vals } from '@/useVals';
+import { Button } from '@/components/shared/Button';
 // 投稿詳細の左カラム: 写真 + アクション(図鑑/記録/公開トグル)
 export function MediaColumn({ vals }: { vals: Vals }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {vals.post.hasPhoto && (<img src={vals.post.photo} style={{ width: '100%', height: 340, borderRadius: 10, objectFit: 'cover', border: '1px solid #E3DBCB', display: 'block' }} alt="" />)}
-      {vals.post.noPhoto && (<div style={{ height: 340, borderRadius: 10, background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #E3DBCB' }}><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: '#8B8273', writingMode: 'vertical-rl' }}>ラベル・ボトル写真</span></div>)}
-      <div onClick={vals.post.brandClick} style={{ border: '1px solid #32507C', color: '#32507C', borderRadius: 999, padding: 11, textAlign: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>図鑑でこの銘柄を見る</div>
-      <div onClick={vals.post.recordClick} style={{ background: '#32507C', color: '#FDFBF5', borderRadius: 999, padding: 12, textAlign: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>わたしも記録する</div>
+    <aside className="flex flex-col gap-3">
+      {vals.post.hasPhoto && (<img src={vals.post.photo} className="block h-85 w-full rounded-[10px] border border-line object-cover" alt="" />)}
+      {vals.post.noPhoto && (
+        <figure className="m-0 flex h-85 items-center justify-center rounded-[10px] border border-line" style={{ background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)' }}>
+          <figcaption className="font-mono text-[10px] text-muted [writing-mode:vertical-rl]">ラベル・ボトル写真</figcaption>
+        </figure>
+      )}
+      <Button variant="secondary" size="md" onClick={vals.post.brandClick} fullWidth>図鑑でこの銘柄を見る</Button>
+      <Button variant="primary" size="md" onClick={vals.post.recordClick} fullWidth>わたしも記録する</Button>
       {vals.post.canPublish && (
-        <div onClick={vals.post.publishToggle} style={{ border: `1.5px solid ${vals.post.isPublic ? '#BC6A2D' : '#E3DBCB'}`, background: vals.post.isPublic ? '#FBF0E6' : '#FDFBF5', color: vals.post.isPublic ? '#9A5A20' : '#5C5547', borderRadius: 999, padding: 11, textAlign: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{vals.post.publishLabel}</div>
+        <button
+          type="button"
+          onClick={vals.post.publishToggle}
+          className={`cursor-pointer rounded-full px-6 py-2.5 text-center text-[13px] font-bold ${vals.post.isPublic ? 'border-[1.5px] border-accent bg-accent-tint text-accent-dark' : 'border-[1.5px] border-line bg-surface text-body'}`}
+        >{vals.post.publishLabel}</button>
       )}
       {vals.post.canDelete && (
-        <div onClick={vals.post.deleteClick} style={{ border: '1.5px solid #E3DBCB', color: '#A89D8A', borderRadius: 999, padding: 11, textAlign: 'center', fontSize: 13, cursor: 'pointer' }}>この記録を削除する</div>
+        <Button variant="danger" size="md" onClick={vals.post.deleteClick} fullWidth>この記録を削除する</Button>
       )}
-    </div>
+    </aside>
   );
 }

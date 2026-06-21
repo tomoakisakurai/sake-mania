@@ -28,7 +28,7 @@ const EMPTY_POST: PostVM = {
   photo: '', hasPhoto: false, noPhoto: true,
   brandClick: noop, recordClick: noop,
   canNomi: false, cantNomi: true,
-  nomiCount: 0, nomiBg: '', nomiColor: '', nomiClick: noop,
+  nomiCount: 0, nomiLiked: false, nomiClick: noop,
   comments: [], commentCount: 0, hasComments: false,
   commentSend: (_draft: string) => {},
 };
@@ -83,7 +83,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     const b = byId(x.brandId) || EMPTY_BRAND;
     const so = socialOf(x);
     const isOther = who.user !== yuuWho.user;
-    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiBg: so.liked ? '#BC6A2D' : '#FDFBF5', nomiColor: so.liked ? '#FDFBF5' : '#BC6A2D', nomiClick: (e: MouseEvent) => { e.stopPropagation(); store.toggleNomi(x.recordId); }, click: () => store.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); store.openDetail(b.id); } };
+    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiLiked: so.liked, nomiClick: (e: MouseEvent) => { e.stopPropagation(); store.toggleNomi(x.recordId); }, click: () => store.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); store.openDetail(b.id); } };
   };
   // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。サンプル投稿(others)は出さない。
   const allFeed = store.publicRecords.map((pr, i) =>
@@ -153,8 +153,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
         recordClick: () => { store.patch({ fromDetail: false }); store.startRecord(pb.id); },
         canNomi: !isMine, cantNomi: isMine,
         nomiCount: pso.nomi,
-        nomiBg: pso.liked ? '#BC6A2D' : '#FDFBF5',
-        nomiColor: pso.liked ? '#FDFBF5' : '#BC6A2D',
+        nomiLiked: pso.liked,
         nomiClick: () => store.toggleNomi(px.recordId),
         comments: (store.commentsByRecordId[px.recordId] || []).map((c) => ({
           id: c.id,

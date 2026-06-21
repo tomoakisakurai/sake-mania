@@ -24,7 +24,7 @@ export function Home({ vals }: { vals: Vals }) {
             </a>
           </header>
           {vals.feedItems.map((feed, i) => (
-            <FeedCard key={i} f={feed} pad="20px 24px" />
+            <FeedCard key={i} feed={feed} padClass="p-5 px-6" />
           ))}
         </section>
         <MeetupSidebar vals={vals} />

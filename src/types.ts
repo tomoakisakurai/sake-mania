@@ -254,8 +254,7 @@ export interface PostVM {
   canNomi: boolean;
   cantNomi: boolean;
   nomiCount: number;
-  nomiBg: string;
-  nomiColor: string;
+  nomiLiked: boolean;
   nomiClick: () => void;
   comments: CommentVM[];
   commentCount: number;

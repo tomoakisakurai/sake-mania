@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
@@ -19,7 +20,7 @@ export interface CommentState {
 }
 
 export function Post({ vals }: { vals: Vals }) {
-  const st = useStore();
+  const store = useStore();
   const [draft, setDraft] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
@@ -29,25 +30,25 @@ export function Post({ vals }: { vals: Vals }) {
   const saveEdit = async () => {
     if (!editingId || !editDraft.trim()) return;
     const ok = await editCommentAction(editingId, editDraft.trim());
-    if (ok) await st.loadSocial();
-    else st.flash('編集に失敗しました');
+    if (ok) await store.loadSocial();
+    else store.flash('編集に失敗しました');
     setEditingId(null);
     setEditDraft('');
   };
 
-  const cs: CommentState = { draft, setDraft, editingId, editDraft, setEditDraft, startEdit, cancelEdit, saveEdit };
+  const commentState: CommentState = { draft, setDraft, editingId, editDraft, setEditDraft, startEdit, cancelEdit, saveEdit };
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: vals.pagePadTight }}>
-      <div onClick={vals.goFeed} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 22 }}>← みんなの利き酒帳にもどる</div>
-      <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 16, padding: vals.postCardPad }}>
+    <main className="mx-auto max-w-215" style={{ padding: vals.pagePadTight }}>
+      <a onClick={vals.goFeed} className="mb-5.5 block cursor-pointer text-[13px] text-muted">← みんなの利き酒帳にもどる</a>
+      <article className="rounded-2xl border border-line bg-card" style={{ padding: vals.postCardPad }}>
         <Header vals={vals} />
-        <div style={{ display: 'grid', gridTemplateColumns: vals.postCols, gap: 32 }}>
+        <div className="grid gap-8" style={{ gridTemplateColumns: vals.postCols }}>
           <MediaColumn vals={vals} />
           <TasteColumn vals={vals} />
         </div>
-        <Comments vals={vals} cs={cs} />
-      </div>
-    </div>
+        <Comments vals={vals} commentState={commentState} />
+      </article>
+    </main>
   );
 }

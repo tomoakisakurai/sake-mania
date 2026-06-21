@@ -1,6 +1,5 @@
 import type { Vals } from '@/useVals';
 // みんなの利き酒帳の投稿カード。ホーム(サイドの抜粋)とフィード一覧で共有する。
-// 見た目はプロトタイプ通り(インラインスタイル)。padはホーム=20px 24px / フィード=22px 26px。
 
 function NomiCup() {
   return (
@@ -10,49 +9,54 @@ function NomiCup() {
   );
 }
 
-export function FeedCard({ f, pad = '22px 26px' }: { f: Vals['feedAll'][number]; pad?: string }) {
+export function FeedCard({ feed, padClass = 'p-5.5 px-6.5' }: { feed: Vals['feedAll'][number]; padClass?: string }) {
   return (
-    <div onClick={f.click} style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: pad, cursor: 'pointer' }}>
-      {/* author row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div style={{ width: 30, height: 30, borderRadius: '50%', background: f.avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{f.avatar}</div>
-        <div style={{ fontSize: 13, fontWeight: 700 }}>{f.user} <span style={{ fontWeight: 400, color: '#A89D8A' }}>{f.mine}</span></div>
-        <div style={{ fontSize: 11, color: '#A89D8A' }}>{f.time}</div>
-        <div style={{ marginLeft: 'auto', color: '#BC6A2D', fontSize: 14, letterSpacing: 2 }}>{f.stars}</div>
-      </div>
+    <article onClick={feed.click} className={`cursor-pointer rounded-xl border border-line bg-card ${padClass}`}>
+      <header className="mb-3 flex items-center gap-2.5">
+        <span className="flex h-7.5 w-7.5 items-center justify-center rounded-full text-[11px] font-bold" style={{ background: feed.avatarBg }}>{feed.avatar}</span>
+        <p className="m-0 text-[13px] font-bold">{feed.user} <span className="font-normal text-faint">{feed.mine}</span></p>
+        <span className="text-[11px] text-faint">{feed.time}</span>
+        <span className="ml-auto text-[14px] tracking-[2px] text-accent">{feed.stars}</span>
+      </header>
 
-      {/* body: label photo + brand/memo */}
-      <div style={{ display: 'flex', gap: 18 }}>
-        {f.hasPhoto && (<img src={f.photo} alt="" style={{ width: 72, height: 96, flexShrink: 0, borderRadius: 4, objectFit: 'cover' }} />)}
-        {f.noPhoto && (<div style={{ width: 72, height: 96, flexShrink: 0, borderRadius: 4, background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: '#8B8273' }}>ラベル</span></div>)}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-          <div onClick={f.brandClick} style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, cursor: 'pointer' }}>{f.name}</div>
-          <div style={{ fontSize: 12, color: '#8B8273' }}>{f.sub}</div>
-          <div style={{ fontSize: 13, lineHeight: 1.8, color: '#5C5547' }}>{f.memo}</div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 2, flexWrap: 'wrap' }}>
-            {f.tags.map((t: string, i: number) => (
-              <span key={i} style={{ background: '#F6F1E7', borderRadius: 999, padding: '3px 12px', fontSize: 11, color: '#5C5547' }}>{t}</span>
+      <div className="flex gap-4.5">
+        {feed.hasPhoto && (<img src={feed.photo} alt="" className="h-24 w-18 shrink-0 rounded-sm object-cover" />)}
+        {feed.noPhoto && (
+          <span className="flex h-24 w-18 shrink-0 items-center justify-center rounded-sm" style={{ background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)' }}>
+            <span className="font-mono text-[9px] text-muted">ラベル</span>
+          </span>
+        )}
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <h3 onClick={feed.brandClick} className="m-0 cursor-pointer font-serif text-[18px] font-bold">{feed.name}</h3>
+          <p className="m-0 text-[12px] text-muted">{feed.sub}</p>
+          <p className="m-0 text-[13px] leading-[1.8] text-body">{feed.memo}</p>
+          <ul className="m-0 mt-0.5 flex flex-wrap gap-2 p-0 list-none">
+            {feed.tags.map((tag: string, i: number) => (
+              <li key={i} className="rounded-full bg-bg px-3 py-0.5 text-[11px] text-body">{tag}</li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
 
-      {/* footer: のみたいね + comment count */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 14, paddingTop: 12, borderTop: '1px solid #F0EADC' }}>
-        {f.canNomi && (
-          <div onClick={f.nomiClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: '1px solid #BC6A2D', borderRadius: 999, padding: '6px 16px', cursor: 'pointer', background: f.nomiBg, color: f.nomiColor, fontSize: 12, fontWeight: 700 }}>
+      <footer className="mt-3.5 flex items-center gap-4 border-t border-line-soft pt-3">
+        {feed.canNomi && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); feed.nomiClick(e); }}
+            className={`inline-flex cursor-pointer items-center gap-[7px] rounded-full border border-accent px-4 py-1.5 text-[12px] font-bold ${feed.nomiLiked ? 'bg-accent text-surface' : 'bg-surface text-accent'}`}
+          >
             <NomiCup />
-            のみたいね <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>{f.nomiCount}</span>
-          </div>
+            のみたいね <span className="font-mono text-[11.5px]">{feed.nomiCount}</span>
+          </button>
         )}
-        {f.cantNomi && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, color: '#BC6A2D', fontSize: 12, fontWeight: 700 }}>
+        {feed.cantNomi && (
+          <span className="inline-flex items-center gap-[7px] text-[12px] font-bold text-accent">
             <NomiCup />
-            のみたいね <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>{f.nomiCount}</span>
-          </div>
+            のみたいね <span className="font-mono text-[11.5px]">{feed.nomiCount}</span>
+          </span>
         )}
-        <div style={{ fontSize: 12, color: '#8B8273' }}>コメント <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>{f.commentCount}</span></div>
-      </div>
-    </div>
+        <span className="text-[12px] text-muted">コメント <span className="font-mono text-[11.5px]">{feed.commentCount}</span></span>
+      </footer>
+    </article>
   );
 }
