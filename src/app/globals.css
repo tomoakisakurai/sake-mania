@@ -14,6 +14,8 @@
   --color-primary-dark: #263d5f;
 
   /* ===== Brand: 朱(accent) ===== */
+  --color-accent-tint: #FBF0E6;
+  --color-accent-tint-strong: #E8C9A8;
   --color-accent: #BC6A2D;
   --color-accent-hover: #A4581F;
   --color-accent-dark: #9A5A20;

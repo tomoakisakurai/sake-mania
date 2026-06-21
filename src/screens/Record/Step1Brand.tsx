@@ -3,16 +3,25 @@ import type { Vals } from '@/useVals';
 export function Step1Brand({ vals }: { vals: Vals }) {
   return (
     <>
-      <input type="text" value={vals.recQuery} onChange={vals.onRecSearch} placeholder="銘柄名・酒蔵でさがす" style={{ width: '100%', background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 999, padding: '14px 24px', fontSize: 14.5, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'block', marginBottom: 16 }} />
-      <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, overflow: 'hidden' }}>
-        {vals.recResults.map((rb, i: number) => (
-          <div key={i} onClick={rb.click} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: '1px solid #F0EADC', cursor: 'pointer' }}>
-            <div style={{ width: 40, height: 54, flexShrink: 0, borderRadius: 4, background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)' }} />
-            <div><div style={{ fontSize: 14.5, fontWeight: 700 }}>{rb.name}</div><div style={{ fontSize: 11.5, color: '#8B8273' }}>{rb.sub}</div></div>
-            <div style={{ marginLeft: 'auto', fontSize: 13, color: '#32507C', fontWeight: 700 }}>選ぶ →</div>
-          </div>
+      <input
+        type="text"
+        value={vals.recQuery}
+        onChange={vals.onRecSearch}
+        placeholder="銘柄名・酒蔵でさがす"
+        className="mb-4 block w-full rounded-full border border-line bg-card px-6 py-3.5 text-[14.5px] text-ink"
+      />
+      <ul className="m-0 overflow-hidden rounded-xl border border-line bg-card p-0 list-none">
+        {vals.recResults.map((brand, i) => (
+          <li key={i} onClick={brand.click} className="flex cursor-pointer items-center gap-4 border-b border-line-soft px-5 py-3.5 last:border-b-0">
+            <span className="h-13.5 w-10 shrink-0 rounded-sm" style={{ background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)' }} />
+            <hgroup>
+              <h3 className="m-0 text-[14.5px] font-bold">{brand.name}</h3>
+              <p className="m-0 text-[11.5px] text-muted">{brand.sub}</p>
+            </hgroup>
+            <span className="ml-auto text-[13px] font-bold text-primary">選ぶ →</span>
+          </li>
         ))}
-      </div>
+      </ul>
     </>
   );
 }

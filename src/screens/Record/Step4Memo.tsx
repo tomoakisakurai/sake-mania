@@ -1,27 +1,38 @@
 import type { Vals } from '@/useVals';
+import { Textarea } from '@/components/shared/Textarea';
 // 記録ステップ4: メモ + まとめ + 公開トグル
 export function Step4Memo({ vals }: { vals: Vals }) {
   return (
     <>
-      <textarea value={vals.recMemo} onChange={vals.onMemo} placeholder="香り、含み、余韻。未来の自分が読み返したくなる一言を。" style={{ width: '100%', height: 140, background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 12, padding: '16px 20px', fontSize: 14, lineHeight: 1.9, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', resize: 'vertical', marginBottom: 24 }} />
-      <div style={{ background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 12, padding: '20px 24px' }}>
-        <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, letterSpacing: '0.16em', color: '#8B8273', marginBottom: 12 }}>この一杯のまとめ</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13.5 }}>
-          <div style={{ display: 'flex', gap: 12 }}><span style={{ color: '#8B8273', width: 64 }}>銘柄</span><b style={{ fontFamily: "'Shippori Mincho', serif" }}>{vals.recBrandName}</b></div>
-          <div style={{ display: 'flex', gap: 12 }}><span style={{ color: '#8B8273', width: 64 }}>評価</span><span style={{ color: '#BC6A2D', letterSpacing: '2px' }}>{vals.recStarsStr}</span></div>
-          <div style={{ display: 'flex', gap: 12 }}><span style={{ color: '#8B8273', width: 64 }}>味わい</span><span>{vals.recTasteLabel} / {vals.recSweetLabel}</span></div>
-          <div style={{ display: 'flex', gap: 12 }}><span style={{ color: '#8B8273', width: 64 }}>楽しみ方</span><span>{vals.recEnjoyLabel}</span></div>
-        </div>
-      </div>
-      <div onClick={vals.toggleRecPublic} style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12, background: vals.recPublic ? '#FBF0E6' : '#FFFFFF', border: `1px solid ${vals.recPublic ? '#E8C9A8' : '#E3DBCB'}`, borderRadius: 12, padding: '14px 18px', cursor: 'pointer' }}>
-        <div style={{ width: 42, height: 24, borderRadius: 999, background: vals.recPublic ? '#BC6A2D' : '#D9D0BC', position: 'relative', flexShrink: 0, transition: 'background 0.2s' }}>
-          <div style={{ position: 'absolute', top: 2, left: vals.recPublic ? 20 : 2, width: 20, height: 20, borderRadius: '50%', background: '#FDFBF5', transition: 'left 0.2s' }} />
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700 }}>みんなの利き酒帳に公開する</div>
-          <div style={{ fontSize: 11.5, color: '#8B8273', marginTop: 2 }}>{vals.recPublic ? '部員みんなのフィードに表示されます' : '非公開（自分のマイページのみ）'}</div>
-        </div>
-      </div>
+      <Textarea
+        value={vals.recMemo}
+        onChange={vals.onMemo}
+        placeholder="香り、含み、余韻。未来の自分が読み返したくなる一言を。"
+        rows={6}
+        className="mb-6"
+      />
+      <section className="rounded-xl border border-line bg-surface px-6 py-5">
+        <h2 className="m-0 mb-3 font-mono text-[10px] tracking-[0.16em] text-muted">この一杯のまとめ</h2>
+        <dl className="m-0 flex flex-col gap-2 text-[13.5px]">
+          <div className="flex gap-3"><dt className="m-0 w-16 text-muted">銘柄</dt><dd className="m-0 font-serif font-bold">{vals.recBrandName}</dd></div>
+          <div className="flex gap-3"><dt className="m-0 w-16 text-muted">評価</dt><dd className="m-0 tracking-[2px] text-accent">{vals.recStarsStr}</dd></div>
+          <div className="flex gap-3"><dt className="m-0 w-16 text-muted">味わい</dt><dd className="m-0">{vals.recTasteLabel} / {vals.recSweetLabel}</dd></div>
+          <div className="flex gap-3"><dt className="m-0 w-16 text-muted">楽しみ方</dt><dd className="m-0">{vals.recEnjoyLabel}</dd></div>
+        </dl>
+      </section>
+      <button
+        type="button"
+        onClick={vals.toggleRecPublic}
+        className={`mt-4 flex w-full cursor-pointer items-center gap-3 rounded-xl border px-4.5 py-3.5 ${vals.recPublic ? 'border-accent-tint-strong bg-accent-tint' : 'border-line bg-card'}`}
+      >
+        <span className={`relative h-6 w-[42px] shrink-0 rounded-full transition-colors duration-200 ${vals.recPublic ? 'bg-accent' : 'bg-line-strong'}`}>
+          <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-surface transition-[left] duration-200 ${vals.recPublic ? 'left-5' : 'left-0.5'}`} />
+        </span>
+        <hgroup className="min-w-0 text-left">
+          <h3 className="m-0 text-[13.5px] font-bold">みんなの利き酒帳に公開する</h3>
+          <p className="m-0 mt-0.5 text-[11.5px] text-muted">{vals.recPublic ? '部員みんなのフィードに表示されます' : '非公開（自分のマイページのみ）'}</p>
+        </hgroup>
+      </button>
     </>
   );
 }

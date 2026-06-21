@@ -507,8 +507,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     toggleRecPublic: () => store.setRec({ isPublic: !rec.isPublic }),
     recShowFooter: rec.step >= 2, recBack, recNext,
     recNextLabel: rec.step === 2 ? (step2Valid ? 'つぎへ — 合わせ' : 'マップに打点と評価をどうぞ') : rec.step === 3 ? 'つぎへ — メモ' : '記す — 保存する',
-    recNextBg: nextOk ? '#32507C' : '#C9C2B2',
-    recNextCursor: nextOk ? 'pointer' : 'default',
+    recNextDisabled: !nextOk,
     // mypage
     myList, wantList,
     rankName: rankTiers[ti].name, rankPct, hasNextRank: !!nextTier,

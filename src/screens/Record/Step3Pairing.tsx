@@ -1,5 +1,6 @@
 import type { Vals } from '@/useVals';
 import { useRef } from 'react';
+import { Input } from '@/components/shared/Input';
 
 // 記録ステップ3: 飲み方 + 合わせた料理 + 写真
 export function Step3Pairing({ vals }: { vals: Vals }) {
@@ -7,37 +8,41 @@ export function Step3Pairing({ vals }: { vals: Vals }) {
   const onPhotoClick = () => photoRef.current?.click();
   return (
     <>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 10 }}>飲み方 <span style={{ fontWeight: 400, color: '#8B8273', fontSize: 12 }}>複数OK</span></div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {vals.tempChips.map((tc, i: number) => (
-            <span key={i} onClick={tc.click} style={{ cursor: 'pointer', borderRadius: 999, padding: '9px 22px', fontSize: 13, background: tc.bg, color: tc.color, border: tc.border }}>{tc.label}</span>
+      <section className="mb-6">
+        <h2 className="m-0 mb-2.5 text-[13.5px] font-bold">飲み方 <span className="text-[12px] font-normal text-muted">複数OK</span></h2>
+        <ul className="m-0 flex gap-2 p-0 list-none">
+          {vals.tempChips.map((chip, i) => (
+            <li key={i} onClick={chip.click} className="cursor-pointer rounded-full px-5.5 py-2.25 text-[13px]" style={{ background: chip.bg, color: chip.color, border: chip.border }}>{chip.label}</li>
           ))}
-        </div>
-      </div>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 10 }}>合わせた料理(肴)</div>
-        <input type="text" value={vals.recPairing} onChange={vals.onPairing} placeholder="例: 白子ポン酢、鯖の塩焼き" style={{ width: '100%', background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 10, padding: '13px 18px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24' }} />
-      </div>
-      <div>
-        <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 10 }}>写真</div>
-        <input type="file" accept="image/*" ref={photoRef} onChange={vals.onPhoto} style={{ display: 'none' }} />
+        </ul>
+      </section>
+      <section className="mb-6">
+        <h2 className="m-0 mb-2.5 text-[13.5px] font-bold">合わせた料理(肴)</h2>
+        <Input
+          value={vals.recPairing}
+          onChange={vals.onPairing}
+          placeholder="例: 白子ポン酢、鯖の塩焼き"
+        />
+      </section>
+      <section>
+        <h2 className="m-0 mb-2.5 text-[13.5px] font-bold">写真</h2>
+        <input type="file" accept="image/*" ref={photoRef} onChange={vals.onPhoto} className="hidden" />
         {vals.recHasPhoto && (
-          <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid #E3DBCB' }}>
-            <img src={vals.recPhoto} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }} />
-            <div style={{ position: 'absolute', right: 12, bottom: 12, display: 'flex', gap: 8 }}>
-              <div onClick={onPhotoClick} style={{ background: 'rgba(46,42,36,0.78)', color: '#F6F1E7', borderRadius: 999, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>差し替え</div>
-              <div onClick={vals.onPhotoRemove} style={{ background: 'rgba(46,42,36,0.78)', color: '#F6F1E7', borderRadius: 999, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>削除</div>
-            </div>
-          </div>
+          <figure className="relative m-0 overflow-hidden rounded-xl border border-line">
+            <img src={vals.recPhoto} alt="" className="block h-65 w-full object-cover" />
+            <figcaption className="absolute right-3 bottom-3 flex gap-2">
+              <button type="button" onClick={onPhotoClick} className="cursor-pointer rounded-full bg-ink/80 px-4 py-2 text-[12px] font-bold text-bg">差し替え</button>
+              <button type="button" onClick={vals.onPhotoRemove} className="cursor-pointer rounded-full bg-ink/80 px-4 py-2 text-[12px] font-bold text-bg">削除</button>
+            </figcaption>
+          </figure>
         )}
         {vals.recNoPhoto && (
-          <div onClick={onPhotoClick} style={{ border: '2px dashed #D9D0BC', borderRadius: 12, padding: 36, textAlign: 'center', background: '#FDFBF5', cursor: 'pointer' }}>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#5C5547', marginBottom: 4 }}>ラベル・ボトルの写真を追加</div>
-            <div style={{ fontSize: 11.5, color: '#A89D8A' }}>タップして撮影 / 画像をアップロード</div>
-          </div>
+          <button type="button" onClick={onPhotoClick} className="w-full cursor-pointer rounded-xl border-2 border-dashed border-line-strong bg-surface p-9 text-center">
+            <p className="m-0 mb-1 text-[13.5px] font-bold text-body">ラベル・ボトルの写真を追加</p>
+            <p className="m-0 text-[11.5px] text-faint">タップして撮影 / 画像をアップロード</p>
+          </button>
         )}
-      </div>
+      </section>
     </>
   );
 }
