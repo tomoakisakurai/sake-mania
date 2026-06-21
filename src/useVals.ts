@@ -269,15 +269,12 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const meetupsList = list.map((m) => {
     const mvp = m.mvpBrandId ? byId(m.mvpBrandId) : undefined;
     return {
+      meetupId: m.id,
       phaseLabel: m.phase === 'voting' ? '投票受付中' : m.phase === 'closed' ? '結果確定' : '開催前',
       phaseBg: m.phase === 'voting' ? '#BC6A2D' : m.phase === 'closed' ? '#5C5547' : '#32507C',
       name: m.name, dateLabel: m.dateLabel, place: m.place, theme: m.theme,
       isUpcoming: m.phase === 'before', isVoting: m.phase === 'voting', isClosed: m.phase === 'closed',
-      goCount: m.goingCount, bringCount: m.bringCount,
-      goToggle: (e: MouseEvent) => { e.stopPropagation(); store.toggleGoing(m.id); },
-      goLabel: m.iGoing ? '参加予定 ✓' : '参加する',
-      goLabelBg: m.iGoing ? '#32507C' : '#FDFBF5',
-      goLabelColor: m.iGoing ? '#FDFBF5' : '#32507C',
+      iGoing: m.iGoing, goingCount: m.goingCount, bringCount: m.bringCount,
       voteDeadline: m.voteDeadline || '',
       hasMvp: !!mvp, mvpName: mvp ? mvp.name : '',
       click: () => store.openMeetup(m.id),

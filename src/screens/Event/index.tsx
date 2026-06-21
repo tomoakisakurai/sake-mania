@@ -43,14 +43,18 @@ function parseHourFromLabel(dateLabel: string): string {
   return match ? `${match[1].padStart(2, '0')}:${match[2]}` : '13:00';
 }
 
-function optimisticReducer(state: EventDetail | null, status: EventStatus): EventDetail | null {
+// 保留中アクションは基底state更新時に再適用されるため、相対トグルだと
+// ちらつく。アクションには目標state(冪等)を渡す。
+type OptimisticAction = { status: EventStatus; nextValue: boolean };
+
+function optimisticReducer(state: EventDetail | null, action: OptimisticAction): EventDetail | null {
   if (!state) return state;
-  if (status === 'going') {
-    const next = !state.iGoing;
-    return { ...state, iGoing: next, goingCount: state.goingCount + (next ? 1 : -1) };
+  if (action.status === 'going') {
+    const delta = (action.nextValue ? 1 : 0) - (state.iGoing ? 1 : 0);
+    return { ...state, iGoing: action.nextValue, goingCount: state.goingCount + delta };
   }
-  const next = !state.iInterested;
-  return { ...state, iInterested: next, interestedCount: state.interestedCount + (next ? 1 : -1) };
+  const delta = (action.nextValue ? 1 : 0) - (state.iInterested ? 1 : 0);
+  return { ...state, iInterested: action.nextValue, interestedCount: state.interestedCount + delta };
 }
 
 export function Event({ eventId }: { eventId: string }) {
@@ -86,8 +90,10 @@ export function Event({ eventId }: { eventId: string }) {
 
   const handleToggle = (status: EventStatus) => {
     if (!store.requireLogin()) return;
+    const currentValue = status === 'going' ? optimisticEvent.iGoing : optimisticEvent.iInterested;
+    const nextValue = !currentValue;
     startTransition(async () => {
-      applyOptimistic(status);
+      applyOptimistic({ status, nextValue });
       const ok = await toggleEventStatus(optimisticEvent.id, status);
       if (!ok) { store.flash('更新に失敗しました'); return; }
       await refresh();

@@ -1,4 +1,5 @@
 import type { Vals } from '@/useVals';
+import { MeetupGoButton } from './MeetupGoButton';
 // SAKE MEETUP一覧のカード。フェーズ別(開催前/投票受付中/結果確定)に統計・CTAを出し分ける。
 export function MeetupCard({ ml }: { ml: Vals['meetupsList'][number] }) {
   return (
@@ -21,10 +22,10 @@ export function MeetupCard({ ml }: { ml: Vals['meetupsList'][number] }) {
         {ml.isUpcoming && (
           <>
             <div className="flex items-center gap-3.5">
-              <span className="font-mono text-[12px] text-muted">参加 <strong className="text-ink">{ml.goCount}</strong>人</span>
+              <span className="font-mono text-[12px] text-muted">参加 <strong className="text-ink">{ml.goingCount}</strong>人</span>
               <span className="font-mono text-[12px] text-muted">持ち寄り宣言 <strong className="text-ink">{ml.bringCount}</strong>本</span>
             </div>
-            <div onClick={ml.goToggle} className="ml-auto cursor-pointer whitespace-nowrap rounded-full border-[1.5px] border-primary px-5 py-[7px] text-[12.5px] font-bold" style={{ background: ml.goLabelBg, color: ml.goLabelColor }}>{ml.goLabel}</div>
+            <MeetupGoButton meetupId={ml.meetupId} iGoing={ml.iGoing} />
           </>
         )}
         {ml.isVoting && (

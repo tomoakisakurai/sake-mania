@@ -1,18 +1,16 @@
 import type { Vals } from '@/useVals';
+import { GoingButton } from './GoingButton';
 // 開催前フェーズ: 出欠トグル + 持ち寄りラインナップ + あなたの一本 + 幹事メニュー
 export function BeforePhase({ vals }: { vals: Vals }) {
   const m = vals.meetup;
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28, flexWrap: 'wrap' }}>
-        <div onClick={m.goToggle} style={{ border: '1.5px solid #32507C', borderRadius: 999, padding: '12px 30px', fontSize: 14.5, fontWeight: 700, cursor: 'pointer', background: m.goBg, color: m.goColor }}>{m.goLabel}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ display: 'flex' }}>
-            {m.goingAvatars.map((ga, i: number) => (
-              <div key={i} style={{ width: 30, height: 30, borderRadius: '50%', background: ga.bg, border: '2px solid #E9E6DF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginLeft: -8 }}>{ga.avatar}</div>
-            ))}
-          </div>
-          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: '#8B8273' }}>{m.goCount}人が参加予定</span>
+        <GoingButton meetupId={m.id} iGoing={m.iGo} goingCount={m.goCount} />
+        <div style={{ display: 'flex' }}>
+          {m.goingAvatars.map((ga, i: number) => (
+            <div key={i} style={{ width: 30, height: 30, borderRadius: '50%', background: ga.bg, border: '2px solid #E9E6DF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginLeft: -8 }}>{ga.avatar}</div>
+          ))}
         </div>
       </div>
 

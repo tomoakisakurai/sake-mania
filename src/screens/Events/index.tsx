@@ -14,17 +14,22 @@ function shortDate(eventDate: string | null): string {
   return `${parseInt(monthStr)}/${parseInt(dayStr)}`;
 }
 
-type OptimisticAction = { eventId: string; status: EventStatus };
+// アクションには目標state(冪等)を渡し、再適用時にも結果が同じになるようにする
+type OptimisticAction = {
+  eventId: string;
+  status: EventStatus;
+  nextValue: boolean;
+};
 
 function optimisticReducer(state: EventView[], action: OptimisticAction): EventView[] {
   return state.map((event) => {
     if (event.id !== action.eventId) return event;
     if (action.status === 'going') {
-      const next = !event.iGoing;
-      return { ...event, iGoing: next, goingCount: event.goingCount + (next ? 1 : -1) };
+      const delta = (action.nextValue ? 1 : 0) - (event.iGoing ? 1 : 0);
+      return { ...event, iGoing: action.nextValue, goingCount: event.goingCount + delta };
     }
-    const next = !event.iInterested;
-    return { ...event, iInterested: next, interestedCount: event.interestedCount + (next ? 1 : -1) };
+    const delta = (action.nextValue ? 1 : 0) - (event.iInterested ? 1 : 0);
+    return { ...event, iInterested: action.nextValue, interestedCount: event.interestedCount + delta };
   });
 }
 
@@ -49,8 +54,10 @@ export function Events() {
 
   const toggleStatus = (event: EventView, status: EventStatus) => {
     if (!store.requireLogin()) return;
+    const currentValue = status === 'going' ? event.iGoing : event.iInterested;
+    const nextValue = !currentValue;
     startTransition(async () => {
-      applyOptimistic({ eventId: event.id, status });
+      applyOptimistic({ eventId: event.id, status, nextValue });
       const ok = await toggleEventStatus(event.id, status);
       if (!ok) {
         store.flash('更新に失敗しました');
