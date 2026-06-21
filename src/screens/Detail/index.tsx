@@ -6,24 +6,26 @@ import { Reviews } from './Reviews';
 
 export function Detail({ vals }: { vals: Vals }) {
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: vals.pagePadTight }}>
-      <div onClick={vals.goZukan} style={{ fontSize: 13, color: "#8B8273", cursor: "pointer", marginBottom: 24 }}>← 図鑑にもどる</div>
-      <div style={{ display: "grid", gridTemplateColumns: vals.detailCols, gap: 40 }}>
+    <main className="mx-auto max-w-300" style={{ padding: vals.pagePadTight }}>
+      <a onClick={vals.goZukan} className="mb-6 block cursor-pointer text-[13px] text-muted">← 図鑑にもどる</a>
+      <div className="grid gap-10" style={{ gridTemplateColumns: vals.detailCols }}>
         <Sidebar vals={vals} />
-        <div>
-          <div style={{ fontSize: 12, color: "#8B8273", marginBottom: 6 }}><span onClick={vals.dBreweryClick} style={{ cursor: "pointer", fontWeight: 700, color: "#32507C" }}>{vals.d.brewery}</span> / {vals.d.pref}</div>
-          <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 34, fontWeight: 700, lineHeight: 1.4, marginBottom: 10 }}>{vals.d.name}</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
-            <span style={{ color: "#BC6A2D", fontSize: 16, letterSpacing: 2 }}>{vals.dStars}</span>
-            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: "#5C5547" }}>{vals.d.rating} ・ {vals.d.count}記録</span>
-            <span style={{ background: "#F0EADC", borderRadius: 999, padding: "4px 14px", fontSize: 12, color: "#5C5547" }}>{vals.d.class}</span>
-          </div>
-          <div style={{ fontSize: 14, lineHeight: 2.1, color: "#5C5547", maxWidth: 560, marginBottom: 26 }}>{vals.d.desc}</div>
+        <article>
+          <p className="m-0 mb-1.5 text-[12px] text-muted">
+            <a onClick={vals.dBreweryClick} className="cursor-pointer font-bold text-primary">{vals.d.brewery}</a> / {vals.d.pref}
+          </p>
+          <h1 className="m-0 mb-2.5 font-serif text-[34px] font-bold leading-[1.4]">{vals.d.name}</h1>
+          <p className="m-0 mb-5.5 flex items-center gap-3.5">
+            <span className="text-[16px] tracking-[2px] text-accent">{vals.dStars}</span>
+            <span className="font-mono text-[13px] text-body">{vals.d.rating} ・ {vals.d.count}記録</span>
+            <span className="rounded-full bg-line-soft px-3.5 py-1 text-[12px] text-body">{vals.d.class}</span>
+          </p>
+          <p className="m-0 mb-6.5 max-w-140 text-[14px] leading-[2.1] text-body">{vals.d.desc}</p>
           <Specs vals={vals} />
           <TasteCoord vals={vals} />
           <Reviews vals={vals} />
-        </div>
+        </article>
       </div>
-    </div>
+    </main>
   );
 }

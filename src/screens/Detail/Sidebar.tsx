@@ -1,29 +1,38 @@
 import type { Vals } from '@/useVals';
+import { Button } from '@/components/shared/Button';
 // 銘柄詳細の左カラム: ボトル写真 + 記録/飲みたい + 「この銘柄を買う」導線
 export function Sidebar({ vals }: { vals: Vals }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <aside className="flex flex-col gap-4">
       {vals.dPhoto ? (
-        <img src={vals.dPhoto} alt={vals.d.name} style={{ height: vals.bottleH, borderRadius: 12, objectFit: "cover", width: "100%", border: "1px solid #E3DBCB" }} />
+        <img src={vals.dPhoto} alt={vals.d.name} className="w-full rounded-xl border border-line object-cover" style={{ height: vals.bottleH }} />
       ) : (
-        <div style={{ height: vals.bottleH, borderRadius: 12, background: "repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3DBCB" }}><span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#8B8273", writingMode: "vertical-rl" }}>ボトル写真</span></div>
+        <figure className="m-0 flex items-center justify-center rounded-xl border border-line" style={{ height: vals.bottleH, background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)' }}>
+          <figcaption className="font-mono text-[11px] text-muted [writing-mode:vertical-rl]">ボトル写真</figcaption>
+        </figure>
       )}
-      <div onClick={vals.dRecordClick} style={{ background: "#32507C", color: "#FDFBF5", borderRadius: 999, padding: 14, textAlign: "center", fontSize: 14.5, fontWeight: 700, cursor: "pointer" }}>＋ この銘柄を記録する</div>
-      <div onClick={vals.dWantClick} style={{ background: vals.dWantBg, color: vals.dWantColor, border: "1px solid #32507C", borderRadius: 999, padding: 13, textAlign: "center", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{vals.dWantLabel}</div>
-      <div style={{ background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 12, padding: "16px 18px" }}>
-        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 14, fontWeight: 700, marginBottom: 4 }}>この銘柄を買う</div>
-        <div style={{ fontSize: 11, color: "#8B8273", marginBottom: 12 }}>取扱店・通販で探す</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {vals.dShop.map((sh, i: number) => (
-            <a key={i} href={sh.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 10, border: "1px solid #E3DBCB", borderRadius: 8, padding: "9px 12px", textDecoration: "none", background: "#FFFFFF" }}>
-              <span style={{ width: 22, height: 22, flexShrink: 0, borderRadius: 5, background: sh.markColor, color: "#FFFFFF", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>{sh.mark}</span>
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: "#2E2A24" }}>{sh.label}</span>
-              <span style={{ marginLeft: "auto", color: "#A89D8A", fontSize: 12 }}>↗</span>
-            </a>
+      <Button variant="primary" size="lg" onClick={vals.dRecordClick} fullWidth>＋ この銘柄を記録する</Button>
+      <button
+        type="button"
+        onClick={vals.dWantClick}
+        className={`cursor-pointer rounded-full border border-primary px-6 py-3.25 text-center text-[14px] font-bold ${vals.dWanted ? 'bg-primary text-surface' : 'bg-surface text-primary'}`}
+      >{vals.dWantLabel}</button>
+      <section className="rounded-xl border border-line bg-surface px-4.5 py-4">
+        <h2 className="m-0 mb-1 font-serif text-[14px] font-bold">この銘柄を買う</h2>
+        <p className="m-0 mb-3 text-[11px] text-muted">取扱店・通販で探す</p>
+        <ul className="m-0 flex flex-col gap-2 p-0 list-none">
+          {vals.dShop.map((shop, i) => (
+            <li key={i}>
+              <a href={shop.url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 rounded-lg border border-line bg-card px-3 py-2.25 no-underline">
+                <span className="inline-flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-[5px] text-[11px] font-extrabold text-card" style={{ background: shop.markColor }}>{shop.mark}</span>
+                <span className="text-[12.5px] font-bold text-ink">{shop.label}</span>
+                <span className="ml-auto text-[12px] text-faint">↗</span>
+              </a>
+            </li>
           ))}
-        </div>
-        <div style={{ fontSize: 10.5, color: "#A89D8A", marginTop: 10, lineHeight: 1.6 }}>外部サイトの検索結果が開きます。希少銘柄は正規特約店での購入がおすすめです。</div>
-      </div>
-    </div>
+        </ul>
+        <p className="m-0 mt-2.5 text-[10.5px] leading-[1.6] text-faint">外部サイトの検索結果が開きます。希少銘柄は正規特約店での購入がおすすめです。</p>
+      </section>
+    </aside>
   );
 }

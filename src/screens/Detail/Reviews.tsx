@@ -2,18 +2,20 @@ import type { Vals } from '@/useVals';
 // この銘柄の利き酒帳(レビュー一覧)
 export function Reviews({ vals }: { vals: Vals }) {
   return (
-    <div style={{ maxWidth: 560 }}>
-      <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 18, fontWeight: 700, borderBottom: "1px solid #E3DBCB", paddingBottom: 10, marginBottom: 4 }}>この銘柄の利き酒帳</div>
-      {vals.dReviews.map((rv, i: number) => (
-        <div key={i} style={{ padding: "16px 4px", borderBottom: "1px solid #F0EADC" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>{rv.user}</div>
-            <div style={{ fontSize: 11, color: "#A89D8A" }}>{rv.date}</div>
-            <div style={{ marginLeft: "auto", color: "#BC6A2D", fontSize: 13, letterSpacing: 2 }}>{rv.stars}</div>
-          </div>
-          <div style={{ fontSize: 13, lineHeight: 1.9, color: "#5C5547" }}>{rv.memo}</div>
-        </div>
-      ))}
-    </div>
+    <section className="max-w-140">
+      <h2 className="m-0 mb-1 border-b border-line pb-2.5 font-serif text-[18px] font-bold">この銘柄の利き酒帳</h2>
+      <ul className="m-0 p-0 list-none">
+        {vals.dReviews.map((review, i) => (
+          <li key={i} className="border-b border-line-soft px-1 py-4 last:border-b-0">
+            <header className="mb-2 flex items-center gap-2.5">
+              <span className="text-[13px] font-bold">{review.user}</span>
+              <span className="text-[11px] text-faint">{review.date}</span>
+              <span className="ml-auto text-[13px] tracking-[2px] text-accent">{review.stars}</span>
+            </header>
+            <p className="m-0 text-[13px] leading-[1.9] text-body">{review.memo}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
