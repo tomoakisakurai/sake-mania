@@ -68,11 +68,12 @@ export function Meetup({ vals }: { vals: Vals }) {
             />
           )}
         </div>
-        <p className="m-0 mb-1 text-[13.5px] text-muted">{meetup.dateLabel} ・ {meetup.place}</p>
-        <p className="m-0 mb-6 text-[13px] text-body">テーマ:{meetup.theme} ・ 幹事 {meetup.hostName}</p>
-
-        {gcalUrl && (
-          <p className="m-0 mb-6">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="m-0 mb-1 text-[13.5px] text-muted">{meetup.dateLabel} ・ {meetup.place}</p>
+            <p className="m-0 text-[13px] text-body">テーマ:{meetup.theme} ・ 幹事 {meetup.hostName}</p>
+          </div>
+          {gcalUrl && (
             <a
               href={gcalUrl}
               target="_blank"
@@ -87,8 +88,8 @@ export function Meetup({ vals }: { vals: Vals }) {
               </svg>
               Googleカレンダーに追加
             </a>
-          </p>
-        )}
+          )}
+        </div>
       </header>
 
       {meetup.isBefore && <BeforePhase vals={vals} />}
