@@ -4,7 +4,7 @@ import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
 
-export type NotifKind =
+export type NotificationKind =
   | 'comment'
   | 'nomi'
   | 'event_comment'
@@ -14,9 +14,9 @@ export type NotifKind =
   | 'vote_closed'
   | 'bring_declared';
 
-export interface NotifView {
+export interface NotificationView {
   id: string;
-  kind: NotifKind;
+  kind: NotificationKind;
   text: string;
   targetPath: string;
   createdAt: string;
@@ -33,7 +33,7 @@ async function currentUserId(): Promise<string | null> {
 /** Insert helper used by other actions. Skips if recipient == actor. */
 export async function createNotification(input: {
   userId: string;
-  kind: NotifKind;
+  kind: NotificationKind;
   text: string;
   targetPath: string;
   excludeUserId?: string | null;
@@ -51,7 +51,7 @@ export async function createNotification(input: {
 
 /** Bulk-fanout helper: 全メンバー(自分以外)に通知。kuraReg/meetupCreate/eventCreate用。 */
 export async function createNotificationForAll(input: {
-  kind: NotifKind;
+  kind: NotificationKind;
   text: string;
   targetPath: string;
   excludeUserId: string;
@@ -73,7 +73,7 @@ export async function createNotificationForAll(input: {
   );
 }
 
-export async function getNotifications(): Promise<NotifView[]> {
+export async function getNotifications(): Promise<NotificationView[]> {
   const db = getDb();
   const userId = await currentUserId();
   if (!db || !userId) return [];
@@ -85,7 +85,7 @@ export async function getNotifications(): Promise<NotifView[]> {
     .limit(50);
   return rows.map((row) => ({
     id: row.id,
-    kind: row.kind as NotifKind,
+    kind: row.kind as NotificationKind,
     text: row.text,
     targetPath: row.targetPath,
     createdAt: row.createdAt.toISOString(),
@@ -93,18 +93,18 @@ export async function getNotifications(): Promise<NotifView[]> {
   }));
 }
 
-export async function markNotifRead(notifId: string): Promise<boolean> {
+export async function markNotificationRead(notificationId: string): Promise<boolean> {
   const db = getDb();
   const userId = await currentUserId();
   if (!db || !userId) return false;
   await db
     .update(schema.notifications)
     .set({ readAt: new Date() })
-    .where(and(eq(schema.notifications.id, notifId), eq(schema.notifications.userId, userId)));
+    .where(and(eq(schema.notifications.id, notificationId), eq(schema.notifications.userId, userId)));
   return true;
 }
 
-export async function markAllNotifsRead(): Promise<boolean> {
+export async function markAllNotificationsRead(): Promise<boolean> {
   const db = getDb();
   const userId = await currentUserId();
   if (!db || !userId) return false;
