@@ -1,10 +1,28 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import clsx from 'clsx';
 import type { Vals } from '@/useVals';
 import { Notifications } from './Notifications';
 
 export function Nav({ vals }: { vals: Vals }) {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement | null>(null);
+
+  // PCアバターメニュー: 外側クリックで閉じる
+  useEffect(() => {
+    if (!avatarMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) setAvatarMenuOpen(false);
+    };
+    window.addEventListener('mousedown', onDown);
+    return () => window.removeEventListener('mousedown', onDown);
+  }, [avatarMenuOpen]);
+
+  const openProfileEdit = () => router.replace('/mypage?edit=1', { scroll: false });
+
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 50, display: 'flex', alignItems: 'center', gap: 20, padding: '16px 32px', borderBottom: '1px solid #E3DBCB', background: '#FDFBF5' }}>
       <div onClick={vals.goHome} style={{ display: 'flex', alignItems: 'baseline', gap: 10, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
@@ -28,7 +46,29 @@ export function Nav({ vals }: { vals: Vals }) {
         {vals.loggedIn && (
           <>
             <Notifications />
-            <div onClick={vals.goMy} style={{ width: 36, height: 36, borderRadius: '50%', background: '#DDD3BE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>{vals.userAvatar}</div>
+            {vals.isDesktopNav ? (
+              // PC: アバタークリックでドロップダウン(マイページ/プロフィール編集/ログアウト)
+              <div ref={avatarRef} className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setAvatarMenuOpen((v) => !v)}
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-mark text-[13px] font-bold"
+                >
+                  {vals.userAvatar}
+                </button>
+                {avatarMenuOpen && (
+                  <div className="absolute right-0 top-11 z-[81] min-w-45 animate-[fadeUp_0.15s_ease_both] rounded-[10px] border border-line bg-card p-1 shadow-[0_4px_20px_rgba(46,42,36,0.12)]">
+                    <button type="button" onClick={() => { setAvatarMenuOpen(false); vals.goMy(); }} className={menuItemClass()}>マイページ</button>
+                    <button type="button" onClick={() => { setAvatarMenuOpen(false); openProfileEdit(); }} className={menuItemClass()}>プロフィール編集</button>
+                    <div className="mx-2 my-1 h-px bg-line-soft" />
+                    <button type="button" onClick={() => { setAvatarMenuOpen(false); vals.doLogout(); }} className={menuItemClass({ danger: true })}>ログアウト</button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // SP: アバターはマイページショートカット + ハンバーガーから詳細メニュー
+              <div onClick={vals.goMy} style={{ width: 36, height: 36, borderRadius: '50%', background: '#DDD3BE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>{vals.userAvatar}</div>
+            )}
             {vals.isMobile && (
               <div onClick={() => setMenuOpen(true)} className="flex h-9 w-9 shrink-0 cursor-pointer flex-col items-center justify-center gap-[5px]">
                 <span className="block h-0.5 w-5 rounded-[2px] bg-ink"></span>
@@ -43,7 +83,7 @@ export function Nav({ vals }: { vals: Vals }) {
         )}
       </div>
 
-      {/* SP ハンバーガーメニュー（右スライドイン） */}
+      {/* SP ハンバーガーメニュー(右スライドイン) */}
       {menuOpen && (
         <>
           <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[70] animate-[fadeInOverlay_0.2s_ease_both] bg-[rgba(46,42,36,0.35)]"></div>
@@ -56,10 +96,23 @@ export function Nav({ vals }: { vals: Vals }) {
               {vals.menuItems.map((mi, i: number) => (
                 <div key={i} onClick={() => { setMenuOpen(false); mi.click(); }} className="cursor-pointer border-b border-[#F6F1E7] px-6 py-4 text-[15px] font-medium">{mi.label}</div>
               ))}
+              {vals.loggedIn && (
+                <>
+                  <div onClick={() => { setMenuOpen(false); openProfileEdit(); }} className="cursor-pointer border-b border-[#F6F1E7] px-6 py-4 text-[15px] font-medium">プロフィール編集</div>
+                  <div onClick={() => { setMenuOpen(false); vals.doLogout(); }} className="cursor-pointer border-b border-[#F6F1E7] px-6 py-4 text-[15px] font-medium text-muted">ログアウト</div>
+                </>
+              )}
             </div>
           </div>
         </>
       )}
     </div>
+  );
+}
+
+function menuItemClass({ danger = false }: { danger?: boolean } = {}) {
+  return clsx(
+    'block w-full cursor-pointer rounded-[7px] px-3.5 py-2.5 text-left text-[13px]',
+    danger ? 'text-muted hover:bg-[#F6EEEA] hover:text-danger' : 'text-ink hover:bg-bg',
   );
 }

@@ -1,8 +1,10 @@
 'use client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
 import { getMyProfile, type ProfileView } from '@/app/actions/profile';
+import { useState } from 'react';
 import { ProfileHeader } from './ProfileHeader';
 import { Achievements } from './Achievements';
 import { RecordList } from './RecordList';
@@ -13,7 +15,12 @@ import { ProfileEditModal } from './ProfileEditModal';
 export function MyPage({ vals }: { vals: Vals }) {
   const authReady = useStore((s) => s.authReady);
   const userId = useStore((s) => s.user?.name);
-  const [editing, setEditing] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // モーダル状態は URL クエリ ?edit=1 で管理。ナビのドロップダウンや
+  // ハンバーガーメニュー、マイページの編集ボタン、どこからでも開ける。
+  const editing = searchParams.get('edit') === '1';
   const [profile, setProfile] = useState<ProfileView | null>(null);
 
   const prefOptions = useMemo(() => vals.prefGrid.map((p) => p[0] as string), [vals.prefGrid]);
@@ -22,6 +29,9 @@ export function MyPage({ vals }: { vals: Vals }) {
     const p = await getMyProfile();
     setProfile(p);
   }, []);
+
+  const openEdit = () => router.replace(`${pathname}?edit=1`, { scroll: false });
+  const closeEdit = () => router.replace(pathname, { scroll: false });
 
   // 認証が確定したら / ユーザーが変わったら プロフィールをDBから取得
   useEffect(() => {
@@ -32,7 +42,7 @@ export function MyPage({ vals }: { vals: Vals }) {
 
   return (
     <main className="mx-auto max-w-300" style={{ padding: vals.pagePad }}>
-      <ProfileHeader vals={vals} profile={profile} onEdit={() => setEditing(true)} />
+      <ProfileHeader vals={vals} profile={profile} onEdit={openEdit} />
       <Achievements vals={vals} />
       <div className="grid items-start gap-8" style={{ gridTemplateColumns: vals.myCols }}>
         <RecordList vals={vals} />
@@ -43,7 +53,7 @@ export function MyPage({ vals }: { vals: Vals }) {
       </div>
       <ProfileEditModal
         open={editing}
-        onClose={() => setEditing(false)}
+        onClose={closeEdit}
         prefOptions={prefOptions}
         onSaved={reload}
       />
