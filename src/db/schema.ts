@@ -113,6 +113,11 @@ export const profiles = pgTable('profiles', {
   avatar: text('avatar').notNull(),
   avatarBg: text('avatar_bg').notNull().default('#DDD3BE'),
   isAdmin: boolean('is_admin').notNull().default(false),
+  // プロフィール拡張(任意項目)
+  photoUrl: text('photo_url'),       // 顔写真URL(設定があればイニシャル代わりに表示)
+  dept: text('dept'),                // 所属部署(例: プロダクト部)
+  hometown: text('hometown'),        // 出身地(都道府県名)
+  bio: text('bio'),                  // ひとこと自己紹介
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

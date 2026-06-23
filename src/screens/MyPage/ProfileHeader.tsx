@@ -1,6 +1,6 @@
 import type { Vals } from '@/useVals';
-// マイページ上部: アバター + 名前 + 利き酒師ランク + 統計 + ログアウト
-export function ProfileHeader({ vals }: { vals: Vals }) {
+// マイページ上部: アバター + 名前 + 利き酒師ランク + 統計 + プロフィール編集 / ログアウト
+export function ProfileHeader({ vals, onEdit }: { vals: Vals; onEdit: () => void }) {
   return (
     <header className="mb-8 flex flex-wrap items-center gap-5">
       <span className="flex h-18 w-18 items-center justify-center rounded-full bg-mark font-serif text-[26px] font-bold">{vals.userAvatar}</span>
@@ -22,7 +22,14 @@ export function ProfileHeader({ vals }: { vals: Vals }) {
           <dt className="text-[11px] text-muted">蔵</dt>
         </div>
       </dl>
-      <a onClick={vals.doLogout} className="cursor-pointer rounded-full border border-line px-4.5 py-2 text-[12px] font-bold text-muted">ログアウト</a>
+      <div className="flex gap-2">
+        <button type="button" onClick={onEdit} className="cursor-pointer whitespace-nowrap rounded-full border border-line bg-surface px-4.5 py-2 text-[12px] font-bold text-body transition-colors hover:border-primary hover:text-primary">
+          プロフィール編集
+        </button>
+        <button type="button" onClick={vals.doLogout} className="cursor-pointer whitespace-nowrap rounded-full border border-line px-4.5 py-2 text-[12px] font-bold text-muted hover:border-danger hover:text-danger">
+          ログアウト
+        </button>
+      </div>
     </header>
   );
 }
