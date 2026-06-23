@@ -1,6 +1,8 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Vals } from '@/useVals';
+import { useStore } from '@/store';
+import { getMyProfile, type ProfileView } from '@/app/actions/profile';
 import { ProfileHeader } from './ProfileHeader';
 import { Achievements } from './Achievements';
 import { RecordList } from './RecordList';
@@ -9,12 +11,28 @@ import { WantList } from './WantList';
 import { ProfileEditModal } from './ProfileEditModal';
 
 export function MyPage({ vals }: { vals: Vals }) {
+  const authReady = useStore((s) => s.authReady);
+  const userId = useStore((s) => s.user?.name);
   const [editing, setEditing] = useState(false);
-  // 出身地selectの選択肢は prefGrid から名前だけ抜き出す(47都道府県)
+  const [profile, setProfile] = useState<ProfileView | null>(null);
+
   const prefOptions = useMemo(() => vals.prefGrid.map((p) => p[0] as string), [vals.prefGrid]);
+
+  const reload = useCallback(async () => {
+    const p = await getMyProfile();
+    setProfile(p);
+  }, []);
+
+  // 認証が確定したら / ユーザーが変わったら プロフィールをDBから取得
+  useEffect(() => {
+    if (!authReady) return;
+    if (!userId) { setProfile(null); return; }
+    reload();
+  }, [authReady, userId, reload]);
+
   return (
     <main className="mx-auto max-w-300" style={{ padding: vals.pagePad }}>
-      <ProfileHeader vals={vals} onEdit={() => setEditing(true)} />
+      <ProfileHeader vals={vals} profile={profile} onEdit={() => setEditing(true)} />
       <Achievements vals={vals} />
       <div className="grid items-start gap-8" style={{ gridTemplateColumns: vals.myCols }}>
         <RecordList vals={vals} />
@@ -23,7 +41,12 @@ export function MyPage({ vals }: { vals: Vals }) {
           <WantList vals={vals} />
         </aside>
       </div>
-      <ProfileEditModal open={editing} onClose={() => setEditing(false)} prefOptions={prefOptions} />
+      <ProfileEditModal
+        open={editing}
+        onClose={() => setEditing(false)}
+        prefOptions={prefOptions}
+        onSaved={reload}
+      />
     </main>
   );
 }
