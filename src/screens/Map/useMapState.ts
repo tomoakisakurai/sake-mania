@@ -22,7 +22,9 @@ export function useMapState(vals: Vals) {
     return {
       name, col: p[1], row: p[2],
       hasKura, drunk, selected,
-      fontSize: name.length >= 4 ? (isMobile ? '6.5px' : '8.5px') : (isMobile ? '8.5px' : '11px'),
+      // 3文字以上(神奈川・和歌山・鹿児島など)もタイルからはみ出すので
+      // 4文字と同じ縮小サイズに揃える。
+      fontSize: name.length >= 3 ? (isMobile ? '6.5px' : '8.5px') : (isMobile ? '8.5px' : '11px'),
       fontSubSize: isMobile ? '7px' : '9px',
       hasCount: kuraCount > 0, countLabel: kuraCount + '蔵',
       click: hasKura ? (() => setMapPref(selected ? null : name)) : (() => {}),

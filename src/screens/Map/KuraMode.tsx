@@ -33,7 +33,7 @@ export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
                 className={clsx('flex aspect-square flex-col items-center justify-center gap-0.25 rounded-md', tileClasses(tile))}
                 style={{ gridColumn: tile.col, gridRow: tile.row }}
               >
-                <span className="font-bold leading-tight" style={{ fontSize: tile.fontSize }}>{tile.name}</span>
+                <span className="whitespace-nowrap font-bold leading-tight" style={{ fontSize: tile.fontSize }}>{tile.name}</span>
                 {tile.hasCount && (<span className="opacity-85" style={{ fontSize: tile.fontSubSize }}>{tile.countLabel}</span>)}
               </li>
             ))}
