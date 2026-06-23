@@ -178,6 +178,11 @@ export const useStore = create<State>((set, get) => ({
     set({ meetupList: list });
   },
   loadMeetupDetail: async (id) => {
+    // 別のmeetupを開いた瞬間に古いdetailがチラ見えしないよう、
+    // 異なるIDの場合だけnullにリセットしてからfetchする。
+    // 同じIDの再読み込み(toggleGoing後など)はnullにしないことでローディングが
+    // 一瞬走るのを避ける。
+    if (get().meetupDetail?.id !== id) set({ meetupDetail: null });
     const detail = await getMeetupDetail(id);
     set({ meetupDetail: detail });
   },
