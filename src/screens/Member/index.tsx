@@ -5,6 +5,7 @@ import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import { paths } from '@/lib/routes';
 import { getProfileByNickname, type ProfileView } from '@/app/actions/profile';
+import { getMemberHistoryByNickname, type MemberHistory } from '@/app/actions/members';
 import { Loading } from '@/components/shared/Loading';
 import { ProfileHeader } from './ProfileHeader';
 import { Stats } from './Stats';
@@ -19,15 +20,20 @@ export function Member({ vals, memberName }: { vals: Vals; memberName: string })
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
   const isMe = store.user?.name === memberName;
 
-  // 表示するメンバーのDBプロフィールを取得
   const [profile, setProfile] = useState<ProfileView | null>(null);
+  const [history, setHistory] = useState<MemberHistory>({ attended: [], brings: [], mvpCount: 0 });
   const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     let active = true;
     setLoaded(false);
-    getProfileByNickname(memberName).then((p) => {
+    Promise.all([
+      getProfileByNickname(memberName),
+      getMemberHistoryByNickname(memberName),
+    ]).then(([p, h]) => {
       if (!active) return;
       setProfile(p);
+      setHistory(h);
       setLoaded(true);
     });
     return () => { active = false; };
@@ -46,41 +52,17 @@ export function Member({ vals, memberName }: { vals: Vals; memberName: string })
     );
   }
 
-  // 持ち寄り集計(meetupsシードのbring/lineupから)。シード上は memberName と
-  // 一致するときだけマッチするので、まだ持ち寄り履歴のない実ユーザーは空配列になる。
-  const brings: BringItem[] = [];
-  for (const meet of vals.allMeetups) {
-    for (const b of meet.bring || []) {
-      if (b.member === memberName) brings.push({ meetName: meet.name, dateShort: meet.dateShort, brandId: b.brandId, note: b.note, isMvp: false });
-    }
-    for (const lp of meet.lineup || []) {
-      if (lp.broughtBy === memberName) brings.push({ meetName: meet.name, dateShort: meet.dateShort, brandId: lp.brandId, note: lp.comment, isMvp: false });
-    }
-  }
-  for (const meet of vals.allMeetups) {
-    if (!meet.lineup) continue;
-    const top = [...meet.lineup].sort((a, b) => b.votes - a.votes)[0];
-    if (top && top.broughtBy === memberName) {
-      brings.forEach((bb) => { if (bb.meetName === meet.name && bb.brandId === top.brandId) bb.isMvp = true; });
-    }
-  }
-  const mvpCount = brings.filter((b) => b.isMvp).length;
-
-  // 参加履歴: going/bring/lineup のいずれかに名前があれば参加とみなす
-  const attended: AttendedMeetup[] = [];
-  for (const meet of vals.allMeetups) {
-    const inGoing = (meet.going || []).includes(memberName);
-    const inBring = (meet.bring || []).some((b) => b.member === memberName);
-    const inLineup = (meet.lineup || []).some((lp) => lp.broughtBy === memberName);
-    if (inGoing || inBring || inLineup) {
-      attended.push({ meetupId: meet.id, name: meet.name, dateShort: meet.dateShort });
-    }
-  }
-
-  // 記録: 自分なら myRecords、他人ならまだ未対応(他人の記録はDBにないため空)
+  // 記録: 自分なら myRecords、他人は未対応(別タスクで対応)
   const records: RecordItem[] = isMe
     ? store.myRecords.map((r) => ({ brandId: r.brandId, rating: r.rating, memo: r.memo, date: r.date }))
-    : vals.allOthers.filter((o) => o.user === memberName).map((o) => ({ brandId: o.brandId, rating: o.rating, memo: o.memo, date: o.date }));
+    : [];
+
+  const attended: AttendedMeetup[] = history.attended.map((a) => ({
+    meetupId: a.meetupId, name: a.name, dateShort: a.dateShort,
+  }));
+  const brings: BringItem[] = history.brings.map((b) => ({
+    meetName: b.meetName, dateShort: b.dateShort, brandId: b.brandId, note: b.note, isMvp: b.isMvp,
+  }));
 
   const brandById = (id: string) => vals.allBrands.find((b) => b.id === id);
 
@@ -90,7 +72,7 @@ export function Member({ vals, memberName }: { vals: Vals; memberName: string })
 
       <ProfileHeader profile={profile} onHometownClick={() => store.nav('members')} />
 
-      <Stats recCount={records.length} bringCount={brings.length} mvpCount={mvpCount} />
+      <Stats recCount={records.length} bringCount={brings.length} mvpCount={history.mvpCount} />
 
       <AttendedMeetups attended={attended} />
 

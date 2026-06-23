@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import { listMembers, type MemberRow } from '@/app/actions/members';
@@ -9,7 +10,12 @@ import { Loading } from '@/components/shared/Loading';
 
 export function Members({ vals }: { vals: Vals }) {
   const store = useStore();
-  const [selectedPref, setSelectedPref] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // 選択中の都道府県は URL クエリ `?pref=X` で保持。
+  // メンバー詳細から戻ったときに選択状態が復元できるようにするため。
+  const selectedPref = searchParams.get('pref');
   const [members, setMembers] = useState<MemberRow[] | null>(null);
 
   useEffect(() => {
@@ -17,6 +23,14 @@ export function Members({ vals }: { vals: Vals }) {
     listMembers().then((rows) => { if (active) setMembers(rows); });
     return () => { active = false; };
   }, []);
+
+  const setSelectedPref = useCallback((pref: string | null) => {
+    const sp = new URLSearchParams(searchParams.toString());
+    if (pref) sp.set('pref', pref);
+    else sp.delete('pref');
+    const qs = sp.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [router, pathname, searchParams]);
 
   // 出身地ごとにメンバーを集計
   const membersByPref = new Map<string, MemberRow[]>();
