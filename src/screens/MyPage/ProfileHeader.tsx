@@ -7,8 +7,8 @@ type Props = {
   onEdit: () => void;
 };
 
-// マイページ上部: アバター + 名前 + 利き酒師ランク + 部署/出身地 + 自己紹介 + 統計 + プロフィール編集
-// 1段(flex-wrap)で配置し、SPでは下に折り返す。
+// マイページ上部: アバター + 名前(+編集アイコン) + 利き酒師ランク + 部署/出身地 + 自己紹介 + 統計
+// 編集はユーザー名右の鉛筆アイコンから起動する。
 export function ProfileHeader({ vals, profile, onEdit }: Props) {
   const dept = profile?.dept ?? '';
   const hometown = profile?.hometown ?? '';
@@ -17,10 +17,24 @@ export function ProfileHeader({ vals, profile, onEdit }: Props) {
   const noProfile = !dept && !hometown && !bio;
   return (
     <header className="mb-8 flex flex-wrap items-start gap-5">
-      <div className="flex min-w-0 flex-1 basis-70 items-start gap-5">
+      <div className="flex min-w-0 max-w-120 flex-1 basis-70 items-start gap-5">
         <span className="flex h-18 w-18 shrink-0 items-center justify-center rounded-full bg-mark font-serif text-[26px] font-bold">{vals.userAvatar}</span>
         <hgroup className="min-w-0 flex-1">
-          <h1 className="m-0 font-serif text-[26px] font-bold">{vals.userName}</h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="m-0 font-serif text-[26px] font-bold">{vals.userName}</h1>
+            <button
+              type="button"
+              onClick={onEdit}
+              title="プロフィールを編集"
+              aria-label="プロフィールを編集"
+              className="inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors hover:border-primary hover:text-primary"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </button>
+          </div>
           <p className="m-0 mt-1 inline-block whitespace-nowrap rounded-full bg-primary px-3.5 py-1 text-[12px] font-bold leading-snug text-surface">利き酒師ランク · {vals.rankName}</p>
           {profileParts && (
             <p className="m-0 mt-1.5 text-[12px] text-muted">{profileParts}</p>
@@ -33,7 +47,7 @@ export function ProfileHeader({ vals, profile, onEdit }: Props) {
           )}
         </hgroup>
       </div>
-      <dl className="m-0 ml-auto flex gap-7">
+      <dl className="m-0 ml-23 flex gap-7 md:ml-auto">
         <div className="text-center">
           <dd className="m-0 font-serif text-[26px] font-bold">{vals.statCups}</dd>
           <dt className="text-[11px] text-muted">盃</dt>
@@ -47,9 +61,6 @@ export function ProfileHeader({ vals, profile, onEdit }: Props) {
           <dt className="text-[11px] text-muted">蔵</dt>
         </div>
       </dl>
-      <button type="button" onClick={onEdit} className="shrink-0 cursor-pointer whitespace-nowrap rounded-full border border-line bg-surface px-4.5 py-2 text-[12px] font-bold text-body transition-colors hover:border-primary hover:text-primary">
-        プロフィール編集
-      </button>
     </header>
   );
 }
