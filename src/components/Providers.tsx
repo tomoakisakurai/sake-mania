@@ -6,7 +6,7 @@ import { useVals } from '@/useVals';
 import type { Vals } from '@/useVals';
 import { routeStateFromPath } from '@/lib/routes';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
-import { getIsAdmin } from '@/app/actions/profile';
+import { getIsAdmin, ensureProfile } from '@/app/actions/profile';
 import type { CoreReferenceData, DeferredReferenceData, ReferenceData } from '@/lib/getReferenceData';
 import { Nav } from './Nav';
 import { TabBar } from './TabBar';
@@ -101,6 +101,13 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
         store.setUser(null);
         store.patch({ authReady: true });
         return;
+      }
+      // 新規登録(またはOAuth初回ログイン)で profiles が無いケースに備えて
+      // upsertする。既にあれば何もしない。getIsAdmin より先に呼ぶ。
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        const meta = (session.user.user_metadata || {}) as { nickname?: string; user_name?: string; preferred_username?: string };
+        const nickname = meta.nickname || meta.user_name || meta.preferred_username || (session.user.email ? session.user.email.split('@')[0] : '');
+        await ensureProfile(nickname);
       }
       // isAdmin を取得してから一度だけ setUser する。
       // 途中で isAdmin:false の状態を経由するとボタン表示がチラつくため。
