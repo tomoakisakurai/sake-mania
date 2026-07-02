@@ -16,6 +16,7 @@ export type Screen =
   | 'meetup'
   | 'declare'
   | 'meetupCreate'
+  | 'meetupEdit'
   | 'events'
   | 'event'
   | 'eventCreate'
