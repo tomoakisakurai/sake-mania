@@ -1,11 +1,13 @@
 'use client';
 import clsx from 'clsx';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import { deleteMeetup } from '@/app/actions/meetups';
 import { Loading } from '@/components/shared/Loading';
 import { KebabMenu } from '@/components/shared/KebabMenu';
 import { isMeetupOngoing } from '@/lib/meetupStatus';
 import { useNow } from '@/lib/useNow';
+import { paths } from '@/lib/routes';
 import { useMeetupVals } from './useMeetupVals';
 import { BeforePhase } from './BeforePhase';
 import { ReviewPhase } from './ReviewPhase';
@@ -21,6 +23,13 @@ function buildGcalUrl(eventDate: string, dateLabel: string, name: string, place:
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(name)}&dates=${start}/${end}&location=${encodeURIComponent(place)}&details=${encodeURIComponent('テーマ: ' + theme + '\n酒マニア SAKE MANIA')}`;
 }
 
+const EDIT_ICON = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
 const DELETE_ICON = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polyline points="3 6 5 6 21 6" />
@@ -30,6 +39,7 @@ const DELETE_ICON = (
 
 export function Meetup({ meetupId }: { meetupId: string }) {
   const store = useStore();
+  const router = useRouter();
   const meetup = useMeetupVals(meetupId);
   const meetupDetail = store.meetupDetail;
   const now = useNow();
@@ -46,6 +56,7 @@ export function Meetup({ meetupId }: { meetupId: string }) {
     return <main className="mx-auto max-w-230 px-4.5 pt-5 pb-32.5 md:px-10 md:pt-8 md:pb-20"><Loading /></main>;
   }
 
+  const handleEdit = () => router.push(paths.meetupEdit(meetupDetail.id));
   const handleDelete = async () => {
     if (!window.confirm(`「${meetupDetail.name}」を削除しますか? この操作は取り消せません。`)) return;
     const ok = await deleteMeetup(meetupDetail.id);
@@ -70,6 +81,7 @@ export function Meetup({ meetupId }: { meetupId: string }) {
           {meetup.isHost && (
             <KebabMenu
               items={[
+                { label: 'この会を編集', icon: EDIT_ICON, onClick: handleEdit },
                 { label: 'この会を削除', icon: DELETE_ICON, onClick: handleDelete, danger: true },
               ]}
             />
