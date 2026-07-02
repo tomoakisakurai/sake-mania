@@ -1,21 +1,20 @@
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
-import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
 import { Done } from './Done';
 
-export function KuraReg({ vals }: { vals: Vals }) {
+export function KuraReg() {
   const st = useStore();
   const authReady = useStore((s) => s.authReady);
   const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
 
   if (!authReady) {
-    return <div style={{ maxWidth: 620, margin: '0 auto', padding: vals.pagePadTight }} />;
+    return <div className="mx-auto max-w-155 px-4.5 pt-5 pb-32.5 md:px-10 md:pt-8 md:pb-20" />;
   }
 
   if (!isAdmin) {
     return (
-      <div style={{ maxWidth: 620, margin: '0 auto', padding: vals.pagePadTight }}>
+      <div className="mx-auto max-w-155 px-4.5 pt-5 pb-32.5 md:px-10 md:pt-8 md:pb-20">
         <div onClick={() => st.nav('map')} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 24 }}>← 酒蔵マップにもどる</div>
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>アクセスできません</div>
         <div style={{ fontSize: 14, color: '#5C5547', lineHeight: 1.9 }}>酒蔵の登録は管理者のみ行えます。</div>
@@ -40,7 +39,7 @@ export function KuraReg({ vals }: { vals: Vals }) {
   };
 
   return (
-    <div style={{ maxWidth: 620, margin: '0 auto', padding: vals.pagePadTight }}>
+    <div className="mx-auto max-w-155 px-4.5 pt-5 pb-32.5 md:px-10 md:pt-8 md:pb-20">
       {!done && (
         <>
           <div onClick={() => st.nav('map')} style={{ fontSize: 13, color: '#8B8273', cursor: 'pointer', marginBottom: 24 }}>← 酒蔵マップにもどる</div>

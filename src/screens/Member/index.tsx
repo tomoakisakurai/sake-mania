@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
-import type { Vals } from '@/useVals';
+import { useReferenceData } from '@/components/Providers';
 import { paths } from '@/lib/routes';
 import { getProfileById, type ProfileView } from '@/app/actions/profile';
 import { getMemberHistoryById, type MemberHistory } from '@/app/actions/members';
@@ -13,12 +13,13 @@ import { BringCard, type BringItem } from './BringCard';
 import { RecordCard, type RecordItem } from './RecordCard';
 import { AttendedMeetups, type AttendedMeetup } from './AttendedMeetups';
 
-export function Member({ vals, memberId }: { vals: Vals; memberId: string }) {
+export function Member({ memberId }: { memberId: string }) {
   const store = useStore();
   const router = useRouter();
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
   const isMe = store.user?.id === memberId;
+  const { brands } = useReferenceData();
 
   const [profile, setProfile] = useState<ProfileView | null>(null);
   const [history, setHistory] = useState<MemberHistory>({ attended: [], brings: [], mvpCount: 0 });
@@ -64,7 +65,7 @@ export function Member({ vals, memberId }: { vals: Vals; memberId: string }) {
     meetName: b.meetName, dateShort: b.dateShort, brandId: b.brandId, note: b.note, isMvp: b.isMvp,
   }));
 
-  const brandById = (id: string) => vals.allBrands.find((b) => b.id === id);
+  const brandById = (id: string) => brands.find((b) => b.id === id);
 
   return (
     <main style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}>
