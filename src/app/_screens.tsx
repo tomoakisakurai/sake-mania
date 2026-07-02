@@ -27,7 +27,7 @@ import { Member } from '@/screens/Member';
 import { Post } from '@/screens/Post';
 
 export const HomeClient = () => <Home vals={useV()} />;
-export const ZukanClient = () => <Zukan vals={useV()} />;
+export const ZukanClient = () => <Zukan />;
 export const DetailClient = () => <Detail vals={useV()} />;
 export const MapClient = () => <Map vals={useV()} />;
 export const FeedClient = () => <Feed vals={useV()} />;
@@ -37,9 +37,9 @@ export const RecordClient = () => <Record vals={useV()} />;
 export const MeetupsClient = () => <Meetups vals={useV()} />;
 export const MeetupClient = () => <Meetup vals={useV()} />;
 export const DeclareClient = () => <Declare vals={useV()} />;
-export const MeetupCreateClient = () => <MeetupCreate vals={useV()} />;
+export const MeetupCreateClient = () => <MeetupCreate />;
 export const KuraClient = () => <Kura vals={useV()} />;
-export const KuraRegClient = () => <KuraReg vals={useV()} />;
+export const KuraRegClient = () => <KuraReg />;
 export const BrandRegClient = () => <BrandReg />;
 export const EventsClient = () => <Events />;
 export const EventRegClient = () => <EventReg />;
@@ -48,11 +48,11 @@ export const EventEditClient = () => {
   const id = typeof params?.id === 'string' ? params.id : '';
   return <EventReg editingId={decodeURIComponent(id)} />;
 };
-export const MembersClient = () => <Members vals={useV()} />;
+export const MembersClient = () => <Members />;
 export const MemberClient = () => {
   const params = useParams<{ id: string }>();
   const id = typeof params?.id === 'string' ? params.id : '';
-  return <Member vals={useV()} memberId={decodeURIComponent(id)} />;
+  return <Member memberId={decodeURIComponent(id)} />;
 };
 export const EventClient = () => {
   const params = useParams<{ id: string }>();

@@ -16,6 +16,11 @@ import { Footer } from './Footer';
 const ValsContext = createContext<Vals | null>(null);
 export function useV(): Vals { return useContext(ValsContext) as Vals; }
 
+// 参照データ(brands/others/bars/kuraMeta/prefGrid)を画面から直接読むための
+// コンテキスト。useVals を経由しない「画面ごとのビューモデル」パターンで使う。
+const ReferenceContext = createContext<ReferenceData | null>(null);
+export function useReferenceData(): ReferenceData { return useContext(ReferenceContext) as ReferenceData; }
+
 // 後追い取得分の初期値（mount後にクライアントから実データで上書き）。
 // 空でも useVals 側の各ガードでクラッシュしない。
 const EMPTY_DEFERRED: DeferredReferenceData = { others: [], bars: [], kuraMeta: {}, prefGrid: [] };
@@ -132,14 +137,16 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
   }, []);
 
   return (
-    <ValsContext.Provider value={vals}>
-      <div style={{ minHeight: '100vh', background: '#F6F1E7', fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'flex', flexDirection: 'column' }}>
-        {vals.showChrome && <Nav vals={vals} />}
-        <div style={{ flex: 1 }}>{children}</div>
-        {vals.showChrome && <Footer />}
-        {vals.isMobile && <TabBar vals={vals} />}
-        {vals.toastVisible && <Toast message={vals.toastMsg} />}
-      </div>
-    </ValsContext.Provider>
+    <ReferenceContext.Provider value={ref}>
+      <ValsContext.Provider value={vals}>
+        <div style={{ minHeight: '100vh', background: '#F6F1E7', fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'flex', flexDirection: 'column' }}>
+          {vals.showChrome && <Nav vals={vals} />}
+          <div style={{ flex: 1 }}>{children}</div>
+          {vals.showChrome && <Footer />}
+          {vals.isMobile && <TabBar vals={vals} />}
+          {vals.toastVisible && <Toast message={vals.toastMsg} />}
+        </div>
+      </ValsContext.Provider>
+    </ReferenceContext.Provider>
   );
 }

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
 import { createMeetup } from '@/app/actions/meetups';
 import { Done } from './Done';
@@ -7,7 +6,7 @@ import { DateTimePicker } from './DateTimePicker';
 
 const DOW = ['日', '月', '火', '水', '木', '金', '土'];
 
-export function MeetupCreate({ vals }: { vals: Vals }) {
+export function MeetupCreate() {
   const st = useStore();
   const [name, setName] = useState('');
   const [place, setPlace] = useState('');
@@ -33,7 +32,7 @@ export function MeetupCreate({ vals }: { vals: Vals }) {
   const handleAnother = () => { setName(''); setEcDateVal(''); setCalHour('19:00'); setPlace(''); setDesc(''); setDone(false); };
 
   return (
-    <div style={{ maxWidth: 620, margin: "0 auto", padding: vals.pagePadTight }}>
+    <div className="mx-auto max-w-155 px-4.5 pt-5 pb-32.5 md:px-10 md:pt-8 md:pb-20">
       {!done && (
         <>
           <div onClick={() => st.nav('home')} style={{ fontSize: 13, color: "#8B8273", cursor: "pointer", marginBottom: 24 }}>← ホームにもどる</div>

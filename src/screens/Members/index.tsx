@@ -2,13 +2,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useStore } from '@/store';
-import type { Vals } from '@/useVals';
 import { listMembers, type MemberRow } from '@/app/actions/members';
 import { PrefMap } from './PrefMap';
 import { HometownPanel } from './HometownPanel';
 import { Loading } from '@/components/shared/Loading';
 
-export function Members({ vals }: { vals: Vals }) {
+export function Members() {
   const store = useStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -48,7 +47,7 @@ export function Members({ vals }: { vals: Vals }) {
   const selectedMembers = selectedPref ? membersByPref.get(selectedPref) ?? [] : [];
 
   return (
-    <main className="mx-auto max-w-285" style={{ padding: vals.pagePad }}>
+    <main className="mx-auto max-w-285 px-4.5 pt-7 pb-32.5 md:px-10 md:pt-10 md:pb-20">
       <a onClick={() => store.nav('home')} className="mb-6 block cursor-pointer text-[13px] text-muted transition-colors hover:text-primary">← ホームにもどる</a>
       <header>
         <div className="mb-1.5 flex flex-wrap items-baseline gap-4">
@@ -61,8 +60,8 @@ export function Members({ vals }: { vals: Vals }) {
       {members === null ? (
         <Loading />
       ) : (
-        <div className="grid items-start gap-6" style={{ gridTemplateColumns: vals.mapCols }}>
-          <PrefMap vals={vals} membersByPref={membersByPref} selectedPref={selectedPref} onSelect={setSelectedPref} />
+        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+          <PrefMap membersByPref={membersByPref} selectedPref={selectedPref} onSelect={setSelectedPref} />
           <HometownPanel selectedPref={selectedPref} members={selectedMembers} />
         </div>
       )}
