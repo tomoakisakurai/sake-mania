@@ -1,11 +1,11 @@
-import type { Vals } from '@/useVals';
+import type { DetailVals } from './useDetailVals';
 // この銘柄の利き酒帳(レビュー一覧)
-export function Reviews({ vals }: { vals: Vals }) {
+export function Reviews({ reviews }: { reviews: DetailVals['reviews'] }) {
   return (
     <section className="max-w-140">
       <h2 className="m-0 mb-1 border-b border-line pb-2.5 font-serif text-[18px] font-bold">この銘柄の利き酒帳</h2>
       <ul className="m-0 p-0 list-none">
-        {vals.dReviews.map((review, i) => (
+        {reviews.map((review, i) => (
           <li key={i} className="border-b border-line-soft px-1 py-4 last:border-b-0">
             <header className="mb-2 flex items-center gap-2.5">
               <span className="text-[13px] font-bold">{review.user}</span>

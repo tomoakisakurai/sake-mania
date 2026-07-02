@@ -1,7 +1,6 @@
 'use client';
 import clsx from 'clsx';
 import { useStore } from '@/store';
-import type { Vals } from '@/useVals';
 import type { MapVM } from './useMapState';
 
 function tileClasses(tile: MapVM['prefTiles'][number]) {
@@ -18,14 +17,14 @@ function tileClasses(tile: MapVM['prefTiles'][number]) {
 }
 
 // 酒蔵マップモード: 47都道府県タイル + 凡例 と、選択県の蔵リスト(未選択時は県チップ)
-export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
+export function KuraMode({ map }: { map: MapVM }) {
   const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
   return (
     <>
       <p className="m-0 mb-6 text-[13px] text-muted">色のついた県をタップすると、その県の蔵が見られます。呑んだ蔵のある県は朱に染まります。</p>
-      <div className="grid items-start gap-6" style={{ gridTemplateColumns: vals.mapCols }}>
-        <section className="rounded-xl border border-line bg-surface" style={{ padding: vals.mapPanelPad }}>
-          <ul className="m-0 grid grid-cols-12 p-0 list-none" style={{ gap: vals.mapGap }}>
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+        <section className="rounded-xl border border-line bg-surface px-3 py-3.5 md:p-6">
+          <ul className="m-0 grid grid-cols-12 gap-1 p-0 list-none md:gap-1.5">
             {map.prefTiles.map((tile, i) => (
               <li
                 key={i}
@@ -33,8 +32,8 @@ export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
                 className={clsx('flex aspect-square flex-col items-center justify-center gap-0.25 rounded-md', tileClasses(tile))}
                 style={{ gridColumn: tile.col, gridRow: tile.row }}
               >
-                <span className="whitespace-nowrap font-bold leading-tight" style={{ fontSize: tile.fontSize }}>{tile.name}</span>
-                {tile.hasCount && (<span className="opacity-85" style={{ fontSize: tile.fontSubSize }}>{tile.countLabel}</span>)}
+                <span className={clsx('whitespace-nowrap font-bold leading-tight', tile.name.length >= 3 ? 'text-[6.5px] md:text-[8.5px]' : 'text-[8.5px] md:text-[11px]')}>{tile.name}</span>
+                {tile.hasCount && (<span className="text-[7px] opacity-85 md:text-[9px]">{tile.countLabel}</span>)}
               </li>
             ))}
           </ul>
@@ -86,7 +85,7 @@ export function KuraMode({ vals, map }: { vals: Vals; map: MapVM }) {
                 </ul>
               </section>
               {isAdmin && (
-                <article onClick={vals.openKuraReg} className="mt-3.5 cursor-pointer rounded-xl border border-line bg-card px-5.5 py-4.5">
+                <article onClick={() => useStore.getState().openKuraReg()} className="mt-3.5 cursor-pointer rounded-xl border border-line bg-card px-5.5 py-4.5">
                   <h3 className="m-0 mb-1 font-serif text-[14.5px] font-bold">載っていない蔵がありますか?</h3>
                   <p className="m-0 text-[12px] leading-[1.7] text-muted">あなたの好きな酒蔵を図鑑に追加申請できます <span className="font-bold text-primary">→ 蔵を登録する</span></p>
                 </article>

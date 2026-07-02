@@ -28,8 +28,12 @@ import { Post } from '@/screens/Post';
 
 export const HomeClient = () => <Home vals={useV()} />;
 export const ZukanClient = () => <Zukan />;
-export const DetailClient = () => <Detail vals={useV()} />;
-export const MapClient = () => <Map vals={useV()} />;
+export const DetailClient = () => {
+  const params = useParams<{ id: string }>();
+  const id = typeof params?.id === 'string' ? params.id : '';
+  return <Detail detailId={decodeURIComponent(id)} />;
+};
+export const MapClient = () => <Map />;
 export const FeedClient = () => <Feed />;
 export const MyPageClient = () => <MyPage vals={useV()} />;
 export const LoginClient = () => <Login />;
