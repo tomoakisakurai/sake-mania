@@ -1,11 +1,11 @@
-import type { Vals } from '@/useVals';
+import type { KuraVals } from './useKuraVals';
 // 酒蔵詳細: この蔵の銘柄グリッド
-export function BrandGrid({ vals }: { vals: Vals }) {
+export function BrandGrid({ ku }: { ku: KuraVals }) {
   return (
     <section>
       <h2 className="m-0 mb-4 border-b border-line pb-2.5 font-serif text-[18px] font-bold">この蔵の銘柄</h2>
-      <ul className="m-0 grid gap-3.5 p-0 list-none" style={{ gridTemplateColumns: vals.kuraBrandCols }}>
-        {vals.ku.brands.map((brand, i) => (
+      <ul className="m-0 grid grid-cols-1 gap-3.5 p-0 list-none md:grid-cols-2">
+        {ku.brands.map((brand, i) => (
           <li key={i}>
             <article onClick={brand.click} className="flex cursor-pointer flex-col gap-2.25 rounded-xl border border-line bg-card p-4">
               <figure className="m-0 flex h-25 items-center justify-center rounded-lg" style={{ background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)' }}>
