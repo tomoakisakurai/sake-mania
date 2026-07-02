@@ -1,11 +1,11 @@
-import type { Vals } from '@/useVals';
+import type { HomeVals } from './useHomeVals';
 
-export function PopularBrands({ vals }: { vals: Vals }) {
+export function PopularBrands({ home }: { home: HomeVals }) {
   return (
     <section>
       <h2 className="font-serif text-[18px] font-bold border-b border-line pb-2.5 mb-4 m-0">今週の人気銘柄</h2>
       <ol className="bg-card border border-line rounded-xl px-6 py-2 m-0 list-none">
-        {vals.ranking.map((rank, i) => (
+        {home.ranking.map((rank, i) => (
           <li
             key={i}
             onClick={rank.click}

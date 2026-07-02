@@ -1,10 +1,10 @@
 'use client';
 import { useStore } from '@/store';
 import { deleteRecord as deleteRecordAction } from '@/app/actions/records';
-import type { Vals } from '@/useVals';
+import type { MyPageVals } from './useMyPageVals';
 import { RecordItem } from './RecordItem';
 // マイページ: わたしの利き酒帳(自分の記録一覧)
-export function RecordList({ vals }: { vals: Vals }) {
+export function RecordList({ my }: { my: MyPageVals }) {
   const store = useStore();
   const handleDelete = async (recordId: string, name: string) => {
     if (!window.confirm(`「${name}」の記録を削除しますか?`)) return;
@@ -20,7 +20,7 @@ export function RecordList({ vals }: { vals: Vals }) {
     <section>
       <h2 className="m-0 mb-4 border-b border-line pb-2.5 font-serif text-[18px] font-bold">わたしの利き酒帳</h2>
       <ul className="m-0 flex flex-col gap-3.5 p-0 list-none">
-        {vals.myList.map((record, i) => (
+        {my.myList.map((record, i) => (
           <li key={i}>
             <RecordItem record={record} onDelete={handleDelete} />
           </li>

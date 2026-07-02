@@ -1,6 +1,6 @@
 // Single source of truth for the URL <-> screen-state mapping.
-// The URL is authoritative; the store mirrors the parsed result so that
-// useVals (and the screen flags) keep working unchanged.
+// The URL is authoritative; screens derive their view-models from the
+// parsed route (and per-screen hooks).
 import type { Screen, PostRef } from '@/types';
 
 export interface RouteState {

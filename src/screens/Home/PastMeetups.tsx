@@ -1,11 +1,11 @@
-import type { Vals } from '@/useVals';
+import type { HomeVals } from './useHomeVals';
 
-export function PastMeetups({ vals }: { vals: Vals }) {
+export function PastMeetups({ home }: { home: HomeVals }) {
   return (
     <section className="bg-card border border-line rounded-xl px-5 pt-4 pb-1.5">
       <h3 className="text-[12px] font-bold text-muted mb-1 m-0">過去のふりかえり</h3>
       <ul className="m-0 p-0 list-none">
-        {vals.homePast.map((past, i) => (
+        {home.homePast.map((past, i) => (
           <li
             key={i}
             onClick={past.click}
@@ -27,7 +27,7 @@ export function PastMeetups({ vals }: { vals: Vals }) {
       </ul>
       <button
         type="button"
-        onClick={vals.openMeetupCreate}
+        onClick={home.openMeetupCreate}
         className="flex items-center gap-2 py-3 cursor-pointer text-primary text-[12.5px] font-bold w-full border-0 bg-transparent p-0"
       >
         <span className="text-[15px]">＋</span> SAKE MEETUPを立てる
