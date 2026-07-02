@@ -1,9 +1,9 @@
 import type { KeyboardEvent, ChangeEvent } from 'react';
-import type { Vals } from '@/useVals';
+import type { PostVM } from '@/types';
 import { Button } from '@/components/shared/Button';
 import type { CommentState } from './index';
 
-type Comment = Vals['post']['comments'][number];
+type Comment = PostVM['comments'][number];
 
 // 1件分のコメント。本人なら編集・削除可能。
 export function CommentItem({ comment, commentState }: { comment: Comment; commentState: CommentState }) {

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import type { Vals } from '@/useVals';
+import type { PostRef } from '@/types';
+import { usePostVals } from './usePostVals';
 import { useStore } from '@/store';
 import { editComment as editCommentAction } from '@/app/actions/social';
 import { Header } from './Header';
@@ -19,7 +20,8 @@ export interface CommentState {
   saveEdit: () => void;
 }
 
-export function Post({ vals }: { vals: Vals }) {
+export function Post({ postRef }: { postRef: PostRef | null }) {
+  const post = usePostVals(postRef);
   const store = useStore();
   const [draft, setDraft] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,15 +41,15 @@ export function Post({ vals }: { vals: Vals }) {
   const commentState: CommentState = { draft, setDraft, editingId, editDraft, setEditDraft, startEdit, cancelEdit, saveEdit };
 
   return (
-    <main className="mx-auto max-w-215" style={{ padding: vals.pagePadTight }}>
-      <a onClick={vals.goFeed} className="mb-5.5 block cursor-pointer text-[13px] text-muted">← みんなの利き酒帳にもどる</a>
-      <article className="rounded-2xl border border-line bg-card" style={{ padding: vals.postCardPad }}>
-        <Header vals={vals} />
-        <div className="grid gap-8" style={{ gridTemplateColumns: vals.postCols }}>
-          <MediaColumn vals={vals} />
-          <TasteColumn vals={vals} />
+    <main className="mx-auto max-w-215 px-4.5 pt-5 pb-32.5 md:px-10 md:pt-8 md:pb-20">
+      <a onClick={() => store.nav('feed')} className="mb-5.5 block cursor-pointer text-[13px] text-muted">← みんなの利き酒帳にもどる</a>
+      <article className="rounded-2xl border border-line bg-card px-4.5 py-5 md:px-9 md:py-8">
+        <Header post={post} />
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-[260px_1fr]">
+          <MediaColumn post={post} />
+          <TasteColumn post={post} />
         </div>
-        <Comments vals={vals} commentState={commentState} />
+        <Comments post={post} commentState={commentState} />
       </article>
     </main>
   );

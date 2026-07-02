@@ -4,37 +4,16 @@ import type { ChangeEvent, MouseEvent } from 'react';
 import { useStore } from './store';
 import type { RouteState } from '@/lib/routes';
 import type { ReferenceData } from '@/lib/getReferenceData';
-import type { Brand, Bar, PostRef, MyRec, PublicRec, OtherRec, PostVM } from '@/types';
+import type { Brand } from '@/types';
 import { buildNavModel } from '@/lib/nav';
-import { addComment as addCommentAction, deleteComment as deleteCommentAction } from '@/app/actions/social';
-import { setRecordPublic as setRecordPublicAction, deleteRecord as deleteRecordAction } from '@/app/actions/records';
-import { socialOf, buildFeedItems } from '@/lib/feedModel';
+import { buildFeedItems } from '@/lib/feedModel';
 import { starStr, subOf } from '@/lib/format';
 
 // 入力系(input/textarea)のonChangeで使う共通イベント型
 type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 
-// byId/bars.find が見つからない場合のフォールバック（プロトタイプ移植時のnull回避を型安全に）
+// byId が見つからない場合のフォールバック（プロトタイプ移植時のnull回避を型安全に）
 const EMPTY_BRAND: Brand = { id: '', name: '', brewery: '', pref: '', cls: '', polish: '', rice: '', yeast: '', smv: '', abv: '', temp: '', x: 0, y: 0, rating: 0, count: 0, tags: [], desc: '' };
-const EMPTY_BAR: Bar = { id: '', name: '', area: '', type: '', venueQ: '', brands: [], note: '' };
-const noop = () => {};
-const EMPTY_POST: PostVM = {
-  user: '', mine: '', avatar: '', avatarBg: '', timePlace: '',
-  canPublish: false, isPublic: false, publishLabel: '', publishToggle: noop, canDelete: false, deleteClick: noop,
-  brandName: '', brewery: '', brandSubRest: '',
-  kuraClick: noop, stars: '', ratingNum: '',
-  x: null, y: null, bx: 0, by: 0,
-  sweet: 50, sweetLabel: '', tasteLabel: '',
-  temps: '', pairing: '', memo: '',
-  photo: '', hasPhoto: false, noPhoto: true,
-  brandClick: noop, recordClick: noop,
-  canNomi: false, cantNomi: true,
-  nomiCount: 0, nomiLiked: false, nomiClick: noop,
-  comments: [], commentCount: 0, hasComments: false,
-  commentSend: (_draft: string) => {},
-};
-
-
 export function useVals(route: RouteState, ref: ReferenceData) {
   const store = useStore();
   const rec = store.rec;
@@ -63,93 +42,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
 
   // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。構築ロジックは lib/feedModel に共有。
   const allFeed = buildFeedItems(store, brands, currentUser.name);
-
-  // post detail
-  let post: PostVM | null = null;
-  const prf = route.postRef;
-  if (prf) {
-    const px: MyRec | PublicRec | OtherRec =
-      prf.src === 'mine' ? store.myRecords[prf.i]
-      : prf.src === 'public' ? store.publicRecords[prf.i]
-      : others[prf.i];
-    if (px) {
-      const pb = byId(px.brandId) || EMPTY_BRAND;
-      const pxMine = prf.src === 'public' && (px as PublicRec).mine;
-      const isMine = prf.src === 'mine' || pxMine;
-      // 公開トグル可能なのは本人のDBレコードのみ（シードのothersは不可）
-      const isOwnDbRecord = isMine;
-      const recPublicNow = prf.src === 'public' ? true : (prf.src === 'mine' ? !!(px as MyRec).isPublic : false);
-      const pxX = px.x;
-      const pxY = px.y;
-      const pxPhoto = 'photo' in px ? (px.photo ?? '') : '';
-      const pxUser = prf.src !== 'mine' ? (px as PublicRec | OtherRec).user : '';
-      const pxAvatar = prf.src !== 'mine' ? (px as PublicRec | OtherRec).avatar : '';
-      const pxAvatarBg = prf.src !== 'mine' ? (px as PublicRec | OtherRec).avatarBg : '';
-      const pxTimePlace = prf.src === 'mine'
-        ? px.date + ' ・ 自分の記録'
-        : prf.src === 'public'
-          ? px.date + ' ・ ' + pxUser + ' さんの記録'
-          : (px as OtherRec).time + ' ・ ' + (px as OtherRec).place;
-      const pso = socialOf(store, px);
-      post = {
-        user: isMine ? yuuWho.user : pxUser, mine: isMine ? '(あなた)' : '',
-        avatar: isMine ? yuuWho.avatar : pxAvatar, avatarBg: isMine ? yuuWho.avatarBg : pxAvatarBg,
-        timePlace: pxTimePlace,
-        canPublish: isOwnDbRecord, isPublic: recPublicNow,
-        publishLabel: recPublicNow ? '公開中 — 非公開にする' : 'みんなの利き酒帳に公開する',
-        publishToggle: async () => {
-          const ok = await setRecordPublicAction(px.recordId, !recPublicNow);
-          if (!ok) { store.flash('変更に失敗しました'); return; }
-          await Promise.all([store.loadMyRecords(), store.loadPublicRecords()]);
-          await store.loadSocial();
-          store.flash(!recPublicNow ? 'みんなの利き酒帳に公開しました' : '公開を取り消しました');
-        },
-        canDelete: isOwnDbRecord,
-        deleteClick: async () => {
-          if (!window.confirm('この記録を削除しますか?')) return;
-          const ok = await deleteRecordAction(px.recordId);
-          if (!ok) { store.flash('削除に失敗しました'); return; }
-          store.patch({
-            myRecords: store.myRecords.filter((r) => r.recordId !== px.recordId),
-            publicRecords: store.publicRecords.filter((r) => r.recordId !== px.recordId),
-          });
-          store.flash('記録を削除しました');
-          store.nav('mypage');
-        },
-        brandName: pb.name, brewery: pb.brewery, brandSubRest: pb.pref + ' — ' + pb.cls,
-        kuraClick: () => store.openKura(pb.brewery), stars: starStr(px.rating), ratingNum: px.rating.toFixed(1),
-        x: pxX, y: pxY, bx: pb.x, by: pb.y,
-        sweet: px.sweet, sweetLabel: px.sweet < 35 ? '甘口寄り' : px.sweet > 65 ? '辛口寄り' : '中口',
-        tasteLabel: ((pxX ?? 50) > 58 ? '濃醇' : (pxX ?? 50) < 42 ? '淡麗' : '中庸') + '・' + ((pxY ?? 50) < 42 ? '香り高い' : (pxY ?? 50) > 58 ? '穏やか' : 'バランス型'),
-        temps: (px.temps && px.temps.length) ? px.temps.join('・') : '未記入',
-        pairing: px.pairing || '未記入', memo: px.memo || '(メモなし)',
-        photo: pxPhoto, hasPhoto: !!pxPhoto, noPhoto: !pxPhoto,
-        brandClick: () => store.openDetail(pb.id),
-        recordClick: () => { store.patch({ fromDetail: false }); store.startRecord(pb.id); },
-        canNomi: !isMine, cantNomi: isMine,
-        nomiCount: pso.nomi,
-        nomiLiked: pso.liked,
-        nomiClick: () => store.toggleNomi(px.recordId),
-        comments: (store.commentsByRecordId[px.recordId] || []).map((c) => ({
-          id: c.id,
-          user: c.user, avatar: c.avatar, avatarBg: c.avatarBg,
-          time: c.time + (c.edited ? ' ・ 編集済' : ''), text: c.text,
-          canEdit: c.mine,
-          initEditDraft: c.text,
-          deleteClick: async () => { const ok = await deleteCommentAction(c.id); if (ok) await store.loadSocial(); },
-        })),
-        commentCount: pso.commentCount, hasComments: pso.commentCount > 0,
-        commentSend: async (draft: string) => {
-          const t = draft.trim();
-          if (!t) return;
-          if (!store.requireLogin()) return;
-          const ok = await addCommentAction(px.recordId, t);
-          if (!ok) { store.flash('コメントの送信に失敗しました'); return; }
-          await store.loadSocial();
-        },
-      };
-    }
-  }
 
   // ranking
   const ranking = brands.slice().sort((a, b) => b.count - a.count).slice(0, 4).map((b, i) => ({ rank: ['壱', '弐', '参', '四'][i], color: i === 0 ? '#BC6A2D' : '#8B8273', name: b.name, brewery: b.brewery + ' / ' + b.pref, count: b.count + '記録', click: () => store.openDetail(b.id) }));
@@ -306,15 +198,13 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     detailCols: isMobile ? '1fr' : '360px 1fr',
     bottleH: isMobile ? '320px' : '420px',
     specCols: isMobile ? '1fr 1fr' : '1fr 1fr 1fr',
-    postCols: isMobile ? '1fr' : '260px 1fr',
-    postCardPad: isMobile ? '20px 18px' : '32px 36px',
     myCols: isMobile ? '1fr' : '1fr 380px',
-    isHome: route.screen === 'home', isZukan: route.screen === 'zukan', isDetail: route.screen === 'detail', isRecord: route.screen === 'record', isMy: route.screen === 'mypage', isFeed: route.screen === 'feed', isPost: route.screen === 'post' && !!post, isMap: route.screen === 'map', isKura: route.screen === 'kura' && !!route.kuraName,
+    isHome: route.screen === 'home', isZukan: route.screen === 'zukan', isDetail: route.screen === 'detail', isRecord: route.screen === 'record', isMy: route.screen === 'mypage', isFeed: route.screen === 'feed', isPost: route.screen === 'post', isMap: route.screen === 'map', isKura: route.screen === 'kura' && !!route.kuraName,
     // home
     statCups: store.myRecords.length, statBrands: uniqBrands.size, statKura: uniqKura.size,
     today: { name: today.name, sub: subOf(today) },
     todayClick: () => store.openDetail(today.id),
-    myDots, feedItems: allFeed.slice(0, 3), goFeed: () => store.nav('feed'), post: post ?? EMPTY_POST, ranking,
+    myDots, feedItems: allFeed.slice(0, 3), goFeed: () => store.nav('feed'), ranking,
     // detail
     d: { name: d.name, brewery: d.brewery, pref: d.pref, cls: d.cls, class: d.cls, polish: d.polish, rice: d.rice, yeast: d.yeast, smv: d.smv, abv: d.abv, temp: d.temp, desc: d.desc, x: d.x, y: d.y, rating: d.rating.toFixed(1), count: d.count },
     dStars: starStr(Math.round(d.rating)),

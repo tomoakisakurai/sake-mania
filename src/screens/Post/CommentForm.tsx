@@ -1,15 +1,17 @@
 import type { KeyboardEvent, ChangeEvent } from 'react';
-import type { Vals } from '@/useVals';
+import { useStore } from '@/store';
+import type { PostVM } from '@/types';
 import { Button } from '@/components/shared/Button';
 import type { CommentState } from './index';
 
 // コメント投稿フォーム
-export function CommentForm({ vals, commentState }: { vals: Vals; commentState: CommentState }) {
+export function CommentForm({ post, commentState }: { post: PostVM; commentState: CommentState }) {
+  const userAvatar = useStore((s) => s.user?.avatar ?? '');
   const handleCommentKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     const composing = (e.nativeEvent && e.nativeEvent.isComposing) || e.keyCode === 229;
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !composing) {
       e.preventDefault();
-      vals.post.commentSend(commentState.draft);
+      post.commentSend(commentState.draft);
       commentState.setDraft('');
     }
   };
@@ -17,7 +19,7 @@ export function CommentForm({ vals, commentState }: { vals: Vals; commentState: 
   return (
     <>
       <div className="mt-4 flex items-start gap-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mark text-[12px] font-bold">{vals.userAvatar}</span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mark text-[12px] font-bold">{userAvatar}</span>
         <textarea
           value={commentState.draft}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => commentState.setDraft(e.target.value)}
@@ -30,7 +32,7 @@ export function CommentForm({ vals, commentState }: { vals: Vals; commentState: 
           variant="primary"
           size="md"
           className="shrink-0 self-end"
-          onClick={() => { vals.post.commentSend(commentState.draft); commentState.setDraft(''); }}
+          onClick={() => { post.commentSend(commentState.draft); commentState.setDraft(''); }}
         >送る</Button>
       </div>
       <p className="m-0 mt-1.5 pl-10.5 text-[10.5px] text-faint">Enterで改行 ・ ⌘/Ctrl+Enterで送信</p>
