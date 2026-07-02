@@ -71,4 +71,9 @@ export const EventClient = () => {
   const id = typeof params?.id === 'string' ? params.id : '';
   return <Event eventId={decodeURIComponent(id)} />;
 };
-export const PostClient = () => <Post vals={useV()} />;
+export const PostClient = () => {
+  const params = useParams<{ src: string; i: string }>();
+  const src = params?.src === 'mine' ? 'mine' : params?.src === 'public' ? 'public' : 'other';
+  const i = Number(params?.i ?? -1);
+  return <Post postRef={Number.isNaN(i) || i < 0 ? null : { src, i }} />;
+};
