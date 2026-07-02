@@ -18,7 +18,7 @@ export function useV(): Vals { return useContext(ValsContext) as Vals; }
 
 // 後追い取得分の初期値（mount後にクライアントから実データで上書き）。
 // 空でも useVals 側の各ガードでクラッシュしない。
-const EMPTY_DEFERRED: DeferredReferenceData = { others: [], meetups: [], bars: [], kuraMeta: {}, prefGrid: [] };
+const EMPTY_DEFERRED: DeferredReferenceData = { others: [], bars: [], kuraMeta: {}, prefGrid: [] };
 
 export function Providers({ initialData, children }: { initialData: CoreReferenceData; children: React.ReactNode }) {
   const pathname = usePathname();
