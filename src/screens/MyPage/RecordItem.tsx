@@ -1,6 +1,6 @@
-import type { Vals } from '@/useVals';
+import type { MyPageVals } from './useMyPageVals';
 
-type Record = Vals['myList'][number];
+type Record = MyPageVals['myList'][number];
 
 // わたしの利き酒帳の1件分カード
 export function RecordItem({ record, onDelete }: { record: Record; onDelete: (recordId: string, name: string) => void }) {

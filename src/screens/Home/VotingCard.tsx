@@ -1,8 +1,8 @@
-import type { Vals } from '@/useVals';
+import type { HomeVals } from './useHomeVals';
 
-export function VotingCard({ vals }: { vals: Vals }) {
-  if (!vals.homeVoting) return null;
-  const voting = vals.homeVoting;
+export function VotingCard({ home }: { home: HomeVals }) {
+  if (!home.homeVoting) return null;
+  const voting = home.homeVoting;
   return (
     <article
       onClick={voting.click}

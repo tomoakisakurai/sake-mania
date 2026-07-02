@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import type { Vals } from '@/useVals';
+import { useMyPageVals } from './useMyPageVals';
 import { useStore } from '@/store';
 import { getMyProfile, type ProfileView } from '@/app/actions/profile';
 import { useReferenceData } from '@/components/Providers';
@@ -13,7 +13,8 @@ import { TasteMap } from './TasteMap';
 import { WantList } from './WantList';
 import { ProfileEditModal } from './ProfileEditModal';
 
-export function MyPage({ vals }: { vals: Vals }) {
+export function MyPage() {
+  const my = useMyPageVals();
   const authReady = useStore((s) => s.authReady);
   const userId = useStore((s) => s.user?.id);
   const router = useRouter();
@@ -49,14 +50,14 @@ export function MyPage({ vals }: { vals: Vals }) {
   }, [authReady, userId, reload]);
 
   return (
-    <main className="mx-auto max-w-300" style={{ padding: vals.pagePad }}>
-      <ProfileHeader vals={vals} profile={profile} onEdit={openEdit} />
-      <Achievements vals={vals} />
-      <div className="grid items-start gap-8" style={{ gridTemplateColumns: vals.myCols }}>
-        <RecordList vals={vals} />
+    <main className="mx-auto max-w-300 px-4.5 pt-7 pb-32.5 md:px-10 md:pt-10 md:pb-20">
+      <ProfileHeader my={my} profile={profile} onEdit={openEdit} />
+      <Achievements my={my} />
+      <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_380px]">
+        <RecordList my={my} />
         <aside className="flex flex-col gap-6">
-          <TasteMap vals={vals} />
-          <WantList vals={vals} />
+          <TasteMap my={my} />
+          <WantList my={my} />
         </aside>
       </div>
       <ProfileEditModal

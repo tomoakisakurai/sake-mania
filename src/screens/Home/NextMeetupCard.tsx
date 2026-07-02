@@ -1,8 +1,8 @@
-import type { Vals } from '@/useVals';
+import type { HomeVals } from './useHomeVals';
 
-export function NextMeetupCard({ vals }: { vals: Vals }) {
-  if (vals.homeNext) {
-    const next = vals.homeNext;
+export function NextMeetupCard({ home }: { home: HomeVals }) {
+  if (home.homeNext) {
+    const next = home.homeNext;
     return (
       <article
         onClick={next.click}

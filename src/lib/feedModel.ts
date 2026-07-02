@@ -1,6 +1,6 @@
 // みんなの利き酒帳(フィード)のビューモデル構築。
-// Feed画面(useFeedItemsフック経由)と useVals(Homeの抜粋・Post詳細)の
-// 両方から使う共有ロジック。Reactに依存しない純関数として実装する。
+// Feed画面(useFeedItems)・Home(useHomeVals)・Post詳細(usePostVals)から
+// 使う共有ロジック。Reactに依存しない純関数として実装する。
 import type { MouseEvent } from 'react';
 import type { useStore } from '@/store';
 import type { Brand, PostRef } from '@/types';
