@@ -4,6 +4,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import type { Vals } from '@/useVals';
 import { useStore } from '@/store';
 import { getMyProfile, type ProfileView } from '@/app/actions/profile';
+import { useReferenceData } from '@/components/Providers';
 import { useState } from 'react';
 import { ProfileHeader } from './ProfileHeader';
 import { Achievements } from './Achievements';
@@ -23,7 +24,8 @@ export function MyPage({ vals }: { vals: Vals }) {
   const editing = searchParams.get('edit') === '1';
   const [profile, setProfile] = useState<ProfileView | null>(null);
 
-  const prefOptions = useMemo(() => vals.prefGrid.map((p) => p[0] as string), [vals.prefGrid]);
+  const { prefGrid } = useReferenceData();
+  const prefOptions = useMemo(() => prefGrid.map((p) => p[0] as string), [prefGrid]);
 
   const reload = useCallback(async () => {
     const p = await getMyProfile();

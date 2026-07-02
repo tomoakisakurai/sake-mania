@@ -1,13 +1,12 @@
 import clsx from 'clsx';
-import type { Vals } from '@/useVals';
 import type { MapVM } from './useMapState';
 
 // 飲める店モード: 店リスト + 選択店の詳細(地図埋め込み + 提供銘柄)
-export function BarsMode({ vals, map }: { vals: Vals; map: MapVM }) {
+export function BarsMode({ map }: { map: MapVM }) {
   return (
     <>
       <p className="m-0 mb-6 text-[13px] text-muted">銘酒を飲める居酒屋・角打ちを集めました。店をタップすると地図と提供銘柄が見られます。</p>
-      <div className="grid items-start gap-6" style={{ gridTemplateColumns: vals.mapCols }}>
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <ul className="m-0 flex flex-col gap-3 p-0 list-none">
           {map.barList.map((bar, i) => (
             <li

@@ -1,19 +1,28 @@
 import { useState } from 'react';
 import { useStore } from '@/store';
-import type { Vals } from '@/useVals';
+import { useReferenceData } from '@/components/Providers';
+import type { Brand } from '@/types';
 
-export function useMapState(vals: Vals) {
+export function useMapState() {
   const [mapMode, setMapMode] = useState<'kura' | 'bars'>('kura');
   const [mapPref, setMapPref] = useState<string | null>(null);
   const [barId, setBarId] = useState<string | null>(null);
 
   const myRecords = useStore((s) => s.myRecords);
   const store = useStore();
-  const isMobile = vals.isMobile;
-  const kuraByPref = vals.kuraByPref;
-  const drunkPrefs = vals.drunkPrefSet;
+  const { brands, bars: allBars, kuraMeta, prefGrid } = useReferenceData();
 
-  const prefTiles = vals.prefGrid.map((p) => {
+  // 県ごと×蔵ごとの銘柄一覧と、呑んだことのある県(useVals から移設 #27)
+  const kuraByPref: Record<string, Record<string, Brand[]>> = {};
+  brands.forEach((b) => {
+    if (!kuraByPref[b.pref]) kuraByPref[b.pref] = {};
+    if (!kuraByPref[b.pref][b.brewery]) kuraByPref[b.pref][b.brewery] = [];
+    kuraByPref[b.pref][b.brewery].push(b);
+  });
+  const drunkPrefs = new Set(myRecords.map((x) => brands.find((b) => b.id === x.brandId)?.pref).filter(Boolean));
+  const mapStats = '蔵のある県 ' + Object.keys(kuraByPref).length + ' ・ 呑んだ県 ' + drunkPrefs.size + ' / 47';
+
+  const prefTiles = prefGrid.map((p) => {
     const name = p[0];
     const hasKura = !!kuraByPref[name];
     const drunk = drunkPrefs.has(name);
@@ -22,10 +31,6 @@ export function useMapState(vals: Vals) {
     return {
       name, col: p[1], row: p[2],
       hasKura, drunk, selected,
-      // 3文字以上(神奈川・和歌山・鹿児島など)もタイルからはみ出すので
-      // 4文字と同じ縮小サイズに揃える。
-      fontSize: name.length >= 3 ? (isMobile ? '6.5px' : '8.5px') : (isMobile ? '8.5px' : '11px'),
-      fontSubSize: isMobile ? '7px' : '9px',
       hasCount: kuraCount > 0, countLabel: kuraCount + '蔵',
       click: hasKura ? (() => setMapPref(selected ? null : name)) : (() => {}),
     };
@@ -33,7 +38,7 @@ export function useMapState(vals: Vals) {
 
   const mapKuras = (mapPref && kuraByPref[mapPref])
     ? Object.keys(kuraByPref[mapPref]).map((kn) => {
-        const meta = vals.kuraMeta[kn];
+        const meta = kuraMeta[kn];
         const bs = kuraByPref[mapPref][kn];
         const cups = myRecords.filter((x) => bs.some((b) => b.id === x.brandId)).length;
         return {
@@ -53,7 +58,7 @@ export function useMapState(vals: Vals) {
     click: () => setMapPref(pn),
   }));
 
-  const bars = vals.allBars;
+  const bars = allBars;
   const barSel = bars.find((b) => b.id === barId) || bars[0];
   const barList = bars.map((b) => ({
     name: b.name, area: b.area, type: b.type,
@@ -65,7 +70,7 @@ export function useMapState(vals: Vals) {
     mapSrc: 'https://www.google.com/maps?q=' + encodeURIComponent(barSel.venueQ) + '&output=embed&hl=ja&z=15',
     mapLink: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(barSel.venueQ),
     brands: (barSel.brands || []).map((id: string) => {
-      const br = vals.allBrands.find((b) => b.id === id);
+      const br = brands.find((b) => b.id === id);
       return { label: br?.name || id, click: () => store.openDetail(id) };
     }),
   } : { name: '', area: '', type: '', note: '', mapSrc: '', mapLink: '', brands: [] as { label: string; click: () => void }[] };
@@ -76,6 +81,7 @@ export function useMapState(vals: Vals) {
     prefTiles, mapKuras, prefChipList,
     mapHasSel: !!mapPref, mapNoSel: !mapPref, mapSelPref: mapPref || '',
     barList, barView,
+    mapStats,
   };
 }
 

@@ -18,7 +18,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const store = useStore();
   const rec = store.rec;
   const isMobile = store.vw < 760;
-  const { brands, others, bars, prefGrid, kuraMeta } = ref;
+  const { brands } = ref;
   const byId = (id: string | null | undefined) => brands.find((b) => b.id === id);
 
   // nav / tab のビューモデル（lib/nav.ts に集約。Nav と TabBar が共有）
@@ -47,20 +47,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const ranking = brands.slice().sort((a, b) => b.count - a.count).slice(0, 4).map((b, i) => ({ rank: ['壱', '弐', '参', '四'][i], color: i === 0 ? '#BC6A2D' : '#8B8273', name: b.name, brewery: b.brewery + ' / ' + b.pref, count: b.count + '記録', click: () => store.openDetail(b.id) }));
 
   const today = byId('kuheiji') || brands[0] || EMPTY_BRAND;
-
-  // detail
-  const d = byId(route.detailId) || brands[0];
-  const myRecForD = store.myRecords.find((x) => x.brandId === d.id);
-  const dReviews = store.myRecords.filter((x) => x.brandId === d.id).map((x) => ({ user: 'あなた', date: x.date, stars: starStr(x.rating), memo: x.memo || '(メモなし)' }))
-    .concat(others.filter((o) => o.brandId === d.id).map((o) => ({ user: o.user, date: o.date, stars: starStr(o.rating), memo: o.memo })));
-  const wanted = store.wantIds.indexOf(d.id) !== -1;
-  const shopQ = encodeURIComponent(d.name);
-  const dShop = [
-    { label: '楽天市場', mark: 'R', markColor: '#BF0000', url: 'https://search.rakuten.co.jp/search/mall/' + shopQ + '/' },
-    { label: 'Amazon', mark: 'a', markColor: '#FF9900', url: 'https://www.amazon.co.jp/s?k=' + shopQ },
-    { label: 'Yahoo!ショッピング', mark: 'Y', markColor: '#FF0033', url: 'https://shopping.yahoo.co.jp/search?p=' + shopQ },
-    { label: '正規特約店をさがす', mark: '蔵', markColor: '#32507C', url: 'https://www.google.com/search?q=' + encodeURIComponent(d.name + ' 特約店') },
-  ];
 
   // record flow
   const rq = (rec.query || '').trim();
@@ -94,16 +80,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const recBack = () => { if (rec.step <= 1 || (rec.step === 2 && store.fromDetail)) store.nav('home'); else store.setRec({ step: rec.step - 1 }); };
   const recGhostDots = store.myRecords.map((x) => ({ left: x.x, top: x.y }));
   const enjoyParts = (rec.temps.length ? rec.temps.join('・') : '未記入') + (rec.pairing ? ' / 肴: ' + rec.pairing : '');
-
-  // kura map
-  const kuraByPref: Record<string, Record<string, Brand[]>> = {};
-  brands.forEach((b) => {
-    if (!kuraByPref[b.pref]) kuraByPref[b.pref] = {};
-    if (!kuraByPref[b.pref][b.brewery]) kuraByPref[b.pref][b.brewery] = [];
-    kuraByPref[b.pref][b.brewery].push(b);
-  });
-  const drunkPrefs = new Set(store.myRecords.map((x) => (byId(x.brandId) || EMPTY_BRAND).pref).filter(Boolean));
-  const mapStats = '蔵のある県 ' + Object.keys(kuraByPref).length + ' ・ 呑んだ県 ' + drunkPrefs.size + ' / 47';
 
   // ===== SAKE MEETUP（DB由来） =====
   const list = store.meetupList;
@@ -195,9 +171,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     homeSplitCols: isMobile ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
     heroTitleSize: isMobile ? '30px' : '38px',
     mapH: isMobile ? '300px' : '380px',
-    detailCols: isMobile ? '1fr' : '360px 1fr',
-    bottleH: isMobile ? '320px' : '420px',
-    specCols: isMobile ? '1fr 1fr' : '1fr 1fr 1fr',
     myCols: isMobile ? '1fr' : '1fr 380px',
     isHome: route.screen === 'home', isZukan: route.screen === 'zukan', isDetail: route.screen === 'detail', isRecord: route.screen === 'record', isMy: route.screen === 'mypage', isFeed: route.screen === 'feed', isPost: route.screen === 'post', isMap: route.screen === 'map', isKura: route.screen === 'kura' && !!route.kuraName,
     // home
@@ -205,16 +178,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     today: { name: today.name, sub: subOf(today) },
     todayClick: () => store.openDetail(today.id),
     myDots, feedItems: allFeed.slice(0, 3), goFeed: () => store.nav('feed'), ranking,
-    // detail
-    d: { name: d.name, brewery: d.brewery, pref: d.pref, cls: d.cls, class: d.cls, polish: d.polish, rice: d.rice, yeast: d.yeast, smv: d.smv, abv: d.abv, temp: d.temp, desc: d.desc, x: d.x, y: d.y, rating: d.rating.toFixed(1), count: d.count },
-    dStars: starStr(Math.round(d.rating)),
-    dRecordClick: () => { store.patch({ fromDetail: true }); store.startRecord(d.id); },
-    dWantClick: () => { if (!store.requireLogin()) return; store.patch({ wantIds: wanted ? store.wantIds.filter((x) => x !== d.id) : store.wantIds.concat([d.id]) }); },
-    dWanted: wanted,
-    dWantLabel: wanted ? '飲みたいリスト追加済 ✓' : '飲みたいリストへ',
-    dPhoto: d.photo || null,
-    dHasMyPoint: !!myRecForD, dMyX: myRecForD ? myRecForD.x : 0, dMyY: myRecForD ? myRecForD.y : 0,
-    dReviews, dShop,
     // record
     recSteps, recProgress: rec.step / 4 * 100,
     recTitle: titles[rec.step - 1][0], recSub: titles[rec.step - 1][1],
@@ -252,14 +215,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     badges, achievedCount, badgeTotal: badgeDefs.length,
     badgePref: prefSet2.size, badgeKura: kuraSet2.size,
     // kura map（Map画面のuseMapStateで使う生データ）
-    allBrands: brands,
-    allBars: bars,
-    kuraByPref,
-    drunkPrefSet: drunkPrefs,
-    prefGrid,
-    kuraMeta,
-    openKura: (name: string) => store.openKura(name),
-    mapStats,
     // SAKE MEETUP
     homeNext, homePast, homeVoting, hasVoting: !!homeVoting,
     isMeetups: route.screen === 'meetups', goMeetups: () => store.nav('meetups'),
@@ -268,7 +223,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     openMeetupCreate: () => store.openMeetupCreate(),
     isKuraReg: route.screen === 'kuraReg',
     openKuraReg: () => store.openKuraReg(),
-    dBreweryClick: () => store.openKura(d.brewery),
     mapCols: isMobile ? '1fr' : 'minmax(0, 1.55fr) minmax(0, 1fr)',
     mapPanelPad: isMobile ? '14px 12px' : '24px',
     mapGap: isMobile ? '4px' : '6px',
