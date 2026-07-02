@@ -71,10 +71,10 @@ describe('routeStateFromPath', () => {
       expect(r.eventId).toBe('ev-1');
     });
 
-    it('/member/:name → member + memberName', () => {
-      const r = routeStateFromPath('/member/' + encodeURIComponent('yuu_sake'));
+    it('/member/:id → member + memberId', () => {
+      const r = routeStateFromPath('/member/00000000-0000-0000-0000-000000000001');
       expect(r.screen).toBe('member');
-      expect(r.memberName).toBe('yuu_sake');
+      expect(r.memberId).toBe('00000000-0000-0000-0000-000000000001');
     });
 
     it('/post/mine/3 → post + postRef', () => {
@@ -119,7 +119,7 @@ describe('paths', () => {
     expect(paths.event('ev-1')).toBe('/event/ev-1');
     expect(paths.eventEdit('ev-1')).toBe('/event/ev-1/edit');
     expect(paths.declare('m-1')).toBe('/meetup/m-1/declare');
-    expect(paths.member('yuu_sake')).toBe('/member/yuu_sake');
+    expect(paths.member('00000000-0000-0000-0000-000000000001')).toBe('/member/00000000-0000-0000-0000-000000000001');
   });
 
   it('post path はsrc/iを連結(エンコードしない)', () => {

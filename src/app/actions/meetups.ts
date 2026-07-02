@@ -48,13 +48,15 @@ async function currentUser() {
   return data.user;
 }
 
+// profiles行が無い場合のみ作成する。表示名の source of truth は profiles
+// なので、user_metadata の値で既存行を上書きしない。
 async function ensureProfile(userId: string, meta: { nickname?: string }, email?: string | null) {
   const db = getDb();
   if (!db) return;
   const nickname = (meta.nickname && meta.nickname.trim()) || (email ? email.split('@')[0] : 'sake_user');
   await db.insert(schema.profiles)
     .values({ id: userId, nickname, avatar: nickname.charAt(0) || '酒', avatarBg: '#DDD3BE' })
-    .onConflictDoUpdate({ target: schema.profiles.id, set: { nickname, avatar: nickname.charAt(0) || '酒' } });
+    .onConflictDoNothing({ target: schema.profiles.id });
 }
 
 export async function createMeetup(input: { name: string; dateLabel: string; place: string; theme: string; eventDate?: string }): Promise<string | null> {

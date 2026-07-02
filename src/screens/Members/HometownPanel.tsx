@@ -20,8 +20,8 @@ export function HometownPanel({ selectedPref, members }: { selectedPref: string 
       <h2 className="m-0 mb-4 border-b border-line pb-2.5 font-serif text-[19px] font-bold">{selectedPref} 出身のメンバー</h2>
       <ul className="m-0 flex flex-col gap-3 p-0 list-none">
         {members.map((member) => (
-          <li key={member.nickname}>
-            <MemberCard member={member} onClick={() => router.push(paths.member(member.nickname))} />
+          <li key={member.id}>
+            <MemberCard member={member} onClick={() => router.push(paths.member(member.id))} />
           </li>
         ))}
       </ul>

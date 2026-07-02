@@ -18,12 +18,16 @@ export function getSupabaseBrowser(): SupabaseClient | null {
   return client;
 }
 
-/** Map a Supabase auth user to the app's lightweight user shape. */
+/**
+ * Map a Supabase auth user to the app's lightweight user shape.
+ * name/avatar は user_metadata 由来の暫定値。表示名の source of truth は
+ * profiles テーブルで、Providers が同期時に上書きする。
+ */
 export function mapUser(u: SupabaseUser | null | undefined): User | null {
   if (!u) return null;
   const meta = (u.user_metadata || {}) as { nickname?: string };
   const name = (meta.nickname && meta.nickname.trim())
     || (u.email ? u.email.split('@')[0] : '')
     || 'sake_user';
-  return { name, avatar: name.charAt(0) || '酒', isAdmin: false };
+  return { id: u.id, name, avatar: name.charAt(0) || '酒', isAdmin: false };
 }

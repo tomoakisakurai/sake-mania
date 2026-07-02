@@ -14,7 +14,7 @@ import { ProfileEditModal } from './ProfileEditModal';
 
 export function MyPage({ vals }: { vals: Vals }) {
   const authReady = useStore((s) => s.authReady);
-  const userId = useStore((s) => s.user?.name);
+  const userId = useStore((s) => s.user?.id);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -28,6 +28,12 @@ export function MyPage({ vals }: { vals: Vals }) {
   const reload = useCallback(async () => {
     const p = await getMyProfile();
     setProfile(p);
+    // 表示名の source of truth は profiles。ニックネーム変更を
+    // ナビ/ヘッダー(store.user 経由)にも即時反映する。
+    const store = useStore.getState();
+    if (p && store.user) {
+      store.setUser({ ...store.user, name: p.nickname, avatar: p.avatar });
+    }
   }, []);
 
   const openEdit = () => router.replace(`${pathname}?edit=1`, { scroll: false });

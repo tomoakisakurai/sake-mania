@@ -6,6 +6,7 @@ import { getSupabaseServer } from '@/lib/supabase/server';
 
 // プロフィール画面・編集モーダルが扱う拡張フィールド
 export interface ProfileView {
+  id: string;
   nickname: string;
   avatar: string;
   avatarBg: string;
@@ -69,29 +70,27 @@ export async function getMyProfile(): Promise<ProfileView | null> {
     .from(schema.profiles)
     .where(eq(schema.profiles.id, data.user.id));
   if (!row) return null;
-  return {
-    nickname: row.nickname,
-    avatar: row.avatar,
-    avatarBg: row.avatarBg,
-    photoUrl: row.photoUrl,
-    dept: row.dept,
-    hometown: row.hometown,
-    bio: row.bio,
-  };
+  return toProfileView(row);
 }
 
 /**
- * 任意のメンバーのプロフィールを nickname で取得(他人のプロフィール表示用)。
+ * 任意のメンバーのプロフィールを id (= auth.users.id) で取得。
+ * メンバー詳細 `/member/[id]` の表示用。
  */
-export async function getProfileByNickname(nickname: string): Promise<ProfileView | null> {
+export async function getProfileById(id: string): Promise<ProfileView | null> {
   const db = getDb();
   if (!db) return null;
   const [row] = await db
     .select()
     .from(schema.profiles)
-    .where(eq(schema.profiles.nickname, nickname));
+    .where(eq(schema.profiles.id, id));
   if (!row) return null;
+  return toProfileView(row);
+}
+
+function toProfileView(row: typeof schema.profiles.$inferSelect): ProfileView {
   return {
+    id: row.id,
     nickname: row.nickname,
     avatar: row.avatar,
     avatarBg: row.avatarBg,
