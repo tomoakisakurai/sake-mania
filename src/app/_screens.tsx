@@ -35,8 +35,16 @@ export const MyPageClient = () => <MyPage vals={useV()} />;
 export const LoginClient = () => <Login />;
 export const RecordClient = () => <Record vals={useV()} />;
 export const MeetupsClient = () => <Meetups />;
-export const MeetupClient = () => <Meetup vals={useV()} />;
-export const DeclareClient = () => <Declare vals={useV()} />;
+export const MeetupClient = () => {
+  const params = useParams<{ id: string }>();
+  const id = typeof params?.id === 'string' ? params.id : '';
+  return <Meetup meetupId={decodeURIComponent(id)} />;
+};
+export const DeclareClient = () => {
+  const params = useParams<{ id: string }>();
+  const id = typeof params?.id === 'string' ? params.id : '';
+  return <Declare meetupId={decodeURIComponent(id)} />;
+};
 export const MeetupCreateClient = () => <MeetupCreate />;
 export const KuraClient = () => {
   const params = useParams<{ name: string }>();

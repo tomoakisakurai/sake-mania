@@ -2,11 +2,11 @@
 import clsx from 'clsx';
 import { useStore } from '@/store';
 import { deleteMeetup } from '@/app/actions/meetups';
-import type { Vals } from '@/useVals';
 import { Loading } from '@/components/shared/Loading';
 import { KebabMenu } from '@/components/shared/KebabMenu';
 import { isMeetupOngoing } from '@/lib/meetupStatus';
 import { useNow } from '@/lib/useNow';
+import { useMeetupVals } from './useMeetupVals';
 import { BeforePhase } from './BeforePhase';
 import { ReviewPhase } from './ReviewPhase';
 
@@ -28,9 +28,9 @@ const DELETE_ICON = (
   </svg>
 );
 
-export function Meetup({ vals }: { vals: Vals }) {
-  const meetup = vals.meetup;
+export function Meetup({ meetupId }: { meetupId: string }) {
   const store = useStore();
+  const meetup = useMeetupVals(meetupId);
   const meetupDetail = store.meetupDetail;
   const now = useNow();
   const ongoing = meetup.isBefore && isMeetupOngoing(meetupDetail?.eventDate, now);
@@ -43,7 +43,7 @@ export function Meetup({ vals }: { vals: Vals }) {
     : meetup.isVoting ? 'bg-accent' : meetup.isClosed ? 'bg-body' : 'bg-primary';
 
   if (!meetupDetail) {
-    return <main className="mx-auto max-w-230" style={{ padding: vals.pagePadTight }}><Loading /></main>;
+    return <main className="mx-auto max-w-230 px-4.5 pt-5 pb-32.5 md:px-10 md:pt-8 md:pb-20"><Loading /></main>;
   }
 
   const handleDelete = async () => {
@@ -58,7 +58,7 @@ export function Meetup({ vals }: { vals: Vals }) {
   };
 
   return (
-    <main className="mx-auto max-w-230" style={{ padding: vals.pagePadTight }}>
+    <main className="mx-auto max-w-230 px-4.5 pt-5 pb-32.5 md:px-10 md:pt-8 md:pb-20">
       <a onClick={meetup.backHome} className="mb-6 block cursor-pointer text-[13px] text-muted transition-colors hover:text-primary">← ホームにもどる</a>
       <header>
         <p className="m-0 mb-1 flex flex-wrap items-center gap-3">
@@ -99,8 +99,8 @@ export function Meetup({ vals }: { vals: Vals }) {
         </div>
       </header>
 
-      {meetup.isBefore && <BeforePhase vals={vals} />}
-      {meetup.showLineup && <ReviewPhase vals={vals} />}
+      {meetup.isBefore && <BeforePhase meetup={meetup} />}
+      {meetup.showLineup && <ReviewPhase meetup={meetup} />}
     </main>
   );
 }

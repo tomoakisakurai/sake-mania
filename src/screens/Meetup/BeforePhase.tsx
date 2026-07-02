@@ -1,10 +1,9 @@
-import type { Vals } from '@/useVals';
+import type { MeetupVals } from './useMeetupVals';
 import { Button } from '@/components/shared/Button';
 import { GoingButton } from './GoingButton';
 import { BringCard } from './BringCard';
 // 開催前フェーズ: 出欠トグル + 持ち寄りラインナップ + あなたの一本 + 幹事メニュー
-export function BeforePhase({ vals }: { vals: Vals }) {
-  const meetup = vals.meetup;
+export function BeforePhase({ meetup }: { meetup: MeetupVals }) {
   return (
     <>
       <section className="mb-7 flex flex-wrap items-center gap-4">
@@ -16,7 +15,7 @@ export function BeforePhase({ vals }: { vals: Vals }) {
         </ul>
       </section>
 
-      <div className="grid items-start gap-7" style={{ gridTemplateColumns: vals.meetCols }}>
+      <div className="grid grid-cols-1 items-start gap-7 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <section>
           <header className="mb-4 flex items-baseline justify-between border-b border-line pb-2.5">
             <h2 className="m-0 font-serif text-[18px] font-bold">持ち寄りラインナップ</h2>

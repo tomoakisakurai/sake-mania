@@ -7,7 +7,6 @@ import type { ReferenceData } from '@/lib/getReferenceData';
 import type { Brand, Bar, PostRef, MyRec, PublicRec, OtherRec, PostVM } from '@/types';
 import { buildNavModel } from '@/lib/nav';
 import { addComment as addCommentAction, deleteComment as deleteCommentAction } from '@/app/actions/social';
-import { declareBring, cancelBring } from '@/app/actions/meetups';
 import { setRecordPublic as setRecordPublicAction, deleteRecord as deleteRecordAction } from '@/app/actions/records';
 import { socialOf, buildFeedItems } from '@/lib/feedModel';
 import { starStr, subOf } from '@/lib/format';
@@ -216,7 +215,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
 
   // ===== SAKE MEETUP（DB由来） =====
   const list = store.meetupList;
-  const md = store.meetupDetail;
   const shortOf = (dl: string) => (dl || '').split('(')[0].split(' ')[0];
   const nextMeet = list
     .filter((m) => m.phase === 'before')
@@ -239,86 +237,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   }));
   const votingMeet = list.find((m) => m.phase === 'voting');
   const homeVoting = votingMeet ? { name: votingMeet.name, deadline: votingMeet.voteDeadline || '', click: () => store.openMeetup(votingMeet.id) } : null;
-
-  // 開いているMEETUPの詳細（route.meetupId に対応）
-  const meId = md?.id || route.meetupId || '';
-  const mePhase = md?.phase || 'before';
-  const isBefore = mePhase === 'before';
-  const isVoting = mePhase === 'voting';
-  const isClosed = mePhase === 'closed';
-  const showLineup = !isBefore;
-  const isHost = !!md?.isHost;
-  const iGo = !!md?.iGoing;
-  const goingAvatars = (md?.attendees || []).slice(0, 10).map((a) => ({ avatar: a.avatar, bg: a.avatarBg, name: a.name }));
-  const allBring = md?.brings || [];
-  const brandCounts: Record<string, number> = {};
-  allBring.forEach((b) => { brandCounts[b.brandId] = (brandCounts[b.brandId] || 0) + 1; });
-  const bringList = allBring.map((b) => {
-    const br = byId(b.brandId) || EMPTY_BRAND;
-    return { brandId: b.brandId, memberName: b.memberName, avatar: b.avatar, avatarBg: b.avatarBg, mine: !!b.mine, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, note: b.note || '', dup: brandCounts[b.brandId] > 1, brandClick: () => store.openDetail(b.brandId) };
-  });
-  const voteCounts: Record<string, number> = md?.voteCounts || {};
-  const myVote = md?.myVoteBrandId || null;
-  const totalVotes = Object.values(voteCounts).reduce((a: number, n: number) => a + n, 0);
-  // ラインナップ = 持ち寄られた酒、得票数順
-  const sortedLineup = showLineup ? allBring.slice().sort((a, b) => (voteCounts[b.brandId] || 0) - (voteCounts[a.brandId] || 0)) : [];
-  const mvpBrandId = sortedLineup.length ? sortedLineup[0].brandId : null;
-  const meetup = {
-    id: meId, name: md?.name || '', dateLabel: md?.dateLabel || '', place: md?.place || '', theme: md?.theme || '',
-    hostName: md?.hostName || '',
-    isBefore, isVoting, isClosed, showLineup,
-    isHost, hostCanStart: isBefore && isHost, hostCanClose: isVoting && isHost,
-    startVoting: () => store.setPhase(meId, 'voting'),
-    closeVoting: () => store.setPhase(meId, 'closed'),
-    voteDeadline: md?.voteDeadline || '',
-    phaseLabel: isVoting ? '投票受付中' : isClosed ? '結果確定' : '開催前',
-    mvpLabel: isVoting ? '★ 暫定トップ（投票受付中）' : '★ その日のMVP酒 — 最多得票',
-    iGo, goCount: md?.goingCount || 0, attendees: md?.goingCount || 0,
-    goingAvatars,
-    bringList, bringCount: allBring.length,
-    hasBring: allBring.length > 0,
-    hasDup: Object.keys(brandCounts).some((k) => brandCounts[k] > 1),
-    myDeclared: !!md?.myBringBrandId, notMyDeclared: !md?.myBringBrandId,
-    declareClick: () => store.openDeclare(meId),
-    declareLabel: md?.myBringBrandId ? '持ち寄りを変更する' : '自分の一本を宣言する',
-    cancelDeclare: async () => {
-      await cancelBring(meId);
-      await Promise.all([store.loadMeetupDetail(meId), store.loadMeetups()]);
-    },
-    backHome: () => store.nav('home'),
-    totalVotesLabel: totalVotes + '票',
-    myVoted: !!myVote,
-    canVote: isVoting,
-    lineup: sortedLineup.map((l, i) => {
-      const br = byId(l.brandId) || EMPTY_BRAND;
-      const vc = voteCounts[l.brandId] || 0;
-      const voted = myVote === l.brandId;
-      return { rank: i + 1, rankLabel: ['壱', '弐', '参', '四', '五'][i] || (i + 1), isMvp: mvpBrandId === l.brandId, brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: l.memberName, avatar: l.avatar, avatarBg: l.avatarBg, votes: vc + '票', comment: l.note || '', brandClick: () => store.openDetail(l.brandId), canVote: isVoting, voted, voteLabel: voted ? '投票済み ✓' : 'MVPに投票', voteClick: () => store.voteMvp(meId, l.brandId) };
-    }),
-    mvp: showLineup && mvpBrandId ? (() => { const br = byId(mvpBrandId) || EMPTY_BRAND; const lp = allBring.find((x) => x.brandId === mvpBrandId); return { brandName: br.name, brandSub: br.brewery + ' / ' + br.pref, broughtBy: lp?.memberName || '', votesLabel: (voteCounts[mvpBrandId] || 0) + '票', comment: lp?.note || '', brandClick: () => store.openDetail(mvpBrandId) }; })() : { brandName: '', brandSub: '', broughtBy: '', votesLabel: '', comment: '', brandClick: () => {} },
-  };
-
-  // declare flow（かぶり判定は現在の宣言一覧から）
-  const dBrand = byId(store.declareBrandId);
-  const dTaken = dBrand ? allBring.find((x) => x.brandId === dBrand.id && !x.mine) : null;
-  const declare = {
-    meetName: md?.name || '',
-    picked: !!dBrand, pickedName: dBrand ? dBrand.name : '', pickedSub: dBrand ? (dBrand.brewery + ' / ' + dBrand.pref) : '',
-    changeBrand: () => store.patch({ declareBrandId: null }),
-    dupWarn: !!dTaken, dupWarnLabel: dTaken ? (dTaken.memberName + 'さんが既に持ち寄り予定です。かぶってもOKですが、変えると喜ばれるかも。') : '',
-    canSubmit: !!dBrand,
-    submit: async (note: string) => {
-      const brandId = store.declareBrandId;
-      if (!brandId) { store.flash('持ち寄る一本を選んでください'); return; }
-      const ok = await declareBring(meId, brandId, note);
-      if (!ok) { store.flash('宣言に失敗しました（ログインが必要です）'); return; }
-      await Promise.all([store.loadMeetupDetail(meId), store.loadMeetups()]);
-      store.openMeetup(meId);
-      store.flash('持ち寄りを宣言しました');
-    },
-    notPicked: !dBrand,
-    cancel: () => store.openMeetup(meId),
-  };
 
   // mypage
   const myList = store.myRecords.map((x, i) => {
@@ -453,14 +371,13 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     openKura: (name: string) => store.openKura(name),
     mapStats,
     // SAKE MEETUP
-    homeNext, homePast, homeVoting, hasVoting: !!homeVoting, meetup, declare,
+    homeNext, homePast, homeVoting, hasVoting: !!homeVoting,
     isMeetups: route.screen === 'meetups', goMeetups: () => store.nav('meetups'),
     isMeetup: route.screen === 'meetup', isDeclare: route.screen === 'declare',
     isMeetupCreate: route.screen === 'meetupCreate',
     openMeetupCreate: () => store.openMeetupCreate(),
     isKuraReg: route.screen === 'kuraReg',
     openKuraReg: () => store.openKuraReg(),
-    meetCols: isMobile ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
     dBreweryClick: () => store.openKura(d.brewery),
     mapCols: isMobile ? '1fr' : 'minmax(0, 1.55fr) minmax(0, 1fr)',
     mapPanelPad: isMobile ? '14px 12px' : '24px',

@@ -1,9 +1,8 @@
-import type { Vals } from '@/useVals';
+import type { MeetupVals } from './useMeetupVals';
 import { AttendedMembers } from './AttendedMembers';
 import { LineupCard } from './LineupCard';
 // 投票受付中 / 結果確定フェーズ: 投票バナー + MVPカード + 参加メンバー + 得票ランキング
-export function ReviewPhase({ vals }: { vals: Vals }) {
-  const meetup = vals.meetup;
+export function ReviewPhase({ meetup }: { meetup: MeetupVals }) {
   return (
     <>
       {meetup.isVoting && (

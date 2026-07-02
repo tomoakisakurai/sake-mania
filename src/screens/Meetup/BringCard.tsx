@@ -1,6 +1,6 @@
-import type { Vals } from '@/useVals';
+import type { MeetupVals } from './useMeetupVals';
 
-type Bring = Vals['meetup']['bringList'][number];
+type Bring = MeetupVals['bringList'][number];
 
 // 持ち寄りラインナップの1枚分。誰が何を持ち寄るか、かぶり判定込みで表示。
 export function BringCard({ bring }: { bring: Bring }) {

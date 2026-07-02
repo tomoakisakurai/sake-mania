@@ -1,7 +1,7 @@
 import clsx from 'clsx';
-import type { Vals } from '@/useVals';
+import type { MeetupVals } from './useMeetupVals';
 
-type Lineup = Vals['meetup']['lineup'][number];
+type Lineup = MeetupVals['lineup'][number];
 
 // MVP投票/結果フェーズのラインナップ1件。順位・銘柄・持参者・コメント・投票ボタン。
 export function LineupCard({ lineup }: { lineup: Lineup }) {
