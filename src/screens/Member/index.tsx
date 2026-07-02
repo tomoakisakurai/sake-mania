@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import type { Vals } from '@/useVals';
 import { paths } from '@/lib/routes';
-import { getProfileByNickname, type ProfileView } from '@/app/actions/profile';
-import { getMemberHistoryByNickname, type MemberHistory } from '@/app/actions/members';
+import { getProfileById, type ProfileView } from '@/app/actions/profile';
+import { getMemberHistoryById, type MemberHistory } from '@/app/actions/members';
 import { Loading } from '@/components/shared/Loading';
 import { ProfileHeader } from './ProfileHeader';
 import { Stats } from './Stats';
@@ -13,12 +13,12 @@ import { BringCard, type BringItem } from './BringCard';
 import { RecordCard, type RecordItem } from './RecordCard';
 import { AttendedMeetups, type AttendedMeetup } from './AttendedMeetups';
 
-export function Member({ vals, memberName }: { vals: Vals; memberName: string }) {
+export function Member({ vals, memberId }: { vals: Vals; memberId: string }) {
   const store = useStore();
   const router = useRouter();
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
-  const isMe = store.user?.name === memberName;
+  const isMe = store.user?.id === memberId;
 
   const [profile, setProfile] = useState<ProfileView | null>(null);
   const [history, setHistory] = useState<MemberHistory>({ attended: [], brings: [], mvpCount: 0 });
@@ -28,8 +28,8 @@ export function Member({ vals, memberName }: { vals: Vals; memberName: string })
     let active = true;
     setLoaded(false);
     Promise.all([
-      getProfileByNickname(memberName),
-      getMemberHistoryByNickname(memberName),
+      getProfileById(memberId),
+      getMemberHistoryById(memberId),
     ]).then(([p, h]) => {
       if (!active) return;
       setProfile(p);
@@ -37,7 +37,7 @@ export function Member({ vals, memberName }: { vals: Vals; memberName: string })
       setLoaded(true);
     });
     return () => { active = false; };
-  }, [memberName]);
+  }, [memberId]);
 
   if (!loaded) {
     return <main style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}><Loading /></main>;

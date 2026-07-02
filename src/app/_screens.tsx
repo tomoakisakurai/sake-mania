@@ -50,9 +50,9 @@ export const EventEditClient = () => {
 };
 export const MembersClient = () => <Members vals={useV()} />;
 export const MemberClient = () => {
-  const params = useParams<{ name: string }>();
-  const name = typeof params?.name === 'string' ? params.name : '';
-  return <Member vals={useV()} memberName={decodeURIComponent(name)} />;
+  const params = useParams<{ id: string }>();
+  const id = typeof params?.id === 'string' ? params.id : '';
+  return <Member vals={useV()} memberId={decodeURIComponent(id)} />;
 };
 export const EventClient = () => {
   const params = useParams<{ id: string }>();

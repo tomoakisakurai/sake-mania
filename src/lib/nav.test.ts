@@ -4,7 +4,7 @@ import type { RouteState } from './routes';
 import type { Screen } from '@/types';
 
 function mkRoute(screen: Screen): RouteState {
-  return { screen, detailId: null, kuraName: null, meetupId: null, eventId: null, memberName: null, postRef: null };
+  return { screen, detailId: null, kuraName: null, meetupId: null, eventId: null, memberId: null, postRef: null };
 }
 
 function mkStore() {

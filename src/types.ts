@@ -153,6 +153,7 @@ export interface KuraMetaEntry {
 }
 
 export interface User {
+  id: string; // = auth.users.id = profiles.id
   name: string;
   avatar: string;
   isAdmin: boolean;

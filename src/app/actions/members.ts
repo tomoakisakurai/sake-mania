@@ -5,6 +5,7 @@ import * as schema from '@/db/schema';
 
 // メンバー出身地マップ・メンバー詳細で扱うprofile行のサマリ。
 export interface MemberRow {
+  id: string; // = profiles.id = auth.users.id。メンバー詳細URLのキー
   nickname: string;
   avatar: string;
   avatarBg: string;
@@ -26,6 +27,7 @@ export async function listMembers(): Promise<MemberRow[]> {
     .from(schema.profiles)
     .orderBy(asc(schema.profiles.createdAt));
   return rows.map((row) => ({
+    id: row.id,
     nickname: row.nickname,
     avatar: row.avatar,
     avatarBg: row.avatarBg,
@@ -68,19 +70,13 @@ function shortOf(dateLabel: string, eventDate: string | null): string {
 }
 
 /**
- * nickname から meetup_attendees / meetup_brings を集計して参加履歴と
- * 持ち寄り(+MVP判定)を返す。実DB側でユーザーが見つからなければ全部空配列。
+ * userId (= profiles.id) から meetup_attendees / meetup_brings を集計して
+ * 参加履歴と持ち寄り(+MVP判定)を返す。
  */
-export async function getMemberHistoryByNickname(nickname: string): Promise<MemberHistory> {
+export async function getMemberHistoryById(userId: string): Promise<MemberHistory> {
   const empty: MemberHistory = { attended: [], brings: [], mvpCount: 0 };
   const db = getDb();
   if (!db) return empty;
-  const [profile] = await db
-    .select({ id: schema.profiles.id })
-    .from(schema.profiles)
-    .where(eq(schema.profiles.nickname, nickname));
-  if (!profile) return empty;
-  const userId = profile.id;
 
   // 参加 / 持ち寄り(同テーブルを別々に取得 — JOINするほどでもない)
   const [attendRows, bringRows] = await Promise.all([

@@ -55,12 +55,14 @@ export async function saveRecord(input: RecordInput): Promise<MyRec | null> {
   const user = await currentUser();
   if (!db || !user) return null;
 
-  // keep the profile in sync (used by author display / future features)
+  // profiles行が無い場合のみ作成する。表示名の source of truth は profiles
+  // なので、user_metadata の値で既存行を上書きしない(プロフィール編集が
+  // 記録投稿で巻き戻るのを防ぐ)。
   const meta = (user.user_metadata || {}) as { nickname?: string };
   const nickname = (meta.nickname && meta.nickname.trim()) || (user.email ? user.email.split('@')[0] : 'sake_user');
   await db.insert(schema.profiles)
     .values({ id: user.id, nickname, avatar: nickname.charAt(0) || '酒', avatarBg: '#DDD3BE' })
-    .onConflictDoUpdate({ target: schema.profiles.id, set: { nickname, avatar: nickname.charAt(0) || '酒' } });
+    .onConflictDoNothing({ target: schema.profiles.id });
 
   const [row] = await db.insert(schema.records).values({
     userId: user.id,
