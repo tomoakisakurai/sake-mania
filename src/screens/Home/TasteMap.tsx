@@ -1,15 +1,15 @@
 import { Fragment } from 'react';
-import type { Vals } from '@/useVals';
+import type { HomeVals } from './useHomeVals';
 
 // ホームの「あなたの味わいマップ」: 記録した盃を香り×淡麗濃醇の座標に打点表示
-export function TasteMap({ vals }: { vals: Vals }) {
+export function TasteMap({ home }: { home: HomeVals }) {
   return (
     <section className="bg-surface border border-line rounded-xl px-8 py-7 mb-9">
       <header className="flex justify-between items-baseline mb-4.5">
         <h2 className="font-serif text-[19px] font-bold m-0">あなたの味わいマップ</h2>
-        <p className="font-mono text-[11px] text-muted m-0">{vals.statCups}盃 / {vals.statBrands}銘柄</p>
+        <p className="font-mono text-[11px] text-muted m-0">{home.statCups}盃 / {home.statBrands}銘柄</p>
       </header>
-      <figure className="relative w-full bg-card border border-line rounded-lg m-0" style={{ height: vals.mapH }}>
+      <figure className="relative m-0 h-75 w-full rounded-lg border border-line bg-card md:h-95">
         {/* 軸 */}
         <span className="absolute left-1/2 top-0 bottom-0 w-px bg-line-strong" />
         <span className="absolute top-1/2 left-0 right-0 h-px bg-line-strong" />
@@ -19,7 +19,7 @@ export function TasteMap({ vals }: { vals: Vals }) {
         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-muted bg-card py-1">淡麗</span>
         <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-muted bg-card py-1">濃醇</span>
         {/* 打点 */}
-        {vals.myDots.map((dot, i) => (
+        {home.myDots.map((dot, i) => (
           <Fragment key={i}>
             <span
               className="absolute rounded-full -translate-x-1/2 -translate-y-1/2"

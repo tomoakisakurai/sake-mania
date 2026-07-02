@@ -1,9 +1,8 @@
 'use client';
-// 各画面の薄いクライアントラッパー。useV()(ValsContext)からビューモデルを取り、
-// 画面に渡す。各 page.tsx をサーバーコンポーネント化して metadata を export しつつ、
+// 各画面の薄いクライアントラッパー。URLパラメータの取り出しだけを担い、
+// 各 page.tsx をサーバーコンポーネント化して metadata を export しつつ、
 // 描画はこのクライアント境界に委ねるための仕組み。
 import { useParams } from 'next/navigation';
-import { useV } from '@/components/Providers';
 import { Home } from '@/screens/Home';
 import { Zukan } from '@/screens/Zukan';
 import { Detail } from '@/screens/Detail';
@@ -26,7 +25,7 @@ import { Members } from '@/screens/Members';
 import { Member } from '@/screens/Member';
 import { Post } from '@/screens/Post';
 
-export const HomeClient = () => <Home vals={useV()} />;
+export const HomeClient = () => <Home />;
 export const ZukanClient = () => <Zukan />;
 export const DetailClient = () => {
   const params = useParams<{ id: string }>();
@@ -35,9 +34,9 @@ export const DetailClient = () => {
 };
 export const MapClient = () => <Map />;
 export const FeedClient = () => <Feed />;
-export const MyPageClient = () => <MyPage vals={useV()} />;
+export const MyPageClient = () => <MyPage />;
 export const LoginClient = () => <Login />;
-export const RecordClient = () => <Record vals={useV()} />;
+export const RecordClient = () => <Record />;
 export const MeetupsClient = () => <Meetups />;
 export const MeetupClient = () => {
   const params = useParams<{ id: string }>();

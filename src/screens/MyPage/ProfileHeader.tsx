@@ -1,15 +1,15 @@
-import type { Vals } from '@/useVals';
+import type { MyPageVals } from './useMyPageVals';
 import type { ProfileView } from '@/app/actions/profile';
 
 type Props = {
-  vals: Vals;
+  my: MyPageVals;
   profile: ProfileView | null;
   onEdit: () => void;
 };
 
 // マイページ上部: アバター + 名前(+編集アイコン) + 利き酒師ランク + 部署/出身地 + 自己紹介 + 統計
 // 編集はユーザー名右の鉛筆アイコンから起動する。
-export function ProfileHeader({ vals, profile, onEdit }: Props) {
+export function ProfileHeader({ my, profile, onEdit }: Props) {
   const dept = profile?.dept ?? '';
   const hometown = profile?.hometown ?? '';
   const bio = profile?.bio ?? '';
@@ -18,10 +18,10 @@ export function ProfileHeader({ vals, profile, onEdit }: Props) {
   return (
     <header className="mb-8 flex flex-wrap items-start gap-5">
       <div className="flex min-w-0 max-w-120 flex-1 basis-70 items-start gap-5">
-        <span className="flex h-18 w-18 shrink-0 items-center justify-center rounded-full bg-mark font-serif text-[26px] font-bold">{vals.userAvatar}</span>
+        <span className="flex h-18 w-18 shrink-0 items-center justify-center rounded-full bg-mark font-serif text-[26px] font-bold">{my.userAvatar}</span>
         <hgroup className="min-w-0 flex-1">
           <div className="flex items-center gap-2.5">
-            <h1 className="m-0 font-serif text-[26px] font-bold">{vals.userName}</h1>
+            <h1 className="m-0 font-serif text-[26px] font-bold">{my.userName}</h1>
             <button
               type="button"
               onClick={onEdit}
@@ -35,7 +35,7 @@ export function ProfileHeader({ vals, profile, onEdit }: Props) {
               </svg>
             </button>
           </div>
-          <p className="m-0 mt-1 inline-block whitespace-nowrap rounded-full bg-primary px-3.5 py-1 text-[12px] font-bold leading-snug text-surface">利き酒師ランク · {vals.rankName}</p>
+          <p className="m-0 mt-1 inline-block whitespace-nowrap rounded-full bg-primary px-3.5 py-1 text-[12px] font-bold leading-snug text-surface">利き酒師ランク · {my.rankName}</p>
           {profileParts && (
             <p className="m-0 mt-1.5 text-[12px] text-muted">{profileParts}</p>
           )}
@@ -49,15 +49,15 @@ export function ProfileHeader({ vals, profile, onEdit }: Props) {
       </div>
       <dl className="m-0 ml-23 flex gap-7 md:ml-auto">
         <div className="text-center">
-          <dd className="m-0 font-serif text-[26px] font-bold">{vals.statCups}</dd>
+          <dd className="m-0 font-serif text-[26px] font-bold">{my.statCups}</dd>
           <dt className="text-[11px] text-muted">盃</dt>
         </div>
         <div className="border-l border-line pl-7 text-center">
-          <dd className="m-0 font-serif text-[26px] font-bold">{vals.statBrands}</dd>
+          <dd className="m-0 font-serif text-[26px] font-bold">{my.statBrands}</dd>
           <dt className="text-[11px] text-muted">銘柄</dt>
         </div>
         <div className="border-l border-line pl-7 text-center">
-          <dd className="m-0 font-serif text-[26px] font-bold">{vals.statKura}</dd>
+          <dd className="m-0 font-serif text-[26px] font-bold">{my.statKura}</dd>
           <dt className="text-[11px] text-muted">蔵</dt>
         </div>
       </dl>

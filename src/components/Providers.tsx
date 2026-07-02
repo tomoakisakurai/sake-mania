@@ -2,9 +2,8 @@
 import { createContext, useContext, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useStore } from '@/store';
-import { useVals } from '@/useVals';
-import type { Vals } from '@/useVals';
 import { routeStateFromPath } from '@/lib/routes';
+import { useNavVals } from './useNavVals';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
 import { getIsAdmin, ensureProfile, getMyProfile } from '@/app/actions/profile';
 import type { CoreReferenceData, DeferredReferenceData, ReferenceData } from '@/lib/getReferenceData';
@@ -13,26 +12,24 @@ import { TabBar } from './TabBar';
 import { Toast } from './Toast';
 import { Footer } from './Footer';
 
-const ValsContext = createContext<Vals | null>(null);
-export function useV(): Vals { return useContext(ValsContext) as Vals; }
-
 // 参照データ(brands/others/bars/kuraMeta/prefGrid)を画面から直接読むための
-// コンテキスト。useVals を経由しない「画面ごとのビューモデル」パターンで使う。
+// コンテキスト。「画面ごとのビューモデル」フックから直接読む。
 const ReferenceContext = createContext<ReferenceData | null>(null);
 export function useReferenceData(): ReferenceData { return useContext(ReferenceContext) as ReferenceData; }
 
 // 後追い取得分の初期値（mount後にクライアントから実データで上書き）。
-// 空でも useVals 側の各ガードでクラッシュしない。
+// 空でも各画面フック側のガードでクラッシュしない。
 const EMPTY_DEFERRED: DeferredReferenceData = { others: [], bars: [], kuraMeta: {}, prefGrid: [] };
 
 export function Providers({ initialData, children }: { initialData: CoreReferenceData; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const route = routeStateFromPath(pathname || '/');
-  // SSR取得のcore(brands/members) と クライアント後追いのdeferred を合成。
+  // SSR取得のcore(brands) と クライアント後追いのdeferred を合成。
   const deferredRef = useStore((s) => s.deferredRef);
   const ref: ReferenceData = { ...initialData, ...(deferredRef ?? EMPTY_DEFERRED) };
-  const vals = useVals(route, ref);
+  const nav = useNavVals();
+  const toast = useStore((s) => s.toast);
 
   // Bridge store navigation to the Next.js router.
   useEffect(() => {
@@ -138,15 +135,13 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
 
   return (
     <ReferenceContext.Provider value={ref}>
-      <ValsContext.Provider value={vals}>
-        <div style={{ minHeight: '100vh', background: '#F6F1E7', fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'flex', flexDirection: 'column' }}>
-          {vals.showChrome && <Nav vals={vals} />}
-          <div style={{ flex: 1 }}>{children}</div>
-          {vals.showChrome && <Footer />}
-          {vals.isMobile && <TabBar vals={vals} />}
-          {vals.toastVisible && <Toast message={vals.toastMsg} />}
-        </div>
-      </ValsContext.Provider>
+      <div style={{ minHeight: '100vh', background: '#F6F1E7', fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'flex', flexDirection: 'column' }}>
+        {nav.showChrome && <Nav nav={nav} />}
+        <div style={{ flex: 1 }}>{children}</div>
+        {nav.showChrome && <Footer />}
+        {nav.isMobile && <TabBar nav={nav} />}
+        {!!toast && <Toast message={toast} />}
+      </div>
     </ReferenceContext.Provider>
   );
 }
