@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import type { Vals } from '@/useVals';
+import type { FeedItem } from '@/lib/feedModel';
 // みんなの利き酒帳の投稿カード。ホーム(サイドの抜粋)とフィード一覧で共有する。
 
 function NomiCup() {
@@ -10,7 +10,7 @@ function NomiCup() {
   );
 }
 
-export function FeedCard({ feed, padClass = 'p-5.5 px-6.5' }: { feed: Vals['feedAll'][number]; padClass?: string }) {
+export function FeedCard({ feed, padClass = 'p-5.5 px-6.5' }: { feed: FeedItem; padClass?: string }) {
   return (
     <article onClick={feed.click} className={clsx('cursor-pointer rounded-xl border border-line bg-card', padClass)}>
       <header className="mb-3 flex items-center gap-2.5">

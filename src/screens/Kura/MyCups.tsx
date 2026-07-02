@@ -1,11 +1,11 @@
-import type { Vals } from '@/useVals';
+import type { KuraVals } from './useKuraVals';
 
-export function MyCups({ vals }: { vals: Vals }) {
+export function MyCups({ ku }: { ku: KuraVals }) {
   return (
     <section className="rounded-xl border border-line bg-card px-5.5 py-5">
       <h2 className="m-0 mb-1.5 font-serif text-[15px] font-bold">この蔵でのわたしの盃</h2>
       <ul className="m-0 p-0 list-none">
-        {vals.ku.cups.map((cup, i) => (
+        {ku.cups.map((cup, i) => (
           <li key={i} onClick={cup.click} className="cursor-pointer border-b border-line-soft py-3 last:border-b-0">
             <header className="mb-1 flex flex-wrap items-baseline gap-2.5">
               <span className="text-[13px] font-bold">{cup.name}</span>
