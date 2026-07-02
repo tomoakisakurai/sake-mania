@@ -5,28 +5,27 @@ import * as schema from '@/db/schema';
 import {
   brands as mockBrands,
   others as mockOthers,
-  members as mockMembers,
-  meetups as mockMeetups,
   bars as mockBars,
   kuraMeta as mockKuraMeta,
   prefGrid as mockPrefGrid,
 } from '@/data';
-import type { Brand, OtherRec, Member, Meetup, Bar, KuraMetaEntry } from '@/types';
+import type { Brand, OtherRec, Bar, KuraMetaEntry } from '@/types';
 
+// 図鑑コンテンツ等の「参照データ」(シード済みでほぼ不変)。
+// メンバーは profiles、MEETUPは meetup_events に移行済みのため含まない。
+// others はサンプル投稿だが、銘柄詳細のシードレビューとして現役なので残している。
 export interface ReferenceData {
   brands: Brand[];
   others: OtherRec[];
-  members: Member[];
-  meetups: Meetup[];
   bars: Bar[];
   kuraMeta: Record<string, KuraMetaEntry>;
   prefGrid: [string, number, number][];
 }
 
 // 初回ペイントに必要な土台（SSRでサーバー取得）。
-export type CoreReferenceData = Pick<ReferenceData, 'brands' | 'members'>;
+export type CoreReferenceData = Pick<ReferenceData, 'brands'>;
 // 初回ペイントに不要で、描画後にクライアントから後追い取得する分。
-export type DeferredReferenceData = Pick<ReferenceData, 'others' | 'meetups' | 'bars' | 'kuraMeta' | 'prefGrid'>;
+export type DeferredReferenceData = Pick<ReferenceData, 'others' | 'bars' | 'kuraMeta' | 'prefGrid'>;
 
 // jsonb columns can come back as a parsed array OR as a raw JSON string
 // depending on the driver/runtime; normalize to an array either way.
@@ -49,15 +48,13 @@ function num(v: unknown): number {
 const mock: ReferenceData = {
   brands: mockBrands,
   others: mockOthers,
-  members: mockMembers,
-  meetups: mockMeetups,
   bars: mockBars,
   kuraMeta: mockKuraMeta,
   prefGrid: mockPrefGrid,
 };
-const mockCore: CoreReferenceData = { brands: mock.brands, members: mock.members };
+const mockCore: CoreReferenceData = { brands: mock.brands };
 const mockDeferred: DeferredReferenceData = {
-  others: mock.others, meetups: mock.meetups, bars: mock.bars, kuraMeta: mock.kuraMeta, prefGrid: mock.prefGrid,
+  others: mock.others, bars: mock.bars, kuraMeta: mock.kuraMeta, prefGrid: mock.prefGrid,
 };
 
 const isBuildPhase = () => process.env.NEXT_PHASE === 'phase-production-build';
@@ -75,16 +72,9 @@ function mapBrands(rows: (typeof schema.brands.$inferSelect)[]): Brand[] {
     rating: num(r.rating), count: num(r.count), tags: arr(r.tags), desc: r.description, photo: r.photo,
   }));
 }
-function mapMembers(rows: (typeof schema.members.$inferSelect)[]): Member[] {
-  return rows.map((r) => ({
-    name: r.name, display: r.display, avatar: r.avatar, avatarBg: r.avatarBg,
-    dept: r.dept ?? undefined, taste: r.taste ?? undefined,
-    hometown: r.hometown ?? undefined, hometownNote: r.hometownNote ?? undefined,
-  }));
-}
 
 /**
- * 初回ペイントに必要な土台データ（銘柄カタログ・メンバー）。
+ * 初回ペイントに必要な土台データ（銘柄カタログ）。
  * layout の SSR から呼ぶ。DB未設定・未シード・失敗時は mock にフォールバック。
  */
 export async function getCoreReferenceData(): Promise<CoreReferenceData> {
@@ -95,16 +85,12 @@ export async function getCoreReferenceData(): Promise<CoreReferenceData> {
   if (!db) return mockCore;
 
   try {
-    // 2テーブルだけなので並列でもプール(max:5)に十分収まる。
-    const [bRows, mRows] = await Promise.all([
-      db.select().from(schema.brands).orderBy(asc(schema.brands.sortOrder)),
-      db.select().from(schema.members).orderBy(asc(schema.members.sortOrder)),
-    ]);
-    if (!bRows.length || !mRows.length) {
+    const bRows = await db.select().from(schema.brands).orderBy(asc(schema.brands.sortOrder));
+    if (!bRows.length) {
       console.warn('[getCoreReferenceData] DB not seeded — falling back to mock.');
       return mockCore;
     }
-    const data: CoreReferenceData = { brands: mapBrands(bRows), members: mapMembers(mRows) };
+    const data: CoreReferenceData = { brands: mapBrands(bRows) };
     coreCache = { at: Date.now(), data };
     return data;
   } catch (err) {
@@ -125,17 +111,16 @@ export async function getDeferredReferenceData(): Promise<DeferredReferenceData>
   if (!db) return mockDeferred;
 
   try {
-    // 5テーブルを2バッチ(3本/2本)に分割し、同時接続をプール(max:5)内に抑える。
-    const [oRows, mtRows, barRows] = await Promise.all([
+    // 4テーブルを2バッチ(2本/2本)に分割し、同時接続をプール(max:5)内に抑える。
+    const [oRows, barRows] = await Promise.all([
       db.select().from(schema.others).orderBy(asc(schema.others.sortOrder)),
-      db.select().from(schema.meetups).orderBy(asc(schema.meetups.sortOrder)),
       db.select().from(schema.bars).orderBy(asc(schema.bars.sortOrder)),
     ]);
     const [kRows, pRows] = await Promise.all([
       db.select().from(schema.kuraMeta),
       db.select().from(schema.prefGrid).orderBy(asc(schema.prefGrid.sortOrder)),
     ]);
-    if (!oRows.length || !mtRows.length || !barRows.length || !kRows.length || !pRows.length) {
+    if (!oRows.length || !barRows.length || !kRows.length || !pRows.length) {
       console.warn('[getDeferredReferenceData] DB not seeded — falling back to mock.');
       return mockDeferred;
     }
@@ -145,15 +130,6 @@ export async function getDeferredReferenceData(): Promise<DeferredReferenceData>
       avatarBg: r.avatarBg, time: r.time, place: r.place, brandId: r.brandId, rating: num(r.rating),
       x: num(r.x), y: num(r.y), sweet: num(r.sweet), temps: arr(r.temps), pairing: r.pairing, memo: r.memo, date: r.date,
     }));
-    const meetups: Meetup[] = mtRows.map((r) => ({
-      id: r.id, status: r.status as Meetup['status'], phase: r.phase as Meetup['phase'],
-      name: r.name, dateShort: r.dateShort, dateLabel: r.dateLabel, place: r.place, theme: r.theme,
-      host: r.host, capacity: r.capacity == null ? undefined : num(r.capacity), attendees: r.attendees == null ? undefined : num(r.attendees),
-      voteDeadline: r.voteDeadline ?? undefined,
-      going: r.going == null ? undefined : arr(r.going),
-      bring: r.bring == null ? undefined : arr(r.bring),
-      lineup: r.lineup == null ? undefined : arr(r.lineup),
-    }));
     const bars: Bar[] = barRows.map((r) => ({
       id: r.id, name: r.name, area: r.area, type: r.type, venueQ: r.venueQ, brands: arr(r.brands), note: r.note,
     }));
@@ -161,7 +137,7 @@ export async function getDeferredReferenceData(): Promise<DeferredReferenceData>
     for (const r of kRows) kuraMeta[r.brewery] = { city: r.city, founded: num(r.founded), desc: r.description };
     const prefGrid = pRows.map((r) => [r.name, num(r.col), num(r.row)] as [string, number, number]);
 
-    const data: DeferredReferenceData = { others, meetups, bars, kuraMeta, prefGrid };
+    const data: DeferredReferenceData = { others, bars, kuraMeta, prefGrid };
     deferredCache = { at: Date.now(), data };
     return data;
   } catch (err) {

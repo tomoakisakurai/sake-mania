@@ -47,10 +47,8 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const store = useStore();
   const rec = store.rec;
   const isMobile = store.vw < 760;
-  const { brands, others, members, meetups, bars, prefGrid, kuraMeta } = ref;
+  const { brands, others, bars, prefGrid, kuraMeta } = ref;
   const byId = (id: string | null | undefined) => brands.find((b) => b.id === id);
-  const memberOf = (name: string) =>
-    members.find((m) => m.name === name) || { name, display: name, avatar: (name || '?').charAt(0), avatarBg: '#DDD3BE' };
 
   const subOf = (b: Brand) => b.brewery + ' / ' + b.pref + ' — ' + b.cls;
 
@@ -68,7 +66,9 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   });
 
   // feed
-  const currentUser = store.user || { name: 'yuu_sake_log', avatar: '悠' };
+  // 未ログイン時は空の表示名にフォールバックする(モックユーザー名を漏らさない)。
+  // yuuWho が実際に表示されるのは自分の記録がある=ログイン済みの場合のみ。
+  const currentUser = store.user || { name: '', avatar: '' };
   const yuuWho = { user: currentUser.name, mine: '(あなた)', avatar: currentUser.avatar, avatarBg: '#DDD3BE' };
 
   const socialOf = (x: SocialRec) => {
@@ -511,9 +511,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     // kura map（Map画面のuseMapStateで使う生データ）
     allBrands: brands,
     allBars: bars,
-    allMembers: members,
-    allMeetups: meetups,
-    allOthers: others,
     kuraByPref,
     drunkPrefSet: drunkPrefs,
     prefGrid,

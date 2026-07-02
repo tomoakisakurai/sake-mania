@@ -1,3 +1,16 @@
+// ============================================================================
+// プロトタイプ由来のシードデータ。
+//
+// 役割は2つあり、境界を明確にしておく:
+//
+// 1. **db:seed の投入元**(src/db/seed.ts が全コレクションをDBへpush)
+// 2. **DB未設定時のランタイムフォールバック**(getReferenceData 経由)
+//    — 対象は brands / others / bars / kuraMeta / prefGrid のみ。
+//
+// members / meetups は profiles / meetup_events テーブルに移行済みのため、
+// ランタイムからは参照されない(db:seed の互換のためだけに残っている)。
+// others はサンプル投稿だが、銘柄詳細のシードレビューとして現役。
+// ============================================================================
 import type { Brand, OtherRec, Member, Meetup, Bar, KuraMetaEntry } from './types';
 
 export const brands: Brand[] = [
