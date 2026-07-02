@@ -9,6 +9,8 @@ import { buildNavModel } from '@/lib/nav';
 import { addComment as addCommentAction, deleteComment as deleteCommentAction } from '@/app/actions/social';
 import { declareBring, cancelBring } from '@/app/actions/meetups';
 import { setRecordPublic as setRecordPublicAction, deleteRecord as deleteRecordAction } from '@/app/actions/records';
+import { socialOf, buildFeedItems } from '@/lib/feedModel';
+import { starStr, subOf } from '@/lib/format';
 
 // 入力系(input/textarea)のonChangeで使う共通イベント型
 type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
@@ -33,15 +35,6 @@ const EMPTY_POST: PostVM = {
   commentSend: (_draft: string) => {},
 };
 
-// socialOf/mkFeed が読む記録のフィールド（PublicRec/MyRec/OtherRec が満たす最小構造）
-type SocialRec = { recordId: string; nomi?: number; liked?: boolean; commentCount?: number };
-type FeedSourceRec = SocialRec & { brandId: string; rating: number; memo: string; temps: string[]; pairing: string; photo?: string | null };
-type FeedWho = { user: string; mine: string; avatar: string; avatarBg: string };
-
-const starStr = (n: number) => {
-  const k = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
-  return '★'.repeat(k) + '☆'.repeat(5 - k);
-};
 
 export function useVals(route: RouteState, ref: ReferenceData) {
   const store = useStore();
@@ -49,8 +42,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const isMobile = store.vw < 760;
   const { brands, others, bars, prefGrid, kuraMeta } = ref;
   const byId = (id: string | null | undefined) => brands.find((b) => b.id === id);
-
-  const subOf = (b: Brand) => b.brewery + ' / ' + b.pref + ' — ' + b.cls;
 
   // nav / tab のビューモデル（lib/nav.ts に集約。Nav と TabBar が共有）
   const { navItems, tabLeft, tabRight } = buildNavModel(route, store);
@@ -71,23 +62,8 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const currentUser = store.user || { name: '', avatar: '' };
   const yuuWho = { user: currentUser.name, mine: '(あなた)', avatar: currentUser.avatar, avatarBg: '#DDD3BE' };
 
-  const socialOf = (x: SocialRec) => {
-    // 押下後はストアのマップを優先、未取得時はレコード同梱の値（=フィードの数字が遅れない）
-    const liked = (x.recordId in store.myNomi) ? store.myNomi[x.recordId] : !!x.liked;
-    const nomi = (x.recordId in store.nomiCounts) ? store.nomiCounts[x.recordId] : (x.nomi || 0);
-    const loaded = store.commentsByRecordId[x.recordId];
-    const commentCount = loaded ? loaded.length : (x.commentCount || 0);
-    return { liked, nomi, comments: loaded || [], commentCount };
-  };
-  const mkFeed = (x: FeedSourceRec, who: FeedWho, time: string, ref: PostRef) => {
-    const b = byId(x.brandId) || EMPTY_BRAND;
-    const so = socialOf(x);
-    const isOther = who.user !== yuuWho.user;
-    return { user: who.user, mine: who.mine || '', avatar: who.avatar, avatarBg: who.avatarBg, time, stars: starStr(x.rating), name: b.name, sub: subOf(b), memo: x.memo || '(メモなし)', tags: (x.temps || []).concat(x.pairing ? ['肴: ' + x.pairing] : []), photo: x.photo || '', hasPhoto: !!x.photo, noPhoto: !x.photo, canNomi: isOther, cantNomi: !isOther, nomiCount: so.nomi, commentCount: so.commentCount, nomiLiked: so.liked, nomiClick: (e: MouseEvent) => { e.stopPropagation(); store.toggleNomi(x.recordId); }, click: () => store.openPost(ref), brandClick: (e: MouseEvent) => { e.stopPropagation(); store.openDetail(b.id); } };
-  };
-  // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。サンプル投稿(others)は出さない。
-  const allFeed = store.publicRecords.map((pr, i) =>
-    mkFeed(pr, { user: pr.user, mine: pr.mine ? '(あなた)' : '', avatar: pr.avatar, avatarBg: pr.avatarBg }, pr.date, { src: 'public', i }));
+  // みんなの利き酒帳 = 公開記録（全ユーザー）のみ。構築ロジックは lib/feedModel に共有。
+  const allFeed = buildFeedItems(store, brands, currentUser.name);
 
   // post detail
   let post: PostVM | null = null;
@@ -115,7 +91,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
         : prf.src === 'public'
           ? px.date + ' ・ ' + pxUser + ' さんの記録'
           : (px as OtherRec).time + ' ・ ' + (px as OtherRec).place;
-      const pso = socialOf(px);
+      const pso = socialOf(store, px);
       post = {
         user: isMine ? yuuWho.user : pxUser, mine: isMine ? '(あなた)' : '',
         avatar: isMine ? yuuWho.avatar : pxAvatar, avatarBg: isMine ? yuuWho.avatarBg : pxAvatarBg,
@@ -264,21 +240,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
   const votingMeet = list.find((m) => m.phase === 'voting');
   const homeVoting = votingMeet ? { name: votingMeet.name, deadline: votingMeet.voteDeadline || '', click: () => store.openMeetup(votingMeet.id) } : null;
 
-  // SAKE MEETUP 一覧（hub画面）。フェーズ別にバッジ・統計・CTAを出し分ける。
-  const meetupsList = list.map((m) => {
-    const mvp = m.mvpBrandId ? byId(m.mvpBrandId) : undefined;
-    return {
-      meetupId: m.id,
-      phaseLabel: m.phase === 'voting' ? '投票受付中' : m.phase === 'closed' ? '結果確定' : '開催前',
-      name: m.name, eventDate: m.eventDate, dateLabel: m.dateLabel, place: m.place, theme: m.theme,
-      isUpcoming: m.phase === 'before', isVoting: m.phase === 'voting', isClosed: m.phase === 'closed',
-      iGoing: m.iGoing, goingCount: m.goingCount, bringCount: m.bringCount,
-      voteDeadline: m.voteDeadline || '',
-      hasMvp: !!mvp, mvpName: mvp ? mvp.name : '',
-      click: () => store.openMeetup(m.id),
-    };
-  });
-
   // 開いているMEETUPの詳細（route.meetupId に対応）
   const meId = md?.id || route.meetupId || '';
   const mePhase = md?.phase || 'before';
@@ -359,31 +320,6 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     cancel: () => store.openMeetup(meId),
   };
 
-  // kura detail
-  const kn0 = route.kuraName;
-  const kmeta = kn0 ? kuraMeta[kn0] : undefined;
-  const kBrands = brands.filter((b) => b.brewery === kn0);
-  const kPref = kBrands.length ? kBrands[0].pref : '';
-  const kRecs = store.myRecords.map((x, i) => ({ rec: x, idx: i })).filter((o) => kBrands.some((b) => b.id === o.rec.brandId));
-  const kQuery = encodeURIComponent((kn0 || '') + ' ' + (kmeta?.city || '') + ' ' + kPref);
-  const ku = {
-    name: kn0 || '',
-    mapSrc: 'https://www.google.com/maps?q=' + kQuery + '&output=embed&hl=ja&z=13',
-    mapLink: 'https://www.google.com/maps/search/?api=1&query=' + kQuery,
-    meta: kPref + (kmeta?.city ? ' ' + kmeta.city : '') + (kmeta?.founded ? ' — 創業 ' + kmeta.founded + '年' : ''),
-    desc: kmeta?.desc || '',
-    brandCount: kBrands.length,
-    totalRecs: kBrands.reduce((a, b) => a + b.count, 0),
-    myCupCount: kRecs.length,
-    hasCups: kRecs.length > 0,
-    dots: kBrands.map((b) => ({ left: b.x, top: b.y, label: b.name })),
-    brands: kBrands.map((b) => ({ name: b.name, cls: b.cls, polish: b.polish, rice: b.rice, rating: b.rating.toFixed(1), pct: Math.round(b.rating / 5 * 100), click: () => store.openDetail(b.id) })),
-    cups: kRecs.map((o) => {
-      const b = byId(o.rec.brandId) || EMPTY_BRAND;
-      return { name: b.name, date: o.rec.date, stars: starStr(o.rec.rating), memo: o.rec.memo || '(メモなし)', click: () => store.openPost({ src: 'mine', i: o.idx }) };
-    }),
-  };
-
   // mypage
   const myList = store.myRecords.map((x, i) => {
     const b = byId(x.brandId) || EMPTY_BRAND;
@@ -460,7 +396,7 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     statCups: store.myRecords.length, statBrands: uniqBrands.size, statKura: uniqKura.size,
     today: { name: today.name, sub: subOf(today) },
     todayClick: () => store.openDetail(today.id),
-    myDots, feedItems: allFeed.slice(0, 3), feedAll: allFeed, feedCount: allFeed.length, goFeed: () => store.nav('feed'), post: post ?? EMPTY_POST, ranking,
+    myDots, feedItems: allFeed.slice(0, 3), goFeed: () => store.nav('feed'), post: post ?? EMPTY_POST, ranking,
     // detail
     d: { name: d.name, brewery: d.brewery, pref: d.pref, cls: d.cls, class: d.cls, polish: d.polish, rice: d.rice, yeast: d.yeast, smv: d.smv, abv: d.abv, temp: d.temp, desc: d.desc, x: d.x, y: d.y, rating: d.rating.toFixed(1), count: d.count },
     dStars: starStr(Math.round(d.rating)),
@@ -516,19 +452,15 @@ export function useVals(route: RouteState, ref: ReferenceData) {
     kuraMeta,
     openKura: (name: string) => store.openKura(name),
     mapStats,
-    goMap: () => store.nav('map'),
-    ku,
     // SAKE MEETUP
     homeNext, homePast, homeVoting, hasVoting: !!homeVoting, meetup, declare,
-    meetupsList, isMeetups: route.screen === 'meetups', goMeetups: () => store.nav('meetups'),
+    isMeetups: route.screen === 'meetups', goMeetups: () => store.nav('meetups'),
     isMeetup: route.screen === 'meetup', isDeclare: route.screen === 'declare',
     isMeetupCreate: route.screen === 'meetupCreate',
     openMeetupCreate: () => store.openMeetupCreate(),
     isKuraReg: route.screen === 'kuraReg',
     openKuraReg: () => store.openKuraReg(),
     meetCols: isMobile ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
-    kuraCols: isMobile ? '1fr' : 'minmax(0, 1.4fr) minmax(0, 1fr)',
-    kuraBrandCols: isMobile ? '1fr' : 'repeat(2, 1fr)',
     dBreweryClick: () => store.openKura(d.brewery),
     mapCols: isMobile ? '1fr' : 'minmax(0, 1.55fr) minmax(0, 1fr)',
     mapPanelPad: isMobile ? '14px 12px' : '24px',

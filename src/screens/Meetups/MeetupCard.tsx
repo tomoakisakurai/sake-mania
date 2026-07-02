@@ -1,12 +1,12 @@
 'use client';
 import clsx from 'clsx';
-import type { Vals } from '@/useVals';
+import type { MeetupListItem } from './useMeetupsList';
 import { isMeetupOngoing } from '@/lib/meetupStatus';
 import { useNow } from '@/lib/useNow';
 import { MeetupGoButton } from './MeetupGoButton';
 // SAKE MEETUP一覧のカード。フェーズ別(開催前/投票受付中/結果確定)に統計・CTAを出し分ける。
 // 開催時間中(before かつ 開始〜+3h)は「開催中」バッジに切り替える(派生表示)。
-export function MeetupCard({ ml }: { ml: Vals['meetupsList'][number] }) {
+export function MeetupCard({ ml }: { ml: MeetupListItem }) {
   const now = useNow();
   const ongoing = ml.isUpcoming && isMeetupOngoing(ml.eventDate, now);
   const phaseLabel = ongoing ? '開催中' : ml.phaseLabel;
