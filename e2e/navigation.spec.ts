@@ -19,20 +19,17 @@ test.describe('ナビゲーション(PC)', () => {
   });
 });
 
-test.describe('ハンバーガーメニュー(SP)', () => {
+test.describe('ヘッダー(SP)', () => {
   test.skip(({ isMobile }) => !isMobile, 'SPのみ');
 
-  test.beforeEach(async ({ context }) => {
-    // 未ログイン状態ではハンバーガーアイコン自体が出ないので、cookieだけセットして
-    // 「擬似ログイン済み」UIを試すことは不可。ここでは未ログインのSPナビを確認する。
-    void context;
-  });
-
-  test('未ログインのSPはハンバーガーアイコンが出ない(loggedIn の中で描画されるため)', async ({ page }) => {
+  // ハンバーガーメニューの開閉は loggedIn 時のみ描画されるため、
+  // 認証E2E(別issue)で扱う。ここでは未ログインのSPヘッダーを確認する。
+  test('未ログインのSPはハンバーガーが出ず、ログインボタンが出る', async ({ page }) => {
     await page.goto('/');
-    // ハンバーガー(3本線)は loggedIn 時のみ描画される。
-    // 未ログイン時は「ログイン」ボタンが出る。
     await expect(page.getByText('ログイン', { exact: true }).first()).toBeVisible();
+    // ハンバーガー(3本線アイコン)は描画されていないこと。
+    // Nav.tsx のハンバーガーは bg-ink の3本線spanで構成される。
+    await expect(page.locator('span.bg-ink')).toHaveCount(0);
   });
 });
 
@@ -45,7 +42,9 @@ test.describe('メンバー出身地マップのURL状態管理', () => {
 
   test('?pref=東京 でアクセスすると選択状態がURLから復元される', async ({ page }) => {
     await page.goto('/members?pref=東京');
-    await expect(page).toHaveURL(/pref=%E6%9D%B1%E4%BA%AC|pref=東京/);
+    // URLだけでなく、UIに選択中パネルが復元されていることを確認する。
+    // HometownPanel は該当メンバー0人でも「{県名} 出身のメンバー」見出しを出す。
+    await expect(page.getByRole('heading', { name: '東京 出身のメンバー' })).toBeVisible();
   });
 });
 
