@@ -39,6 +39,11 @@ next-env.d.ts
 # Local scratch / old prototype template
 /tmp/
 
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
