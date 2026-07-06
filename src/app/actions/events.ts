@@ -226,9 +226,12 @@ export async function createEvent(input: EventInput): Promise<string | null> {
     targetPath: `/event/${row.id}`,
     excludeUserId: user.id,
   });
-  // 部のSlackチャンネルにも自動投稿(失敗してもcreateEvent自体には影響しない)
+  // 部のSlackチャンネルにも自動投稿(失敗してもcreateEvent自体には影響しない)。
+  // 絶対URLが組み立てられない環境(ローカル開発等)ではリンク行を省略する。
+  const eventUrl = absoluteUrl(paths.event(row.id));
+  const linkLine = eventUrl ? `\n${eventUrl}` : '';
   await postToSlack(
-    `🎉 新しいイベント情報が登録されました\n*${input.name}*\n日時: ${input.dateLabel}\n場所: ${input.place}\n${absoluteUrl(paths.event(row.id))}`,
+    `🎉 新しいイベント情報が登録されました\n*${input.name}*\n日時: ${input.dateLabel}\n場所: ${input.place}${linkLine}`,
   );
   return row.id;
 }

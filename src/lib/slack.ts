@@ -3,10 +3,22 @@
 // 投稿の成否はMEETUP/イベント作成自体の成否に影響してはいけないため、
 // 例外は投げずconsole.errorに残すだけにする。
 
-/** NEXT_PUBLIC_SITE_URL が設定されていれば絶対URLに、未設定なら相対パスのまま返す。 */
-export function absoluteUrl(path: string): string {
-  const base = process.env.NEXT_PUBLIC_SITE_URL;
-  return base ? `${base}${path}` : path;
+/**
+ * 絶対URLの元になるベースURL。NEXT_PUBLIC_SITE_URL か Vercel本番URLが
+ * 確定している場合だけ返す。ローカル開発(localhost)へは絶対に
+ * フォールバックしない — Slackに http://localhost:xxxx のような
+ * 誰も開けないリンクを送ってしまうのを防ぐため。
+ */
+function siteUrlForSlack(): string | null {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  return null;
+}
+
+/** 絶対URLが組み立てられる場合のみ返す。組み立てられない(ローカル開発等)なら null。 */
+export function absoluteUrl(path: string): string | null {
+  const base = siteUrlForSlack();
+  return base ? `${base}${path}` : null;
 }
 
 /** Slack Incoming Webhook にテキストを投稿する。SLACK_WEBHOOK_URL未設定なら何もしない(機能OFF)。 */

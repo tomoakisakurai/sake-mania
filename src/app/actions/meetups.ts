@@ -79,10 +79,13 @@ export async function createMeetup(input: { name: string; dateLabel: string; pla
     targetPath: `/meetup/${row.id}`,
     excludeUserId: user.id,
   });
-  // 部のSlackチャンネルにも自動投稿(失敗してもcreateMeetup自体には影響しない)
+  // 部のSlackチャンネルにも自動投稿(失敗してもcreateMeetup自体には影響しない)。
+  // 絶対URLが組み立てられない環境(ローカル開発等)ではリンク行を省略する。
   const themeLine = input.theme ? `\nテーマ: ${input.theme}` : '';
+  const meetupUrl = absoluteUrl(paths.meetup(row.id));
+  const linkLine = meetupUrl ? `\n${meetupUrl}` : '';
   await postToSlack(
-    `🍶 新しいSAKE MEETUPが立ちました\n*${input.name}*\n日時: ${input.dateLabel}\n会場: ${input.place}${themeLine}\n${absoluteUrl(paths.meetup(row.id))}`,
+    `🍶 新しいSAKE MEETUPが立ちました\n*${input.name}*\n日時: ${input.dateLabel}\n会場: ${input.place}${themeLine}${linkLine}`,
   );
   return row.id;
 }
