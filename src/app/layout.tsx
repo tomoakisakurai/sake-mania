@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import { Providers } from '@/components/Providers';
 import { getCoreReferenceData } from '@/lib/getReferenceData';
 
@@ -38,6 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="ja">
       <body>
         <Providers initialData={initialData}>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
