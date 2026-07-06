@@ -3,6 +3,8 @@ import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
+import { absoluteUrl, postToSlack } from '@/lib/slack';
+import { paths } from '@/lib/routes';
 import { createNotification, createNotificationForAll } from './notifications';
 
 export type EventStatus = 'going' | 'interested';
@@ -224,6 +226,13 @@ export async function createEvent(input: EventInput): Promise<string | null> {
     targetPath: `/event/${row.id}`,
     excludeUserId: user.id,
   });
+  // 部のSlackチャンネルにも自動投稿(失敗してもcreateEvent自体には影響しない)。
+  // 絶対URLが組み立てられない環境(ローカル開発等)ではリンク行を省略する。
+  const eventUrl = absoluteUrl(paths.event(row.id));
+  const linkLine = eventUrl ? `\n${eventUrl}` : '';
+  await postToSlack(
+    `🎉 新しいイベント情報が登録されました\n*${input.name}*\n日時: ${input.dateLabel}\n場所: ${input.place}${linkLine}`,
+  );
   return row.id;
 }
 
