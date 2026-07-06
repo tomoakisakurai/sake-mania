@@ -80,6 +80,23 @@ export async function createMeetup(input: { name: string; dateLabel: string; pla
   return row.id;
 }
 
+export async function updateMeetup(meetupId: string, input: { name: string; dateLabel: string; place: string; theme: string; eventDate?: string }): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user) return false;
+  const updated = await db.update(schema.meetupEvents)
+    .set({
+      name: input.name,
+      dateLabel: input.dateLabel,
+      place: input.place,
+      theme: input.theme,
+      eventDate: input.eventDate || null,
+    })
+    .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
+    .returning({ id: schema.meetupEvents.id });
+  return updated.length > 0;
+}
+
 export async function getMeetups(): Promise<MeetupView[]> {
   const db = getDb();
   if (!db) return [];

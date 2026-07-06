@@ -49,6 +49,11 @@ export const DeclareClient = () => {
   return <Declare meetupId={decodeURIComponent(id)} />;
 };
 export const MeetupCreateClient = () => <MeetupCreate />;
+export const MeetupEditClient = () => {
+  const params = useParams<{ id: string }>();
+  const id = typeof params?.id === 'string' ? params.id : '';
+  return <MeetupCreate editingId={decodeURIComponent(id)} />;
+};
 export const KuraClient = () => {
   const params = useParams<{ name: string }>();
   const name = typeof params?.name === 'string' ? params.name : '';
