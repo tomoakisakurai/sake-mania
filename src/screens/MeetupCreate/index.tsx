@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import { createMeetup, updateMeetup, getMeetupDetail } from '@/app/actions/meetups';
 import { Loading } from '@/components/shared/Loading';
+import { ToggleSwitch } from '@/components/shared/ToggleSwitch';
 import { paths } from '@/lib/routes';
 import { Done } from './Done';
 import { DateTimePicker } from './DateTimePicker';
@@ -25,6 +26,7 @@ export function MeetupCreate({ editingId }: { editingId?: string }) {
   const [ecDateVal, setEcDateVal] = useState('');
   const [calHour, setCalHour] = useState('19:00');
   const [loaded, setLoaded] = useState(!isEdit);
+  const [notifySlack, setNotifySlack] = useState(true);
 
   useEffect(() => {
     if (!editingId) return;
@@ -59,12 +61,12 @@ export function MeetupCreate({ editingId }: { editingId?: string }) {
       router.push(paths.meetup(editingId));
       return;
     }
-    const id = await createMeetup(payload);
+    const id = await createMeetup({ ...payload, notifySlack });
     if (!id) { st.flash('作成に失敗しました（ログインが必要です）'); return; }
     await st.loadMeetups();
     setDone(true);
   };
-  const handleAnother = () => { setName(''); setEcDateVal(''); setCalHour('19:00'); setPlace(''); setDesc(''); setDone(false); };
+  const handleAnother = () => { setName(''); setEcDateVal(''); setCalHour('19:00'); setPlace(''); setDesc(''); setNotifySlack(true); setDone(false); };
 
   const handleBack = () => {
     if (isEdit && editingId) router.push(paths.meetup(editingId));
@@ -100,10 +102,24 @@ export function MeetupCreate({ editingId }: { editingId?: string }) {
           <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>テーマ・ひとこと</div>
           <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} placeholder="例: 夏酒 — 生酒・夏限定をひとつ持ち寄り" style={{ width: "100%", background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 10, padding: "12px 16px", fontSize: 14, lineHeight: 1.8, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", resize: "vertical", marginBottom: 24 }}></textarea>
 
+          {!isEdit && (
+            <div className="mb-6 flex items-center gap-3.5 rounded-xl border border-line bg-surface px-4.5 py-3.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-body">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              <div className="min-w-0 flex-1">
+                <p className="m-0 text-[13px] font-bold">Slackに通知する</p>
+                <p className="m-0 text-[11.5px] leading-[1.6] text-muted">作成すると #日本酒部 チャンネルにお知らせが投稿されます</p>
+              </div>
+              <ToggleSwitch checked={notifySlack} onChange={setNotifySlack} ariaLabel="Slackに通知する" />
+            </div>
+          )}
+
           <div onClick={handleSubmit} style={{ background: "#BC6A2D", color: "#FDFBF5", borderRadius: 999, padding: 15, textAlign: "center", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>{isEdit ? 'この内容で保存する' : 'この内容で会を立てる'}</div>
         </>
       )}
-      {done && <Done registeredName={name} onAnother={handleAnother} onGoHome={() => st.nav('home')} />}
+      {done && <Done registeredName={name} notifySlack={notifySlack} onAnother={handleAnother} onGoHome={() => st.nav('home')} />}
     </div>
   );
 }

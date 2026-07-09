@@ -56,6 +56,7 @@ export interface EventInput {
   fee: string;
   officialUrl: string;
   description: string;
+  notifySlack?: boolean;
 }
 
 async function currentUser() {
@@ -227,12 +228,15 @@ export async function createEvent(input: EventInput): Promise<string | null> {
     excludeUserId: user.id,
   });
   // 部のSlackチャンネルにも自動投稿(失敗してもcreateEvent自体には影響しない)。
+  // notifySlackが明示的にfalseの場合のみスキップする(未指定時は既存動作を維持しtrue扱い)。
   // 絶対URLが組み立てられない環境(ローカル開発等)ではリンク行を省略する。
-  const eventUrl = absoluteUrl(paths.event(row.id));
-  const linkLine = eventUrl ? `\n${eventUrl}` : '';
-  await postToSlack(
-    `🎉 新しいイベント情報が登録されました\n*${input.name}*\n日時: ${input.dateLabel}\n場所: ${input.place}${linkLine}`,
-  );
+  if (input.notifySlack !== false) {
+    const eventUrl = absoluteUrl(paths.event(row.id));
+    const linkLine = eventUrl ? `\n${eventUrl}` : '';
+    await postToSlack(
+      `🎉 新しいイベント情報が登録されました\n*${input.name}*\n日時: ${input.dateLabel}\n場所: ${input.place}${linkLine}`,
+    );
+  }
   return row.id;
 }
 
