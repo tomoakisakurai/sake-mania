@@ -50,7 +50,7 @@ return deleted.length > 0;
 - **セマンティックHTML**: `<div>` は純粋なレイアウト用 flex/grid コンテナのみ。見出しは `<h1-3>`(`m-0` 必須)、テキストは `<p>`、リストは `<ul>/<li>`、領域は `<section>/<article>/<header>/<aside>`
 - **Tailwind + `@theme` トークン**(`globals.css`): 色の直書き(`text-[#XXX]`)禁止。`text-primary` / `bg-surface` 等を使う
 - **条件付き className は `clsx`**。テンプレートリテラル連結は禁止
-- **共通コンポーネント**(`src/components/shared/`): Button / Input / Textarea / Modal / Spinner / Loading / KebabMenu を優先して使う
+- **共通コンポーネント**(`src/components/shared/`): Button / Input / Textarea / Modal / Spinner / Loading / KebabMenu / ToggleSwitch を優先して使う
 - **トグル系ボタンは target state パターン**(連打防止 + spinner)。`useOptimistic` は使わない(冪等な既読化などは例外)。実装例: `src/screens/Events/EventStatusButton.tsx`
 - **変数名の省略禁止**(`notif` → `notification`, `md` → `meetupDetail`)
 - 日時は `eventDate`(date型)を正とし、`dateLabel`(自由文字列)のパースに依存するコードを増やさない
