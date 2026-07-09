@@ -22,6 +22,9 @@
 
   /* ===== Semantic ===== */
   --color-success: #5A7D64;
+  --color-success-tint: #EEF3EE;
+  --color-success-tint-strong: #CBD8C9;
+  --color-success-dark: #3F5847;
   --color-danger: #B0402A;
 
   /* ===== Surface(明るい和紙系) ===== */
