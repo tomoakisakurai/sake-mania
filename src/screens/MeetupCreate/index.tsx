@@ -102,16 +102,31 @@ export function MeetupCreate({ editingId }: { editingId?: string }) {
           <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} placeholder="例: 夏酒 — 生酒・夏限定をひとつ持ち寄り" style={{ width: "100%", background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 10, padding: "12px 16px", fontSize: 14, lineHeight: 1.8, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", resize: "vertical", marginBottom: 24 }}></textarea>
 
           {!isEdit && (
-            <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, fontSize: 13.5, color: "#5C5547", cursor: "pointer" }}>
-              <input type="checkbox" checked={notifySlack} onChange={(e) => setNotifySlack(e.target.checked)} style={{ width: 16, height: 16, accentColor: "#BC6A2D", cursor: "pointer" }} />
-              Slackに通知する
-            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, background: "#FBF8F1", border: "1px solid #E3DBCB", borderRadius: 12, padding: "14px 18px", marginBottom: 24 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5C5547" strokeWidth="2" style={{ flexShrink: 0 }}>
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>Slackに通知する</div>
+                <div style={{ fontSize: 11.5, color: "#8B8273", lineHeight: 1.6 }}>作成すると #日本酒部 チャンネルにお知らせが投稿されます</div>
+              </div>
+              <div
+                onClick={() => setNotifySlack((prev) => !prev)}
+                role="switch"
+                aria-checked={notifySlack}
+                aria-label="Slackに通知する"
+                style={{ width: 42, height: 24, borderRadius: 999, background: notifySlack ? "#BC6A2D" : "#D9D0BC", position: "relative", cursor: "pointer", flexShrink: 0, transition: "background 0.2s" }}
+              >
+                <div style={{ position: "absolute", top: 2, left: notifySlack ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: "#FFFFFF", boxShadow: "0 1px 3px rgba(46,42,36,0.25)", transition: "left 0.2s" }} />
+              </div>
+            </div>
           )}
 
           <div onClick={handleSubmit} style={{ background: "#BC6A2D", color: "#FDFBF5", borderRadius: 999, padding: 15, textAlign: "center", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>{isEdit ? 'この内容で保存する' : 'この内容で会を立てる'}</div>
         </>
       )}
-      {done && <Done registeredName={name} onAnother={handleAnother} onGoHome={() => st.nav('home')} />}
+      {done && <Done registeredName={name} notifySlack={notifySlack} onAnother={handleAnother} onGoHome={() => st.nav('home')} />}
     </div>
   );
 }

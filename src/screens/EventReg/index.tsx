@@ -42,7 +42,6 @@ export function EventReg({ editingId }: { editingId?: string }) {
   const [registeredName, setRegisteredName] = useState('');
   const [done, setDone] = useState(false);
   const [loaded, setLoaded] = useState(!isEdit);
-  const [notifySlack, setNotifySlack] = useState(true);
 
   useEffect(() => {
     if (!editingId) return;
@@ -81,7 +80,7 @@ export function EventReg({ editingId }: { editingId?: string }) {
       store.flash('イベントを更新しました');
       router.push(paths.event(editingId));
     } else {
-      const id = await createEvent({ ...payload, notifySlack });
+      const id = await createEvent(payload);
       if (!id) { store.flash('登録に失敗しました（ログインが必要です）'); return; }
       setRegisteredName(name.trim());
       setDone(true);
@@ -90,7 +89,7 @@ export function EventReg({ editingId }: { editingId?: string }) {
 
   const handleAnother = () => {
     setName(''); setEventDate(''); setHour('13:00'); setPlace('');
-    setFee(''); setOfficialUrl(''); setDescription(''); setNotifySlack(true);
+    setFee(''); setOfficialUrl(''); setDescription('');
     setDone(false);
   };
 
@@ -179,18 +178,6 @@ export function EventReg({ editingId }: { editingId?: string }) {
         placeholder="イベントの見どころ・参加方法など"
         className="mb-6"
       />
-
-      {!isEdit && (
-        <label className="mb-6 flex cursor-pointer items-center gap-2 text-[13.5px] text-body">
-          <input
-            type="checkbox"
-            checked={notifySlack}
-            onChange={(e) => setNotifySlack(e.target.checked)}
-            className="h-4 w-4 cursor-pointer accent-accent"
-          />
-          Slackに通知する
-        </label>
-      )}
 
       <Button onClick={handleSubmit} size="lg" fullWidth>{isEdit ? 'この内容で更新する' : 'この内容で登録する'}</Button>
     </div>
