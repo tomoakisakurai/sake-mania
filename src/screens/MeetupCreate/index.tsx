@@ -25,6 +25,7 @@ export function MeetupCreate({ editingId }: { editingId?: string }) {
   const [ecDateVal, setEcDateVal] = useState('');
   const [calHour, setCalHour] = useState('19:00');
   const [loaded, setLoaded] = useState(!isEdit);
+  const [notifySlack, setNotifySlack] = useState(true);
 
   useEffect(() => {
     if (!editingId) return;
@@ -59,12 +60,12 @@ export function MeetupCreate({ editingId }: { editingId?: string }) {
       router.push(paths.meetup(editingId));
       return;
     }
-    const id = await createMeetup(payload);
+    const id = await createMeetup({ ...payload, notifySlack });
     if (!id) { st.flash('作成に失敗しました（ログインが必要です）'); return; }
     await st.loadMeetups();
     setDone(true);
   };
-  const handleAnother = () => { setName(''); setEcDateVal(''); setCalHour('19:00'); setPlace(''); setDesc(''); setDone(false); };
+  const handleAnother = () => { setName(''); setEcDateVal(''); setCalHour('19:00'); setPlace(''); setDesc(''); setNotifySlack(true); setDone(false); };
 
   const handleBack = () => {
     if (isEdit && editingId) router.push(paths.meetup(editingId));
@@ -99,6 +100,13 @@ export function MeetupCreate({ editingId }: { editingId?: string }) {
 
           <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>テーマ・ひとこと</div>
           <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} placeholder="例: 夏酒 — 生酒・夏限定をひとつ持ち寄り" style={{ width: "100%", background: "#FDFBF5", border: "1px solid #E3DBCB", borderRadius: 10, padding: "12px 16px", fontSize: 14, lineHeight: 1.8, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: "#2E2A24", resize: "vertical", marginBottom: 24 }}></textarea>
+
+          {!isEdit && (
+            <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, fontSize: 13.5, color: "#5C5547", cursor: "pointer" }}>
+              <input type="checkbox" checked={notifySlack} onChange={(e) => setNotifySlack(e.target.checked)} style={{ width: 16, height: 16, accentColor: "#BC6A2D", cursor: "pointer" }} />
+              Slackに通知する
+            </label>
+          )}
 
           <div onClick={handleSubmit} style={{ background: "#BC6A2D", color: "#FDFBF5", borderRadius: 999, padding: 15, textAlign: "center", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>{isEdit ? 'この内容で保存する' : 'この内容で会を立てる'}</div>
         </>

@@ -61,7 +61,7 @@ async function ensureProfile(userId: string, meta: { nickname?: string }, email?
     .onConflictDoNothing({ target: schema.profiles.id });
 }
 
-export async function createMeetup(input: { name: string; dateLabel: string; place: string; theme: string; eventDate?: string }): Promise<string | null> {
+export async function createMeetup(input: { name: string; dateLabel: string; place: string; theme: string; eventDate?: string; notifySlack?: boolean }): Promise<string | null> {
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return null;
@@ -80,13 +80,16 @@ export async function createMeetup(input: { name: string; dateLabel: string; pla
     excludeUserId: user.id,
   });
   // 部のSlackチャンネルにも自動投稿(失敗してもcreateMeetup自体には影響しない)。
+  // notifySlackが明示的にfalseの場合のみスキップする(未指定時は既存動作を維持しtrue扱い)。
   // 絶対URLが組み立てられない環境(ローカル開発等)ではリンク行を省略する。
-  const themeLine = input.theme ? `\nテーマ: ${input.theme}` : '';
-  const meetupUrl = absoluteUrl(paths.meetup(row.id));
-  const linkLine = meetupUrl ? `\n${meetupUrl}` : '';
-  await postToSlack(
-    `🍶 新しいSAKE MEETUPが立ちました\n*${input.name}*\n日時: ${input.dateLabel}\n会場: ${input.place}${themeLine}${linkLine}`,
-  );
+  if (input.notifySlack !== false) {
+    const themeLine = input.theme ? `\nテーマ: ${input.theme}` : '';
+    const meetupUrl = absoluteUrl(paths.meetup(row.id));
+    const linkLine = meetupUrl ? `\n${meetupUrl}` : '';
+    await postToSlack(
+      `🍶 新しいSAKE MEETUPが立ちました\n*${input.name}*\n日時: ${input.dateLabel}\n会場: ${input.place}${themeLine}${linkLine}`,
+    );
+  }
   return row.id;
 }
 
