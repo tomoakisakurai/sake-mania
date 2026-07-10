@@ -21,8 +21,10 @@ export async function analyzeLabel(dataUrl: string): Promise<LabelAnalysisResult
 
   const client = new OpenAI();
   const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    max_tokens: 1024,
+    // モデルは環境変数で差し替え可能。GPT-5系は reasoning トークンが
+    // max_completion_tokens を消費するため、出力が途切れないよう余裕を持たせる
+    model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
+    max_completion_tokens: 2048,
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
