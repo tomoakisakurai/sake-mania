@@ -18,7 +18,7 @@ function StatBlock({ value, label, accent = false, divider = false }: { value: n
 
 export function Stats({ recCount, bringCount, mvpCount }: Props) {
   return (
-    <ul className="m-0 mb-8 flex flex-wrap gap-8 px-0 py-5 list-none">
+    <ul className="m-0 mb-8 flex flex-wrap gap-8 border-t border-b border-line px-0 py-5 list-none">
       <StatBlock value={recCount} label="記録した盃" />
       <StatBlock value={bringCount} label="MEETUPで持参" divider />
       <StatBlock value={mvpCount} label="MVP獲得" accent divider />
