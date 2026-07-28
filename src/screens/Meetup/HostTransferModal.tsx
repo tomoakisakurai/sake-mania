@@ -13,12 +13,14 @@ type Props = {
   open: boolean;
   onClose: () => void;
   meetupId: string;
+  currentHostId: string;
 };
 
 // 幹事交代モーダル。メンバーを選んで現幹事から引き継ぐ。
-export function HostTransferModal({ open, onClose, meetupId }: Props) {
+// 除外するのは「現幹事」のみ。管理者が他人の会を自分に引き継ぐケースがあるため、
+// 自分自身は候補から外さない。
+export function HostTransferModal({ open, onClose, meetupId, currentHostId }: Props) {
   const store = useStore();
-  const myId = useStore((s) => s.user?.id);
   const [members, setMembers] = useState<MemberRow[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -29,7 +31,7 @@ export function HostTransferModal({ open, onClose, meetupId }: Props) {
     listMembers().then(setMembers);
   }, [open]);
 
-  const candidates = (members ?? []).filter((member) => member.id !== myId);
+  const candidates = (members ?? []).filter((member) => member.id !== currentHostId);
   const selected = candidates.find((member) => member.id === selectedId);
 
   const handleTransfer = async () => {

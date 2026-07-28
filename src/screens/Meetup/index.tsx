@@ -131,6 +131,7 @@ export function Meetup({ meetupId }: { meetupId: string }) {
         open={hostTransferOpen}
         onClose={() => setHostTransferOpen(false)}
         meetupId={meetupDetail.id}
+        currentHostId={meetupDetail.hostId}
       />
     </main>
   );

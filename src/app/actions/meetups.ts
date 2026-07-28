@@ -31,6 +31,7 @@ export interface MeetupDetail {
   eventDate: string | null;
   place: string;
   theme: string;
+  hostId: string;
   hostName: string;
   phase: string;
   voteDeadline: string;
@@ -185,6 +186,7 @@ export async function getMeetupDetail(meetupId: string): Promise<MeetupDetail | 
 
   return {
     id: event.id, name: event.name, dateLabel: event.dateLabel, eventDate: event.eventDate ?? null, place: event.place, theme: event.theme,
+    hostId: event.hostId,
     hostName: nameOf(event.hostId), phase: event.phase, voteDeadline: event.voteDeadline || '',
     // 管理者にも幹事UI(編集・削除・幹事交代・フェーズ操作)を開放する capability フラグ
     isHost: !!user && (event.hostId === user.id || await isAdminUser(db, user.id)),
@@ -343,6 +345,7 @@ export async function transferMeetupHost(meetupId: string, newHostId: string): P
     kind: 'meetup_host',
     text: `${myProfile?.nickname || 'メンバー'}さんが「${updated[0].name}」の幹事をあなたに交代しました`,
     targetPath: paths.meetup(meetupId),
+    excludeUserId: user.id, // 管理者が自分に引き継いだときは自分宛て通知を出さない
   });
   return true;
 }
