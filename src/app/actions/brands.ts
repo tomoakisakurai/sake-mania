@@ -1,5 +1,4 @@
 'use server';
-import { eq } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
@@ -23,12 +22,6 @@ export async function createBrand(input: BrandInput): Promise<string | null> {
 
   const db = getDb();
   if (!db) return null;
-
-  const [profile] = await db
-    .select({ isAdmin: schema.profiles.isAdmin })
-    .from(schema.profiles)
-    .where(eq(schema.profiles.id, data.user.id));
-  if (!profile?.isAdmin) return null;
 
   const id = crypto.randomUUID();
   await db.insert(schema.brands).values({

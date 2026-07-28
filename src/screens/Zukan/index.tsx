@@ -10,7 +10,6 @@ export function Zukan() {
   const [query, setQuery] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const store = useStore();
-  const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
   const { brands } = useReferenceData();
 
   const filteredBrands = useMemo(() => {
@@ -34,9 +33,7 @@ export function Zukan() {
     <div className="mx-auto max-w-300 px-4.5 pt-7 pb-32.5 md:px-10 md:pt-10 md:pb-20">
       <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginBottom: 20 }}>
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700 }}>銘柄図鑑</div>
-        {isAdmin && (
-          <div onClick={() => store.nav('brandReg')} style={{ marginLeft: 'auto', border: '1px solid #32507C', color: '#32507C', borderRadius: 999, padding: '9px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>＋ 銘柄を登録する</div>
-        )}
+        <div onClick={() => { if (store.requireLogin()) store.nav('brandReg'); }} style={{ marginLeft: 'auto', border: '1px solid #32507C', color: '#32507C', borderRadius: 999, padding: '9px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>＋ 銘柄を登録する</div>
       </div>
       <input type="text" value={query} onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)} placeholder="銘柄名・酒蔵・酒米・産地でさがす" style={{ width: '100%', maxWidth: 640, background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 999, padding: '14px 24px', fontSize: 14.5, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', display: 'block', marginBottom: 16 }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>

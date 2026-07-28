@@ -12,7 +12,7 @@ import { LabelReader } from './LabelReader';
 export function BrandReg() {
   const store = useStore();
   const authReady = useStore((s) => s.authReady);
-  const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
+  const isLoggedIn = useStore((s) => !!s.user);
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
 
@@ -33,12 +33,12 @@ export function BrandReg() {
   if (!authReady) {
     return <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }} />;
   }
-  if (!isAdmin) {
+  if (!isLoggedIn) {
     return (
       <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}>
         <div onClick={() => store.nav('zukan')} style={{ fontSize: 13, color: 'var(--color-muted)', cursor: 'pointer', marginBottom: 24 }}>← 図鑑にもどる</div>
-        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>アクセスできません</div>
-        <div style={{ fontSize: 14, color: 'var(--color-body)', lineHeight: 1.9 }}>銘柄の登録は管理者のみ行えます。</div>
+        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>ログインが必要です</div>
+        <div style={{ fontSize: 14, color: 'var(--color-body)', lineHeight: 1.9 }}>銘柄の登録にはログインが必要です。</div>
       </div>
     );
   }
