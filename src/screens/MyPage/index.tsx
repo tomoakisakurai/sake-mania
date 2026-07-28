@@ -12,6 +12,7 @@ import { RecordList } from './RecordList';
 import { TasteMap } from './TasteMap';
 import { WantList } from './WantList';
 import { ProfileEditModal } from './ProfileEditModal';
+import { AccountDeleteModal } from './AccountDeleteModal';
 
 export function MyPage() {
   const my = useMyPageVals();
@@ -24,6 +25,7 @@ export function MyPage() {
   // ハンバーガーメニュー、マイページの編集ボタン、どこからでも開ける。
   const editing = searchParams.get('edit') === '1';
   const [profile, setProfile] = useState<ProfileView | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const { prefGrid } = useReferenceData();
   const prefOptions = useMemo(() => prefGrid.map((p) => p[0] as string), [prefGrid]);
@@ -60,11 +62,26 @@ export function MyPage() {
           <WantList my={my} />
         </aside>
       </div>
+      {userId && (
+        <div className="mt-16 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setDeleteConfirmOpen(true)}
+            className="cursor-pointer text-[12.5px] text-faint underline hover:text-danger"
+          >
+            SAKE MANIAを退会する
+          </button>
+        </div>
+      )}
       <ProfileEditModal
         open={editing}
         onClose={closeEdit}
         prefOptions={prefOptions}
         onSaved={reload}
+      />
+      <AccountDeleteModal
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
       />
     </main>
   );
