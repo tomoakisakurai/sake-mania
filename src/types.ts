@@ -4,6 +4,7 @@ export type Screen =
   | 'home'
   | 'zukan'
   | 'detail'
+  | 'brandEdit'
   | 'record'
   | 'mypage'
   | 'feed'

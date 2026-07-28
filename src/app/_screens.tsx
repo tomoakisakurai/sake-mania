@@ -61,6 +61,11 @@ export const KuraClient = () => {
 };
 export const KuraRegClient = () => <KuraReg />;
 export const BrandRegClient = () => <BrandReg />;
+export const BrandEditClient = () => {
+  const params = useParams<{ id: string }>();
+  const id = typeof params?.id === 'string' ? params.id : '';
+  return <BrandReg editingId={decodeURIComponent(id)} />;
+};
 export const EventsClient = () => <Events />;
 export const EventRegClient = () => <EventReg />;
 export const EventEditClient = () => {

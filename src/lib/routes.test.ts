@@ -71,6 +71,12 @@ describe('routeStateFromPath', () => {
       expect(r.eventId).toBe('ev-1');
     });
 
+    it('/brand/:id/edit → brandEdit + detailId', () => {
+      const r = routeStateFromPath('/brand/kuheiji/edit');
+      expect(r.screen).toBe('brandEdit');
+      expect(r.detailId).toBe('kuheiji');
+    });
+
     it('/member/:id → member + memberId', () => {
       const r = routeStateFromPath('/member/00000000-0000-0000-0000-000000000001');
       expect(r.screen).toBe('member');
@@ -118,6 +124,7 @@ describe('paths', () => {
     expect(paths.meetup('a/b')).toBe('/meetup/' + encodeURIComponent('a/b'));
     expect(paths.event('ev-1')).toBe('/event/ev-1');
     expect(paths.eventEdit('ev-1')).toBe('/event/ev-1/edit');
+    expect(paths.brandEdit('hoge fuga')).toBe('/brand/hoge%20fuga/edit');
     expect(paths.declare('m-1')).toBe('/meetup/m-1/declare');
     expect(paths.member('00000000-0000-0000-0000-000000000001')).toBe('/member/00000000-0000-0000-0000-000000000001');
   });

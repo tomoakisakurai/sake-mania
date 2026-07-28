@@ -63,6 +63,11 @@ const isBuildPhase = () => process.env.NEXT_PHASE === 'phase-production-build';
 // core/deferred を別々にキャッシュし、それぞれ独立にフォールバックできるようにする。
 const TTL_MS = 60_000;
 let coreCache: { at: number; data: CoreReferenceData } | null = null;
+
+/** 銘柄の登録・編集後に呼び、TTLを待たずに次のSSRへ反映させる */
+export function invalidateCoreReferenceCache(): void {
+  coreCache = null;
+}
 let deferredCache: { at: number; data: DeferredReferenceData } | null = null;
 
 function mapBrands(rows: (typeof schema.brands.$inferSelect)[]): Brand[] {

@@ -1,7 +1,10 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
-import { createBrand } from '@/app/actions/brands';
+import { useReferenceData } from '@/components/Providers';
+import { paths } from '@/lib/routes';
+import { createBrand, updateBrand } from '@/app/actions/brands';
 import { analyzeLabel } from '@/app/actions/analyzeLabel';
 import { Input } from '@/components/shared/Input';
 import { Textarea } from '@/components/shared/Textarea';
@@ -9,26 +12,38 @@ import { Button } from '@/components/shared/Button';
 import { Done } from './Done';
 import { LabelReader } from './LabelReader';
 
-export function BrandReg() {
+// editingId 付きで呼ぶと既存銘柄の編集モードになる(/brand/[id]/edit)
+export function BrandReg({ editingId }: { editingId?: string }) {
   const store = useStore();
+  const router = useRouter();
   const authReady = useStore((s) => s.authReady);
   const isLoggedIn = useStore((s) => !!s.user);
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
 
-  const [name, setName] = useState('');
-  const [brewery, setBrewery] = useState('');
-  const [pref, setPref] = useState('');
-  const [cls, setCls] = useState('');
-  const [polish, setPolish] = useState('');
-  const [rice, setRice] = useState('');
-  const [description, setDescription] = useState('');
-  const [photo, setPhoto] = useState('');
+  const isEdit = !!editingId;
+  const { brands } = useReferenceData();
+  const editingBrand = editingId ? brands.find((brand) => brand.id === editingId) : undefined;
+
+  const [name, setName] = useState(editingBrand?.name ?? '');
+  const [brewery, setBrewery] = useState(editingBrand?.brewery ?? '');
+  const [pref, setPref] = useState(editingBrand?.pref ?? '');
+  const [cls, setCls] = useState(editingBrand?.cls ?? '');
+  const [polish, setPolish] = useState(editingBrand?.polish ?? '');
+  const [rice, setRice] = useState(editingBrand?.rice ?? '');
+  const [description, setDescription] = useState(editingBrand?.desc ?? '');
+  const [photo, setPhoto] = useState(editingBrand?.photo ?? '');
   const [reading, setReading] = useState(false);
   const [readDone, setReadDone] = useState(false);
   const [registeredName, setRegisteredName] = useState('');
   const [registeredId, setRegisteredId] = useState('');
   const [done, setDone] = useState(false);
+
+  const goBack = () => {
+    if (isEdit && editingId) router.push(paths.detail(editingId));
+    else store.nav('zukan');
+  };
+  const backLabel = isEdit ? '← 銘柄詳細にもどる' : '← 図鑑にもどる';
 
   if (!authReady) {
     return <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }} />;
@@ -36,9 +51,17 @@ export function BrandReg() {
   if (!isLoggedIn) {
     return (
       <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}>
-        <div onClick={() => store.nav('zukan')} style={{ fontSize: 13, color: 'var(--color-muted)', cursor: 'pointer', marginBottom: 24 }}>← 図鑑にもどる</div>
+        <div onClick={goBack} style={{ fontSize: 13, color: 'var(--color-muted)', cursor: 'pointer', marginBottom: 24 }}>{backLabel}</div>
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>ログインが必要です</div>
-        <div style={{ fontSize: 14, color: 'var(--color-body)', lineHeight: 1.9 }}>銘柄の登録にはログインが必要です。</div>
+        <div style={{ fontSize: 14, color: 'var(--color-body)', lineHeight: 1.9 }}>銘柄の{isEdit ? '編集' : '登録'}にはログインが必要です。</div>
+      </div>
+    );
+  }
+  if (isEdit && !editingBrand) {
+    return (
+      <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}>
+        <div onClick={() => store.nav('zukan')} style={{ fontSize: 13, color: 'var(--color-muted)', cursor: 'pointer', marginBottom: 24 }}>← 図鑑にもどる</div>
+        <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>銘柄が見つかりません</div>
       </div>
     );
   }
@@ -48,7 +71,16 @@ export function BrandReg() {
       store.flash('銘柄名と酒蔵は必須です');
       return;
     }
-    const id = await createBrand({ name: name.trim(), brewery: brewery.trim(), pref, cls, polish, rice, description, photo: photo || null });
+    const input = { name: name.trim(), brewery: brewery.trim(), pref, cls, polish, rice, description, photo: photo || null };
+    if (isEdit && editingId) {
+      const ok = await updateBrand(editingId, input);
+      if (!ok) { store.flash('更新に失敗しました'); return; }
+      store.flash('銘柄を更新しました');
+      router.push(paths.detail(editingId));
+      router.refresh();
+      return;
+    }
+    const id = await createBrand(input);
     if (!id) { store.flash('登録に失敗しました'); return; }
     setRegisteredName(name.trim());
     setRegisteredId(id);
@@ -113,10 +145,14 @@ export function BrandReg() {
 
   return (
     <div style={{ maxWidth: 620, margin: '0 auto', padding: pagePadding }}>
-      <div onClick={() => store.nav('zukan')} style={{ fontSize: 13, color: 'var(--color-muted)', cursor: 'pointer', marginBottom: 24 }}>← 図鑑にもどる</div>
-      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-muted)', marginBottom: 10 }}>REGISTER A BRAND</div>
-      <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, marginBottom: 8 }}>銘柄を登録する</div>
-      <div style={{ fontSize: 13.5, lineHeight: 1.9, color: 'var(--color-body)', marginBottom: 28 }}>図鑑にまだ載っていない銘柄を登録できます。登録するとすぐに図鑑に追加され、部のみんなが記録・検索できるようになります。飲んで気に入った一本をぜひ共有しましょう。</div>
+      <div onClick={goBack} style={{ fontSize: 13, color: 'var(--color-muted)', cursor: 'pointer', marginBottom: 24 }}>{backLabel}</div>
+      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-muted)', marginBottom: 10 }}>{isEdit ? 'EDIT A BRAND' : 'REGISTER A BRAND'}</div>
+      <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{isEdit ? '銘柄を編集する' : '銘柄を登録する'}</div>
+      <div style={{ fontSize: 13.5, lineHeight: 1.9, color: 'var(--color-body)', marginBottom: 28 }}>
+        {isEdit
+          ? '登録済みの銘柄情報を修正できます。更新するとすぐに図鑑へ反映されます。'
+          : '図鑑にまだ載っていない銘柄を登録できます。登録するとすぐに図鑑に追加され、部のみんなが記録・検索できるようになります。飲んで気に入った一本をぜひ共有しましょう。'}
+      </div>
 
       <LabelReader
         photo={photo}
@@ -162,7 +198,7 @@ export function BrandReg() {
         className="mb-6"
       />
 
-      <Button onClick={handleSubmit} size="lg" fullWidth>図鑑に登録する</Button>
+      <Button onClick={handleSubmit} size="lg" fullWidth>{isEdit ? 'この内容で更新する' : '図鑑に登録する'}</Button>
     </div>
   );
 }

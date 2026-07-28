@@ -34,6 +34,7 @@ export function routeStateFromPath(pathname: string): RouteState {
   }
   if (p === '/kura/register') return { ...base, screen: 'kuraReg' };
   if (p === '/brand/register') return { ...base, screen: 'brandReg' };
+  if (seg[0] === 'brand' && seg[1] && seg[2] === 'edit') return { ...base, screen: 'brandEdit', detailId: decodeURIComponent(seg[1]) };
   if (seg[0] === 'kura' && seg[1]) return { ...base, screen: 'kura', kuraName: decodeURIComponent(seg[1]) };
   if (p === '/meetup/create') return { ...base, screen: 'meetupCreate' };
   if (p === '/events') return { ...base, screen: 'events' };
@@ -72,6 +73,7 @@ export function pathForScreen(screen: Screen): string {
 
 export const paths = {
   detail: (id: string) => `/zukan/${encodeURIComponent(id)}`,
+  brandEdit: (id: string) => `/brand/${encodeURIComponent(id)}/edit`,
   post: (src: string, i: number) => `/post/${src}/${i}`,
   kura: (name: string) => `/kura/${encodeURIComponent(name)}`,
   meetup: (id: string) => `/meetup/${encodeURIComponent(id)}`,
