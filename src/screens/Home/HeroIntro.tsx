@@ -1,14 +1,5 @@
-import clsx from 'clsx';
 import type { HomeVals } from './useHomeVals';
-
-function Stat({ value, label, divider = false }: { value: string | number; label: string; divider?: boolean }) {
-  return (
-    <li className={clsx(divider && 'border-l border-line pl-8')}>
-      <p className="m-0 font-serif text-[30px] font-bold">{value}</p>
-      <p className="m-0 text-[12px] text-muted">{label}</p>
-    </li>
-  );
-}
+import { StatList } from '@/components/shared/StatList';
 
 export function HeroIntro({ home }: { home: HomeVals }) {
   return (
@@ -20,11 +11,14 @@ export function HeroIntro({ home }: { home: HomeVals }) {
       <p className="text-[14px] leading-loose text-body max-w-105 m-0">
         飲んだ日本酒を、味わいの座標と言葉で残す。あなただけの利き酒帳が、次の一本を教えてくれる。
       </p>
-      <ul className="flex gap-8 mt-6.5 m-0 p-0 list-none">
-        <Stat value={home.statCups} label="記録した盃" />
-        <Stat value={home.statBrands} label="出会った銘柄" divider />
-        <Stat value={home.statKura} label="出会った蔵" divider />
-      </ul>
+      <StatList
+        className="mt-6.5"
+        stats={[
+          { value: home.statCups, label: '記録した盃' },
+          { value: home.statBrands, label: '出会った銘柄' },
+          { value: home.statKura, label: '出会った蔵' },
+        ]}
+      />
     </header>
   );
 }

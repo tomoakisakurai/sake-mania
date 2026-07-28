@@ -6,6 +6,7 @@ import { useStore } from '@/store';
 import { getMyProfile, type ProfileView } from '@/app/actions/profile';
 import { useReferenceData } from '@/components/Providers';
 import { useState } from 'react';
+import { StatList } from '@/components/shared/StatList';
 import { ProfileHeader } from './ProfileHeader';
 import { Achievements } from './Achievements';
 import { RecordList } from './RecordList';
@@ -54,6 +55,15 @@ export function MyPage() {
   return (
     <main className="mx-auto max-w-300 px-4.5 pt-7 pb-32.5 md:px-10 md:pt-10 md:pb-20">
       <ProfileHeader my={my} profile={profile} onEdit={openEdit} />
+      <StatList
+        framed
+        className="mb-8"
+        stats={[
+          { value: my.statCups, label: '記録した盃' },
+          { value: my.statBrands, label: '出会った銘柄' },
+          { value: my.statKura, label: '出会った蔵' },
+        ]}
+      />
       <Achievements my={my} />
       <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_380px]">
         <RecordList my={my} />

@@ -47,20 +47,6 @@ export function ProfileHeader({ my, profile, onEdit }: Props) {
           )}
         </hgroup>
       </div>
-      <dl className="m-0 ml-23 flex gap-7 md:ml-auto">
-        <div className="text-center">
-          <dd className="m-0 font-serif text-[26px] font-bold">{my.statCups}</dd>
-          <dt className="text-[11px] text-muted">盃</dt>
-        </div>
-        <div className="border-l border-line pl-7 text-center">
-          <dd className="m-0 font-serif text-[26px] font-bold">{my.statBrands}</dd>
-          <dt className="text-[11px] text-muted">銘柄</dt>
-        </div>
-        <div className="border-l border-line pl-7 text-center">
-          <dd className="m-0 font-serif text-[26px] font-bold">{my.statKura}</dd>
-          <dt className="text-[11px] text-muted">蔵</dt>
-        </div>
-      </dl>
     </header>
   );
 }
