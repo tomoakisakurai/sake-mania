@@ -46,7 +46,7 @@ return deleted.length > 0;
 
 ## コード規約
 
-- **コミットメッセージは日本語**。作業前に GitHub issue を作成し、ブランチを切ってから実装する
+- **コミットメッセージは日本語**。作業前に GitHub issue を作成し、main に直接コミットする(ブランチ/PRは切らない。コミットメッセージに `Closes #N` を入れて issue を閉じる)
 - **セマンティックHTML**: `<div>` は純粋なレイアウト用 flex/grid コンテナのみ。見出しは `<h1-3>`(`m-0` 必須)、テキストは `<p>`、リストは `<ul>/<li>`、領域は `<section>/<article>/<header>/<aside>`
 - **Tailwind + `@theme` トークン**(`globals.css`): 色の直書き(`text-[#XXX]`)禁止。`text-primary` / `bg-surface` 等を使う
 - **条件付き className は `clsx`**。テンプレートリテラル連結は禁止
