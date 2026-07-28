@@ -11,6 +11,7 @@ import { paths } from '@/lib/routes';
 import { useMeetupVals } from './useMeetupVals';
 import { BeforePhase } from './BeforePhase';
 import { ReviewPhase } from './ReviewPhase';
+import { CommentSection } from './CommentSection';
 
 function buildGcalUrl(eventDate: string, dateLabel: string, name: string, place: string, theme: string) {
   const timeMatch = dateLabel.match(/(\d{1,2}):(\d{2})/);
@@ -113,6 +114,7 @@ export function Meetup({ meetupId }: { meetupId: string }) {
 
       {meetup.isBefore && <BeforePhase meetup={meetup} />}
       {meetup.showLineup && <ReviewPhase meetup={meetup} />}
+      <CommentSection meetupId={meetupDetail.id} />
     </main>
   );
 }

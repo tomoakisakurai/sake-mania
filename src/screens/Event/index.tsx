@@ -6,6 +6,8 @@ import {
   getEventDetail,
   toggleEventStatus,
   addEventComment,
+  editEventComment,
+  deleteEventComment,
   deleteEvent,
 } from '@/app/actions/events';
 import type { EventDetail, EventStatus } from '@/app/actions/events';
@@ -13,8 +15,8 @@ import { paths } from '@/lib/routes';
 import { Button } from '@/components/shared/Button';
 import { Loading } from '@/components/shared/Loading';
 import { KebabMenu } from '@/components/shared/KebabMenu';
+import { CommentList } from '@/components/shared/CommentList';
 import { EventStatusButton } from '@/screens/Events/EventStatusButton';
-import { CommentList } from './CommentList';
 
 const EDIT_ICON = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -214,7 +216,7 @@ export function Event({ eventId }: { eventId: string }) {
         <h2 className="m-0 mb-4 border-b border-line pb-2 font-serif text-[16px] font-bold">
           コメント <span className="font-mono text-[12px] font-normal text-muted">{event.comments.length}件</span>
         </h2>
-        <CommentList comments={event.comments} onChanged={refresh} />
+        <CommentList comments={event.comments} onEdit={editEventComment} onDelete={deleteEventComment} onChanged={refresh} />
 
         <form
           onSubmit={(e) => { e.preventDefault(); handleSendComment(); }}

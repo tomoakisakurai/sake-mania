@@ -186,6 +186,17 @@ export const meetupBrings = pgTable('meetup_brings', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [primaryKey({ columns: [t.meetupId, t.userId] })]);
 
+// MEETUPコメント
+export const meetupComments = pgTable('meetup_comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  meetupId: uuid('meetup_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  text: text('text').notNull(),
+  edited: boolean('edited').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // MVP投票（1人1票）
 export const meetupVotes = pgTable('meetup_votes', {
   meetupId: uuid('meetup_id').notNull(),

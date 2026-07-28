@@ -8,6 +8,7 @@ export type NotificationKind =
   | 'comment'
   | 'nomi'
   | 'event_comment'
+  | 'meetup_comment'
   | 'meetup_created'
   | 'event_created'
   | 'vote_open'

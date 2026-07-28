@@ -287,8 +287,104 @@ export async function deleteMeetup(meetupId: string): Promise<boolean> {
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return false;
+  // 幹事本人のみ削除可。先に本体行を幹事条件付きで削除して権限を確認し、
+  // 削除できた場合のみ関連テーブルを掃除する。
   const deleted = await db.delete(schema.meetupEvents)
     .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
     .returning({ id: schema.meetupEvents.id });
+  if (!deleted.length) return false;
+  await Promise.all([
+    db.delete(schema.meetupAttendees).where(eq(schema.meetupAttendees.meetupId, meetupId)),
+    db.delete(schema.meetupBrings).where(eq(schema.meetupBrings.meetupId, meetupId)),
+  ]);
+  await Promise.all([
+    db.delete(schema.meetupVotes).where(eq(schema.meetupVotes.meetupId, meetupId)),
+    db.delete(schema.meetupComments).where(eq(schema.meetupComments.meetupId, meetupId)),
+  ]);
+  return true;
+}
+
+// ===== コメント =====
+
+export interface MeetupCommentView {
+  id: string;
+  userId: string;
+  userName: string;
+  avatar: string;
+  avatarBg: string;
+  text: string;
+  edited: boolean;
+  createdAt: string;
+  mine: boolean;
+}
+
+export async function getMeetupComments(meetupId: string): Promise<MeetupCommentView[]> {
+  const db = getDb();
+  if (!db) return [];
+  const user = await currentUser();
+  const rows = await db.select().from(schema.meetupComments)
+    .where(eq(schema.meetupComments.meetupId, meetupId))
+    .orderBy(desc(schema.meetupComments.createdAt));
+  const userIds = Array.from(new Set(rows.map((row) => row.userId)));
+  const profiles = userIds.length
+    ? await db.select().from(schema.profiles).where(inArray(schema.profiles.id, userIds))
+    : [];
+  const profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
+  return rows.map((row) => {
+    const profile = profileMap.get(row.userId);
+    return {
+      id: row.id,
+      userId: row.userId,
+      userName: profile?.nickname || 'sake_user',
+      avatar: profile?.avatar || '酒',
+      avatarBg: profile?.avatarBg || '#DDD3BE',
+      text: row.text,
+      edited: row.edited,
+      createdAt: row.createdAt.toISOString(),
+      mine: !!user && row.userId === user.id,
+    };
+  });
+}
+
+export async function addMeetupComment(meetupId: string, text: string): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user || !text.trim()) return false;
+  await db.insert(schema.meetupComments).values({
+    meetupId, userId: user.id, text: text.trim(),
+  });
+  // 幹事に通知(自分が幹事の会には飛ばさない)
+  const [profile] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
+  const [meetupRow] = await db.select().from(schema.meetupEvents).where(eq(schema.meetupEvents.id, meetupId));
+  if (meetupRow) {
+    await createNotification({
+      userId: meetupRow.hostId,
+      kind: 'meetup_comment',
+      text: `${profile?.nickname || 'メンバー'}さんが「${meetupRow.name}」にコメントしました`,
+      targetPath: paths.meetup(meetupId),
+      excludeUserId: user.id,
+    });
+  }
+  return true;
+}
+
+export async function editMeetupComment(commentId: string, text: string): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user || !text.trim()) return false;
+  const updated = await db.update(schema.meetupComments)
+    .set({ text: text.trim(), edited: true, updatedAt: new Date() })
+    .where(and(eq(schema.meetupComments.id, commentId), eq(schema.meetupComments.userId, user.id)))
+    .returning({ id: schema.meetupComments.id });
+  return updated.length > 0;
+}
+
+export async function deleteMeetupComment(commentId: string): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user) return false;
+  const deleted = await db.delete(schema.meetupComments)
+    .where(and(eq(schema.meetupComments.id, commentId), eq(schema.meetupComments.userId, user.id)))
+    .returning({ id: schema.meetupComments.id });
   return deleted.length > 0;
 }

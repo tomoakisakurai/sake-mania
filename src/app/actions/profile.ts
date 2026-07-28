@@ -166,6 +166,7 @@ export async function deleteMyAccount(): Promise<boolean> {
       await tx.delete(schema.meetupAttendees).where(eq(schema.meetupAttendees.userId, userId));
       await tx.delete(schema.meetupBrings).where(eq(schema.meetupBrings.userId, userId));
       await tx.delete(schema.meetupVotes).where(eq(schema.meetupVotes.userId, userId));
+      await tx.delete(schema.meetupComments).where(eq(schema.meetupComments.userId, userId));
       await tx.delete(schema.eventAttendees).where(eq(schema.eventAttendees.userId, userId));
       await tx.delete(schema.eventComments).where(eq(schema.eventComments.userId, userId));
       await tx.delete(schema.notifications).where(eq(schema.notifications.userId, userId));

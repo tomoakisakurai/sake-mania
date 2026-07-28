@@ -1,10 +1,24 @@
 'use client';
 import { useState } from 'react';
-import type { EventCommentView } from '@/app/actions/events';
-import { editEventComment, deleteEventComment } from '@/app/actions/events';
+
+// イベント詳細・MEETUP詳細で共用するコメント一覧。
+// 編集・削除の実処理は画面側から server action を注入する。
+export interface CommentView {
+  id: string;
+  userId: string;
+  userName: string;
+  avatar: string;
+  avatarBg: string;
+  text: string;
+  edited: boolean;
+  createdAt: string;
+  mine: boolean;
+}
 
 type Props = {
-  comments: EventCommentView[];
+  comments: CommentView[];
+  onEdit: (commentId: string, text: string) => Promise<boolean>;
+  onDelete: (commentId: string) => Promise<boolean>;
   onChanged: () => void;
 };
 
@@ -21,18 +35,18 @@ function relativeTime(iso: string): string {
   return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-export function CommentList({ comments, onChanged }: Props) {
+export function CommentList({ comments, onEdit, onDelete, onChanged }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
 
-  const startEdit = (comment: EventCommentView) => {
+  const startEdit = (comment: CommentView) => {
     setEditingId(comment.id);
     setDraft(comment.text);
   };
 
   const save = async (id: string) => {
     if (!draft.trim()) return;
-    const ok = await editEventComment(id, draft);
+    const ok = await onEdit(id, draft);
     if (ok) {
       setEditingId(null);
       setDraft('');
@@ -42,7 +56,7 @@ export function CommentList({ comments, onChanged }: Props) {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('このコメントを削除しますか?')) return;
-    const ok = await deleteEventComment(id);
+    const ok = await onDelete(id);
     if (ok) onChanged();
   };
 
