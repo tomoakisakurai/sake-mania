@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
@@ -12,6 +13,7 @@ import { useMeetupVals } from './useMeetupVals';
 import { BeforePhase } from './BeforePhase';
 import { ReviewPhase } from './ReviewPhase';
 import { CommentSection } from './CommentSection';
+import { HostTransferModal } from './HostTransferModal';
 
 function buildGcalUrl(eventDate: string, dateLabel: string, name: string, place: string, theme: string) {
   const timeMatch = dateLabel.match(/(\d{1,2}):(\d{2})/);
@@ -38,10 +40,19 @@ const DELETE_ICON = (
   </svg>
 );
 
+const HOST_ICON = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="8.5" cy="7" r="4" />
+    <polyline points="17 11 19 13 23 9" />
+  </svg>
+);
+
 export function Meetup({ meetupId }: { meetupId: string }) {
   const store = useStore();
   const router = useRouter();
   const meetup = useMeetupVals(meetupId);
+  const [hostTransferOpen, setHostTransferOpen] = useState(false);
   const meetupDetail = store.meetupDetail;
   const now = useNow();
   const ongoing = meetup.isBefore && isMeetupOngoing(meetupDetail?.eventDate, now);
@@ -83,6 +94,7 @@ export function Meetup({ meetupId }: { meetupId: string }) {
             <KebabMenu
               items={[
                 { label: 'この会を編集', icon: EDIT_ICON, onClick: handleEdit },
+                { label: '幹事を交代', icon: HOST_ICON, onClick: () => setHostTransferOpen(true) },
                 { label: 'この会を削除', icon: DELETE_ICON, onClick: handleDelete, danger: true },
               ]}
             />
@@ -115,6 +127,11 @@ export function Meetup({ meetupId }: { meetupId: string }) {
       {meetup.isBefore && <BeforePhase meetup={meetup} />}
       {meetup.showLineup && <ReviewPhase meetup={meetup} />}
       <CommentSection meetupId={meetupDetail.id} />
+      <HostTransferModal
+        open={hostTransferOpen}
+        onClose={() => setHostTransferOpen(false)}
+        meetupId={meetupDetail.id}
+      />
     </main>
   );
 }

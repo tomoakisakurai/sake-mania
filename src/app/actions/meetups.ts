@@ -304,6 +304,32 @@ export async function deleteMeetup(meetupId: string): Promise<boolean> {
   return true;
 }
 
+/**
+ * 幹事を交代する。現幹事本人のみ実行可(WHERE句に幹事条件)。
+ * 交代後はこの会の編集・削除・フェーズ操作・掃除の権限が新幹事に移る。
+ */
+export async function transferMeetupHost(meetupId: string, newHostId: string): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user || newHostId === user.id) return false;
+  // 交代先が実在するプロフィールであることを確認(ダングリングhost防止)
+  const [newHostProfile] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, newHostId));
+  if (!newHostProfile) return false;
+  const updated = await db.update(schema.meetupEvents)
+    .set({ hostId: newHostId })
+    .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
+    .returning({ name: schema.meetupEvents.name });
+  if (!updated.length) return false;
+  const [myProfile] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
+  await createNotification({
+    userId: newHostId,
+    kind: 'meetup_host',
+    text: `${myProfile?.nickname || 'メンバー'}さんが「${updated[0].name}」の幹事をあなたに交代しました`,
+    targetPath: paths.meetup(meetupId),
+  });
+  return true;
+}
+
 // ===== コメント =====
 
 export interface MeetupCommentView {
