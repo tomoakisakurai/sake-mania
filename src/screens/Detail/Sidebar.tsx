@@ -1,16 +1,35 @@
+'use client';
+import { useState } from 'react';
 import clsx from 'clsx';
 import type { DetailVals } from './useDetailVals';
 import { Button } from '@/components/shared/Button';
+import { ImageLightbox } from '@/components/shared/ImageLightbox';
 // 銘柄詳細の左カラム: ボトル写真 + 記録/飲みたい + 「この銘柄を買う」導線
 export function Sidebar({ detail }: { detail: DetailVals }) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   return (
     <aside className="flex flex-col gap-4">
       {detail.photo ? (
-        <img src={detail.photo} alt={detail.brand.name} className="h-80 w-full rounded-xl border border-line object-cover md:h-105" />
+        <button
+          type="button"
+          onClick={() => setLightboxOpen(true)}
+          aria-label="ボトル写真を拡大"
+          className="m-0 cursor-zoom-in border-0 bg-transparent p-0"
+        >
+          <img src={detail.photo} alt={detail.brand.name} className="h-80 w-full rounded-xl border border-line object-cover md:h-105" />
+        </button>
       ) : (
         <figure className="m-0 flex h-80 items-center justify-center rounded-xl border border-line md:h-105" style={{ background: 'repeating-linear-gradient(45deg, #EFE8D8, #EFE8D8 8px, #E7DFCC 8px, #E7DFCC 16px)' }}>
           <figcaption className="font-mono text-[11px] text-muted [writing-mode:vertical-rl]">ボトル写真</figcaption>
         </figure>
+      )}
+      {detail.photo && (
+        <ImageLightbox
+          open={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          src={detail.photo}
+          alt={detail.brand.name}
+        />
       )}
       <Button variant="primary" size="lg" onClick={detail.recordClick} fullWidth>＋ この銘柄を記録する</Button>
       <button
