@@ -1,5 +1,5 @@
 import 'server-only';
-import { asc } from 'drizzle-orm';
+import { asc, desc } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import {
@@ -85,7 +85,8 @@ export async function getCoreReferenceData(): Promise<CoreReferenceData> {
   if (!db) return mockCore;
 
   try {
-    const bRows = await db.select().from(schema.brands).orderBy(asc(schema.brands.sortOrder));
+    // 新しく登録された銘柄を先頭に。シードデータは一括INSERTで createdAt が同一のため sortOrder で従来順を維持
+    const bRows = await db.select().from(schema.brands).orderBy(desc(schema.brands.createdAt), asc(schema.brands.sortOrder));
     if (!bRows.length) {
       console.warn('[getCoreReferenceData] DB not seeded — falling back to mock.');
       return mockCore;
