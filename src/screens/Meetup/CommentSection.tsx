@@ -15,6 +15,7 @@ import { CommentList } from '@/components/shared/CommentList';
 // (meetupDetail は store 経由のため、store を肥やさないようローカルstateで持つ)。
 export function CommentSection({ meetupId }: { meetupId: string }) {
   const store = useStore();
+  const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
   const [comments, setComments] = useState<MeetupCommentView[]>([]);
   const [draft, setDraft] = useState('');
 
@@ -40,7 +41,7 @@ export function CommentSection({ meetupId }: { meetupId: string }) {
       <h2 className="m-0 mb-4 border-b border-line pb-2 font-serif text-[16px] font-bold">
         コメント <span className="font-mono text-[12px] font-normal text-muted">{comments.length}件</span>
       </h2>
-      <CommentList comments={comments} onEdit={editMeetupComment} onDelete={deleteMeetupComment} onChanged={refresh} />
+      <CommentList comments={comments} onEdit={editMeetupComment} onDelete={deleteMeetupComment} onChanged={refresh} canModerate={isAdmin} />
 
       <form
         onSubmit={(e) => { e.preventDefault(); handleSend(); }}

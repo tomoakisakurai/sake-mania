@@ -35,6 +35,8 @@ return deleted.length > 0;
 「先にSELECTで所有者確認してからDELETE」はレース条件があるため、WHERE に含める方式を使う。
 新しい action を追加・レビューするときは、この2点を必ず確認する。
 
+**管理者override**: 運営系action(会・イベントの編集/削除、幹事交代、フェーズ操作、コメント削除)は `isAdminUser`(`src/lib/authz.ts`)で判定し、管理者のときだけ WHERE の本人条件を外す。UIは capability フラグ(`MeetupDetail.isHost` / `EventDetail.isCreator`)をサーバー側で管理者にも立てて開放する。個人データ(記録・プロフィール・コメント編集)は管理者でも本人のみ。
+
 ## アーキテクチャ
 
 - **URLが画面状態の唯一の真実**: `src/lib/routes.ts` が URL↔screen をマッピング(`routeStateFromPath` / `paths`)。画面遷移は `store.nav(screen)` か `router.push(paths.xxx())`

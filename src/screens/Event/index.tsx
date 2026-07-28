@@ -49,6 +49,7 @@ function parseHourFromLabel(dateLabel: string): string {
 export function Event({ eventId }: { eventId: string }) {
   const store = useStore();
   const router = useRouter();
+  const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
   const [event, setEvent] = useState<EventDetail | null>(null);
@@ -216,7 +217,7 @@ export function Event({ eventId }: { eventId: string }) {
         <h2 className="m-0 mb-4 border-b border-line pb-2 font-serif text-[16px] font-bold">
           コメント <span className="font-mono text-[12px] font-normal text-muted">{event.comments.length}件</span>
         </h2>
-        <CommentList comments={event.comments} onEdit={editEventComment} onDelete={deleteEventComment} onChanged={refresh} />
+        <CommentList comments={event.comments} onEdit={editEventComment} onDelete={deleteEventComment} onChanged={refresh} canModerate={isAdmin} />
 
         <form
           onSubmit={(e) => { e.preventDefault(); handleSendComment(); }}

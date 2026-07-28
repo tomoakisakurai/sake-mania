@@ -20,6 +20,8 @@ type Props = {
   onEdit: (commentId: string, text: string) => Promise<boolean>;
   onDelete: (commentId: string) => Promise<boolean>;
   onChanged: () => void;
+  /** 管理者モデレーション: 他人のコメントにも削除を出す(編集は本人のみ) */
+  canModerate?: boolean;
 };
 
 function relativeTime(iso: string): string {
@@ -35,7 +37,7 @@ function relativeTime(iso: string): string {
   return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-export function CommentList({ comments, onEdit, onDelete, onChanged }: Props) {
+export function CommentList({ comments, onEdit, onDelete, onChanged, canModerate = false }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
 
@@ -74,9 +76,11 @@ export function CommentList({ comments, onEdit, onDelete, onChanged }: Props) {
             <div className="flex items-baseline gap-2.5 mb-1 flex-wrap">
               <span className="text-[12.5px] font-bold">{comment.userName}</span>
               <span className="text-[10.5px] text-faint">{relativeTime(comment.createdAt)}{comment.edited ? ' (編集済み)' : ''}</span>
-              {comment.mine && editingId !== comment.id && (
+              {(comment.mine || canModerate) && editingId !== comment.id && (
                 <span className="ml-auto flex gap-3.5">
-                  <span onClick={() => startEdit(comment)} className="text-[11px] text-primary hover:underline cursor-pointer font-bold">編集</span>
+                  {comment.mine && (
+                    <span onClick={() => startEdit(comment)} className="text-[11px] text-primary hover:underline cursor-pointer font-bold">編集</span>
+                  )}
                   <span onClick={() => handleDelete(comment.id)} className="text-[11px] text-faint hover:text-danger cursor-pointer font-bold transition-colors">削除</span>
                 </span>
               )}

@@ -1,8 +1,9 @@
 'use server';
-import { eq, and, inArray, desc, asc } from 'drizzle-orm';
+import { eq, ne, and, inArray, desc, asc } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
+import { isAdminUser } from '@/lib/authz';
 import { absoluteUrl, postToSlack } from '@/lib/slack';
 import { paths } from '@/lib/routes';
 import { createNotification, createNotificationForAll } from './notifications';
@@ -97,6 +98,8 @@ export async function updateMeetup(meetupId: string, input: { name: string; date
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return false;
+  // 幹事本人または管理者のみ
+  const admin = await isAdminUser(db, user.id);
   const updated = await db.update(schema.meetupEvents)
     .set({
       name: input.name,
@@ -105,7 +108,9 @@ export async function updateMeetup(meetupId: string, input: { name: string; date
       theme: input.theme,
       eventDate: input.eventDate || null,
     })
-    .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
+    .where(admin
+      ? eq(schema.meetupEvents.id, meetupId)
+      : and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
     .returning({ id: schema.meetupEvents.id });
   return updated.length > 0;
 }
@@ -181,7 +186,8 @@ export async function getMeetupDetail(meetupId: string): Promise<MeetupDetail | 
   return {
     id: event.id, name: event.name, dateLabel: event.dateLabel, eventDate: event.eventDate ?? null, place: event.place, theme: event.theme,
     hostName: nameOf(event.hostId), phase: event.phase, voteDeadline: event.voteDeadline || '',
-    isHost: !!user && event.hostId === user.id,
+    // 管理者にも幹事UI(編集・削除・幹事交代・フェーズ操作)を開放する capability フラグ
+    isHost: !!user && (event.hostId === user.id || await isAdminUser(db, user.id)),
     iGoing: !!user && attendees.some((a) => a.userId === user.id),
     attendees: attendees.map((a) => { const p = prof(a.userId); const n = p?.nickname || 'sake_user'; return { name: n, avatar: p?.avatar || n.charAt(0), avatarBg: p?.avatarBg || '#DDD3BE' }; }),
     goingCount: attendees.length,
@@ -258,9 +264,13 @@ export async function setMeetupPhase(meetupId: string, phase: string): Promise<b
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return false;
+  // 幹事本人または管理者のみ
+  const admin = await isAdminUser(db, user.id);
   const updated = await db.update(schema.meetupEvents)
     .set({ phase })
-    .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
+    .where(admin
+      ? eq(schema.meetupEvents.id, meetupId)
+      : and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
     .returning({ id: schema.meetupEvents.id });
   if (!updated.length) return false;
   // 出席者に通知
@@ -287,10 +297,13 @@ export async function deleteMeetup(meetupId: string): Promise<boolean> {
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return false;
-  // 幹事本人のみ削除可。先に本体行を幹事条件付きで削除して権限を確認し、
+  // 幹事本人または管理者のみ削除可。先に本体行を条件付きで削除して権限を確認し、
   // 削除できた場合のみ関連テーブルを掃除する。
+  const admin = await isAdminUser(db, user.id);
   const deleted = await db.delete(schema.meetupEvents)
-    .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
+    .where(admin
+      ? eq(schema.meetupEvents.id, meetupId)
+      : and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
     .returning({ id: schema.meetupEvents.id });
   if (!deleted.length) return false;
   await Promise.all([
@@ -305,19 +318,23 @@ export async function deleteMeetup(meetupId: string): Promise<boolean> {
 }
 
 /**
- * 幹事を交代する。現幹事本人のみ実行可(WHERE句に幹事条件)。
+ * 幹事を交代する。現幹事本人または管理者のみ実行可(WHERE句で認可)。
  * 交代後はこの会の編集・削除・フェーズ操作・掃除の権限が新幹事に移る。
  */
 export async function transferMeetupHost(meetupId: string, newHostId: string): Promise<boolean> {
   const db = getDb();
   const user = await currentUser();
-  if (!db || !user || newHostId === user.id) return false;
+  if (!db || !user) return false;
   // 交代先が実在するプロフィールであることを確認(ダングリングhost防止)
   const [newHostProfile] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, newHostId));
   if (!newHostProfile) return false;
+  const admin = await isAdminUser(db, user.id);
+  // ne(hostId, newHostId): 現幹事と同じ相手への交代は no-op なので弾く
   const updated = await db.update(schema.meetupEvents)
     .set({ hostId: newHostId })
-    .where(and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
+    .where(admin
+      ? and(eq(schema.meetupEvents.id, meetupId), ne(schema.meetupEvents.hostId, newHostId))
+      : and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id), ne(schema.meetupEvents.hostId, newHostId)))
     .returning({ name: schema.meetupEvents.name });
   if (!updated.length) return false;
   const [myProfile] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
@@ -409,8 +426,12 @@ export async function deleteMeetupComment(commentId: string): Promise<boolean> {
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return false;
+  // 本人または管理者(モデレーション)のみ削除可
+  const admin = await isAdminUser(db, user.id);
   const deleted = await db.delete(schema.meetupComments)
-    .where(and(eq(schema.meetupComments.id, commentId), eq(schema.meetupComments.userId, user.id)))
+    .where(admin
+      ? eq(schema.meetupComments.id, commentId)
+      : and(eq(schema.meetupComments.id, commentId), eq(schema.meetupComments.userId, user.id)))
     .returning({ id: schema.meetupComments.id });
   return deleted.length > 0;
 }

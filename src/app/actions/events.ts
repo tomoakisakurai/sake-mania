@@ -6,6 +6,7 @@ import { getSupabaseServer } from '@/lib/supabase/server';
 import { absoluteUrl, postToSlack } from '@/lib/slack';
 import { paths } from '@/lib/routes';
 import { createNotification, createNotificationForAll } from './notifications';
+import { isAdminUser } from '@/lib/authz';
 
 export type EventStatus = 'going' | 'interested';
 
@@ -166,7 +167,8 @@ export async function getEventDetail(eventId: string): Promise<EventDetail | nul
     iGoing,
     iInterested,
     goingAvatars: goingMembers.slice(0, 5),
-    isCreator: !!user && eventRow.createdBy === user.id,
+    // 管理者にも作成者UI(編集・削除)を開放する capability フラグ
+    isCreator: !!user && (eventRow.createdBy === user.id || await isAdminUser(db, user.id)),
     goingMembers,
     comments: comments.map((c) => {
       const profile = profileMap.get(c.userId);
@@ -189,6 +191,8 @@ export async function updateEvent(eventId: string, input: EventInput): Promise<b
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return false;
+  // 作成者本人または管理者のみ
+  const admin = await isAdminUser(db, user.id);
   const updated = await db.update(schema.events)
     .set({
       name: input.name,
@@ -200,7 +204,9 @@ export async function updateEvent(eventId: string, input: EventInput): Promise<b
       officialUrl: input.officialUrl,
       description: input.description,
     })
-    .where(and(eq(schema.events.id, eventId), eq(schema.events.createdBy, user.id)))
+    .where(admin
+      ? eq(schema.events.id, eventId)
+      : and(eq(schema.events.id, eventId), eq(schema.events.createdBy, user.id)))
     .returning({ id: schema.events.id });
   return updated.length > 0;
 }
@@ -244,10 +250,13 @@ export async function deleteEvent(eventId: string): Promise<boolean> {
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return false;
-  // 作成者本人のみ削除可。先に本体行を作成者条件付きで削除して権限を確認し、
+  // 作成者本人または管理者のみ削除可。先に本体行を条件付きで削除して権限を確認し、
   // 削除できた場合のみ関連テーブル(参加表明・コメント)を掃除する。
+  const admin = await isAdminUser(db, user.id);
   const deleted = await db.delete(schema.events)
-    .where(and(eq(schema.events.id, eventId), eq(schema.events.createdBy, user.id)))
+    .where(admin
+      ? eq(schema.events.id, eventId)
+      : and(eq(schema.events.id, eventId), eq(schema.events.createdBy, user.id)))
     .returning({ id: schema.events.id });
   if (!deleted.length) return false;
   await Promise.all([
@@ -328,8 +337,12 @@ export async function deleteEventComment(commentId: string): Promise<boolean> {
   const db = getDb();
   const user = await currentUser();
   if (!db || !user) return false;
+  // 本人または管理者(モデレーション)のみ削除可
+  const admin = await isAdminUser(db, user.id);
   const deleted = await db.delete(schema.eventComments)
-    .where(and(eq(schema.eventComments.id, commentId), eq(schema.eventComments.userId, user.id)))
+    .where(admin
+      ? eq(schema.eventComments.id, commentId)
+      : and(eq(schema.eventComments.id, commentId), eq(schema.eventComments.userId, user.id)))
     .returning({ id: schema.eventComments.id });
   return deleted.length > 0;
 }
