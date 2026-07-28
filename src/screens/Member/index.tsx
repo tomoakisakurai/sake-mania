@@ -55,7 +55,11 @@ export function Member({ memberId }: { memberId: string }) {
 
   // 記録: 自分なら myRecords、他人は未対応(別タスクで対応)
   const records: RecordItem[] = isMe
-    ? store.myRecords.map((r) => ({ brandId: r.brandId, rating: r.rating, memo: r.memo, date: r.date }))
+    ? store.myRecords.map((r) => ({
+        brandId: r.brandId, rating: r.rating, memo: r.memo, date: r.date,
+        photo: r.photo || null,
+        tags: r.temps.concat(r.pairing ? ['肴: ' + r.pairing] : []),
+      }))
     : [];
 
   const attended: AttendedMeetup[] = history.attended.map((a) => ({
