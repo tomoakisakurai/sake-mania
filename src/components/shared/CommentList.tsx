@@ -117,6 +117,7 @@ export function CommentList({ comments, onEdit, onDelete, onToggleLike, onChange
                   type="button"
                   onClick={() => handleLike(comment)}
                   disabled={likeBusyId === comment.id}
+                  aria-label="いいね"
                   className={clsx(
                     'mt-1.5 inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-0.5 text-[11px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60',
                     comment.iLiked
@@ -124,7 +125,7 @@ export function CommentList({ comments, onEdit, onDelete, onToggleLike, onChange
                       : 'border-line bg-surface text-muted hover:border-accent hover:text-accent',
                   )}
                 >
-                  ♡ いいね
+                  ♡
                   {comment.likeCount > 0 && <span className="font-mono text-[10.5px]">{comment.likeCount}</span>}
                 </button>
               </>
