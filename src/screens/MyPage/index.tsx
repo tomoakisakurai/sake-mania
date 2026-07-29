@@ -6,6 +6,7 @@ import { useStore } from '@/store';
 import { getMyProfile, type ProfileView } from '@/app/actions/profile';
 import { useReferenceData } from '@/components/Providers';
 import { useState } from 'react';
+import { PREFECTURE_ORDER } from '@/lib/prefectures';
 import { StatList } from '@/components/shared/StatList';
 import { ProfileHeader } from './ProfileHeader';
 import { Achievements } from './Achievements';
@@ -29,7 +30,14 @@ export function MyPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const { prefGrid } = useReferenceData();
-  const prefOptions = useMemo(() => prefGrid.map((p) => p[0] as string), [prefGrid]);
+  // prefGridはマップの盤面配置順なので、プルダウンは都道府県の標準順(JIS順)に並べ替える
+  const prefOptions = useMemo(() => {
+    const orderOf = (name: string) => {
+      const index = PREFECTURE_ORDER.indexOf(name);
+      return index === -1 ? PREFECTURE_ORDER.length : index;
+    };
+    return prefGrid.map((p) => p[0] as string).sort((a, b) => orderOf(a) - orderOf(b));
+  }, [prefGrid]);
 
   const reload = useCallback(async () => {
     const p = await getMyProfile();
