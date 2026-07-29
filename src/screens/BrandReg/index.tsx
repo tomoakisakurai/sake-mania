@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useStore } from '@/store';
 import { useReferenceData } from '@/components/Providers';
 import { paths } from '@/lib/routes';
-import { createBrand, updateBrand } from '@/app/actions/brands';
+import { createBrand, updateBrand, deleteBrand } from '@/app/actions/brands';
 import { analyzeLabel } from '@/app/actions/analyzeLabel';
 import { Input } from '@/components/shared/Input';
 import { Textarea } from '@/components/shared/Textarea';
@@ -18,6 +18,7 @@ export function BrandReg({ editingId }: { editingId?: string }) {
   const router = useRouter();
   const authReady = useStore((s) => s.authReady);
   const isLoggedIn = useStore((s) => !!s.user);
+  const isAdmin = useStore((s) => s.user?.isAdmin ?? false);
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
 
@@ -39,6 +40,7 @@ export function BrandReg({ editingId }: { editingId?: string }) {
   const [registeredId, setRegisteredId] = useState('');
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const goBack = () => {
     if (isEdit && editingId) router.push(paths.detail(editingId));
@@ -105,6 +107,24 @@ export function BrandReg({ editingId }: { editingId?: string }) {
 
   const handleViewBrand = () => {
     store.nav('zukan');
+  };
+
+  const handleDelete = async () => {
+    if (deleting || !editingId) return;
+    if (!window.confirm(`「${name}」を図鑑から削除しますか? この操作は取り消せません。`)) return;
+    setDeleting(true);
+    try {
+      const result = await deleteBrand(editingId);
+      if (result === 'inUse') { store.flash('この銘柄には記録や持ち寄りが付いているため削除できません'); return; }
+      if (result !== 'ok') { store.flash('削除に失敗しました'); return; }
+      store.flash('銘柄を図鑑から削除しました');
+      store.nav('zukan');
+      router.refresh();
+    } catch {
+      store.flash('通信エラーで削除できませんでした。時間をおいて再度お試しください');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handlePhotoPick = (dataUrl: string) => {
@@ -212,6 +232,18 @@ export function BrandReg({ editingId }: { editingId?: string }) {
       <Button onClick={handleSubmit} size="lg" fullWidth disabled={saving}>
         {saving ? (isEdit ? '更新中…' : '登録中…') : (isEdit ? 'この内容で更新する' : '図鑑に登録する')}
       </Button>
+
+      {isEdit && isAdmin && (
+        <section className="mt-12 border-t border-line pt-6">
+          <h2 className="m-0 mb-1.5 text-[13px] font-bold text-danger">銘柄の削除(管理者)</h2>
+          <p className="m-0 mb-4 text-[12px] leading-relaxed text-muted">
+            図鑑からこの銘柄を削除します。記録・MEETUPの持ち寄り・投票で使われている銘柄は削除できません。
+          </p>
+          <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+            {deleting ? '削除中…' : 'この銘柄を図鑑から削除する'}
+          </Button>
+        </section>
+      )}
     </div>
   );
 }

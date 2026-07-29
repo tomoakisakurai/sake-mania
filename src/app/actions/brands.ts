@@ -4,6 +4,7 @@ import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
 import { invalidateCoreReferenceCache } from '@/lib/getReferenceData';
+import { isAdminUser } from '@/lib/authz';
 
 export interface BrandInput {
   name: string;
@@ -80,4 +81,33 @@ export async function updateBrand(brandId: string, input: BrandInput): Promise<b
   if (!updated.length) return false;
   invalidateCoreReferenceCache();
   return true;
+}
+
+/**
+ * 銘柄を図鑑から削除する。管理者のみ。
+ * 記録・MEETUPの持ち寄り・投票から参照されている銘柄は削除できない
+ * (他メンバーのデータが壊れるため。主用途は誤登録の掃除)。
+ */
+export async function deleteBrand(brandId: string): Promise<'ok' | 'inUse' | 'error'> {
+  const supabase = await getSupabaseServer();
+  if (!supabase) return 'error';
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return 'error';
+  const db = getDb();
+  if (!db) return 'error';
+  if (!(await isAdminUser(db, data.user.id))) return 'error';
+
+  const [records, brings, votes] = await Promise.all([
+    db.select({ id: schema.records.id }).from(schema.records).where(eq(schema.records.brandId, brandId)).limit(1),
+    db.select({ meetupId: schema.meetupBrings.meetupId }).from(schema.meetupBrings).where(eq(schema.meetupBrings.brandId, brandId)).limit(1),
+    db.select({ meetupId: schema.meetupVotes.meetupId }).from(schema.meetupVotes).where(eq(schema.meetupVotes.brandId, brandId)).limit(1),
+  ]);
+  if (records.length || brings.length || votes.length) return 'inUse';
+
+  const deleted = await db.delete(schema.brands)
+    .where(eq(schema.brands.id, brandId))
+    .returning({ id: schema.brands.id });
+  if (!deleted.length) return 'error';
+  invalidateCoreReferenceCache();
+  return 'ok';
 }
