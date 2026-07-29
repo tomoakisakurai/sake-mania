@@ -38,6 +38,7 @@ export function BrandReg({ editingId }: { editingId?: string }) {
   const [registeredName, setRegisteredName] = useState('');
   const [registeredId, setRegisteredId] = useState('');
   const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const goBack = () => {
     if (isEdit && editingId) router.push(paths.detail(editingId));
@@ -67,25 +68,33 @@ export function BrandReg({ editingId }: { editingId?: string }) {
   }
 
   const handleSubmit = async () => {
+    if (saving) return;
     if (!name.trim() || !brewery.trim()) {
       store.flash('銘柄名と酒蔵は必須です');
       return;
     }
     const input = { name: name.trim(), brewery: brewery.trim(), pref, cls, polish, rice, description, photo: photo || null };
-    if (isEdit && editingId) {
-      const ok = await updateBrand(editingId, input);
-      if (!ok) { store.flash('更新に失敗しました'); return; }
-      store.flash('銘柄を更新しました');
-      router.push(paths.detail(editingId));
-      router.refresh();
-      return;
+    setSaving(true);
+    try {
+      if (isEdit && editingId) {
+        const ok = await updateBrand(editingId, input);
+        if (!ok) { store.flash('更新に失敗しました'); return; }
+        store.flash('銘柄を更新しました');
+        router.push(paths.detail(editingId));
+        router.refresh();
+        return;
+      }
+      const id = await createBrand(input);
+      if (!id) { store.flash('登録に失敗しました'); return; }
+      setRegisteredName(name.trim());
+      setRegisteredId(id);
+      setDone(true);
+      store.loadDeferredReference();
+    } catch {
+      store.flash('通信エラーで保存できませんでした。時間をおいて再度お試しください');
+    } finally {
+      setSaving(false);
     }
-    const id = await createBrand(input);
-    if (!id) { store.flash('登録に失敗しました'); return; }
-    setRegisteredName(name.trim());
-    setRegisteredId(id);
-    setDone(true);
-    store.loadDeferredReference();
   };
 
   const handleAnother = () => {
@@ -125,6 +134,8 @@ export function BrandReg({ editingId }: { editingId?: string }) {
       setDescription(result.description);
       setReadDone(true);
       store.flash('ラベルを読み取りました。内容を確認してください');
+    } catch {
+      store.flash('読み取りに失敗しました。手で入力してください');
     } finally {
       setReading(false);
     }
@@ -198,7 +209,9 @@ export function BrandReg({ editingId }: { editingId?: string }) {
         className="mb-6"
       />
 
-      <Button onClick={handleSubmit} size="lg" fullWidth>{isEdit ? 'この内容で更新する' : '図鑑に登録する'}</Button>
+      <Button onClick={handleSubmit} size="lg" fullWidth disabled={saving}>
+        {saving ? (isEdit ? '更新中…' : '登録中…') : (isEdit ? 'この内容で更新する' : '図鑑に登録する')}
+      </Button>
     </div>
   );
 }

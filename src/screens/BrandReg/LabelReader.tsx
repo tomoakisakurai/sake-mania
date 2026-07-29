@@ -1,6 +1,7 @@
 'use client';
 import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
+import { fileToResizedDataUrl } from '@/lib/resizeImage';
 
 type Props = {
   photo: string;
@@ -14,13 +15,11 @@ type Props = {
 export function LabelReader({ photo, reading, readDone, onPick, onRead, onRemove }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     event.target.value = '';
-    const reader = new FileReader();
-    reader.onload = () => onPick(reader.result as string);
-    reader.readAsDataURL(file);
+    onPick(await fileToResizedDataUrl(file));
   };
 
   const openFilePicker = () => fileInputRef.current?.click();

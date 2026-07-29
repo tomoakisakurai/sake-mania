@@ -3,6 +3,7 @@ import type { ChangeEvent, MouseEvent } from 'react';
 import { useStore } from '@/store';
 import { useReferenceData } from '@/components/Providers';
 import { starStr } from '@/lib/format';
+import { fileToResizedDataUrl } from '@/lib/resizeImage';
 
 type ChangeEv = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 
@@ -64,7 +65,7 @@ export function useRecordVals() {
     tempChips, recPairing: rec.pairing,
     onPairing: (e: ChangeEv) => store.setRec({ pairing: e.target.value }),
     recMemo: rec.memo, onMemo: (e: ChangeEv) => store.setRec({ memo: e.target.value }),
-    onPhoto: (e: ChangeEvent<HTMLInputElement>) => { const f = e.target.files && e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => store.setRec({ photo: rd.result as string }); rd.readAsDataURL(f); e.target.value = ''; },
+    onPhoto: async (e: ChangeEvent<HTMLInputElement>) => { const f = e.target.files && e.target.files[0]; if (!f) return; e.target.value = ''; store.setRec({ photo: await fileToResizedDataUrl(f) }); },
     onPhotoRemove: (e: MouseEvent) => { e.stopPropagation(); store.setRec({ photo: null }); },
     recPhoto: rec.photo || '', recHasPhoto: !!rec.photo, recNoPhoto: !rec.photo,
     recStarsStr: starStr(rec.rating),
