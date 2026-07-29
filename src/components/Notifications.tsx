@@ -12,6 +12,7 @@ import type { NotificationKind, NotificationView } from '@/app/actions/notificat
 
 const KIND_ICON: Record<NotificationKind, string> = {
   comment: '言',
+  comment_like: '♡',
   nomi: '杯',
   event_comment: '言',
   meetup_comment: '言',
@@ -25,6 +26,7 @@ const KIND_ICON: Record<NotificationKind, string> = {
 
 const KIND_BG: Record<NotificationKind, string> = {
   comment: '#8B6B43',
+  comment_like: 'var(--color-success)',
   nomi: 'var(--color-success)',
   event_comment: '#8B6B43',
   meetup_comment: '#8B6B43',

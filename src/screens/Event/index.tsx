@@ -8,6 +8,7 @@ import {
   addEventComment,
   editEventComment,
   deleteEventComment,
+  setEventCommentLike,
   deleteEvent,
 } from '@/app/actions/events';
 import type { EventDetail, EventStatus } from '@/app/actions/events';
@@ -94,6 +95,11 @@ export function Event({ eventId }: { eventId: string }) {
     } else {
       store.flash('削除できませんでした');
     }
+  };
+
+  const handleToggleCommentLike = async (commentId: string, liked: boolean) => {
+    if (!store.requireLogin()) return false;
+    return setEventCommentLike(commentId, liked);
   };
 
   const handleSendComment = async () => {
@@ -217,7 +223,7 @@ export function Event({ eventId }: { eventId: string }) {
         <h2 className="m-0 mb-4 border-b border-line pb-2 font-serif text-[16px] font-bold">
           コメント <span className="font-mono text-[12px] font-normal text-muted">{event.comments.length}件</span>
         </h2>
-        <CommentList comments={event.comments} onEdit={editEventComment} onDelete={deleteEventComment} onChanged={refresh} canModerate={isAdmin} />
+        <CommentList comments={event.comments} onEdit={editEventComment} onDelete={deleteEventComment} onToggleLike={handleToggleCommentLike} onChanged={refresh} canModerate={isAdmin} />
 
         <form
           onSubmit={(e) => { e.preventDefault(); handleSendComment(); }}

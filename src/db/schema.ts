@@ -197,6 +197,13 @@ export const meetupComments = pgTable('meetup_comments', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// MEETUPコメントへのいいね（1ユーザー1コメント1回）
+export const meetupCommentLikes = pgTable('meetup_comment_likes', {
+  commentId: uuid('comment_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.commentId, t.userId] })]);
+
 // MVP投票（1人1票）
 export const meetupVotes = pgTable('meetup_votes', {
   meetupId: uuid('meetup_id').notNull(),
@@ -239,6 +246,13 @@ export const eventComments = pgTable('event_comments', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// イベントコメントへのいいね（1ユーザー1コメント1回）
+export const eventCommentLikes = pgTable('event_comment_likes', {
+  commentId: uuid('comment_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.commentId, t.userId] })]);
 
 // ===== 通知 =====
 // kind: 'comment' | 'nomi' | 'event_comment' | 'meetup_created' | 'event_created'

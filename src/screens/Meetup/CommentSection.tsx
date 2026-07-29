@@ -6,6 +6,7 @@ import {
   addMeetupComment,
   editMeetupComment,
   deleteMeetupComment,
+  setMeetupCommentLike,
 } from '@/app/actions/meetups';
 import type { MeetupCommentView } from '@/app/actions/meetups';
 import { Button } from '@/components/shared/Button';
@@ -27,6 +28,11 @@ export function CommentSection({ meetupId }: { meetupId: string }) {
     refresh();
   }, [refresh]);
 
+  const handleToggleLike = async (commentId: string, liked: boolean) => {
+    if (!store.requireLogin()) return false;
+    return setMeetupCommentLike(commentId, liked);
+  };
+
   const handleSend = async () => {
     if (!draft.trim()) return;
     if (!store.requireLogin()) return;
@@ -41,7 +47,7 @@ export function CommentSection({ meetupId }: { meetupId: string }) {
       <h2 className="m-0 mb-4 border-b border-line pb-2 font-serif text-[16px] font-bold">
         コメント <span className="font-mono text-[12px] font-normal text-muted">{comments.length}件</span>
       </h2>
-      <CommentList comments={comments} onEdit={editMeetupComment} onDelete={deleteMeetupComment} onChanged={refresh} canModerate={isAdmin} />
+      <CommentList comments={comments} onEdit={editMeetupComment} onDelete={deleteMeetupComment} onToggleLike={handleToggleLike} onChanged={refresh} canModerate={isAdmin} />
 
       <form
         onSubmit={(e) => { e.preventDefault(); handleSend(); }}

@@ -6,6 +6,7 @@ import { getSupabaseServer } from '@/lib/supabase/server';
 
 export type NotificationKind =
   | 'comment'
+  | 'comment_like'
   | 'nomi'
   | 'event_comment'
   | 'meetup_comment'

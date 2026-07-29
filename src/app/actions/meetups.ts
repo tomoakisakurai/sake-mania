@@ -308,6 +308,12 @@ export async function deleteMeetup(meetupId: string): Promise<boolean> {
       : and(eq(schema.meetupEvents.id, meetupId), eq(schema.meetupEvents.hostId, user.id)))
     .returning({ id: schema.meetupEvents.id });
   if (!deleted.length) return false;
+  const meetupCommentRows = await db.select({ id: schema.meetupComments.id })
+    .from(schema.meetupComments).where(eq(schema.meetupComments.meetupId, meetupId));
+  if (meetupCommentRows.length) {
+    await db.delete(schema.meetupCommentLikes)
+      .where(inArray(schema.meetupCommentLikes.commentId, meetupCommentRows.map((comment) => comment.id)));
+  }
   await Promise.all([
     db.delete(schema.meetupAttendees).where(eq(schema.meetupAttendees.meetupId, meetupId)),
     db.delete(schema.meetupBrings).where(eq(schema.meetupBrings.meetupId, meetupId)),
@@ -362,6 +368,8 @@ export interface MeetupCommentView {
   edited: boolean;
   createdAt: string;
   mine: boolean;
+  likeCount: number;
+  iLiked: boolean;
 }
 
 export async function getMeetupComments(meetupId: string): Promise<MeetupCommentView[]> {
@@ -371,6 +379,10 @@ export async function getMeetupComments(meetupId: string): Promise<MeetupComment
   const rows = await db.select().from(schema.meetupComments)
     .where(eq(schema.meetupComments.meetupId, meetupId))
     .orderBy(desc(schema.meetupComments.createdAt));
+  const commentIds = rows.map((row) => row.id);
+  const commentLikes = commentIds.length
+    ? await db.select().from(schema.meetupCommentLikes).where(inArray(schema.meetupCommentLikes.commentId, commentIds))
+    : [];
   const userIds = Array.from(new Set(rows.map((row) => row.userId)));
   const profiles = userIds.length
     ? await db.select().from(schema.profiles).where(inArray(schema.profiles.id, userIds))
@@ -388,6 +400,8 @@ export async function getMeetupComments(meetupId: string): Promise<MeetupComment
       edited: row.edited,
       createdAt: row.createdAt.toISOString(),
       mine: !!user && row.userId === user.id,
+      likeCount: commentLikes.filter((like) => like.commentId === row.id).length,
+      iLiked: !!user && commentLikes.some((like) => like.commentId === row.id && like.userId === user.id),
     };
   });
 }
@@ -436,5 +450,36 @@ export async function deleteMeetupComment(commentId: string): Promise<boolean> {
       ? eq(schema.meetupComments.id, commentId)
       : and(eq(schema.meetupComments.id, commentId), eq(schema.meetupComments.userId, user.id)))
     .returning({ id: schema.meetupComments.id });
-  return deleted.length > 0;
+  if (!deleted.length) return false;
+  await db.delete(schema.meetupCommentLikes).where(eq(schema.meetupCommentLikes.commentId, commentId));
+  return true;
+}
+
+/** コメントいいねを target state で反映(冪等)。いいね時のみコメント主に通知。 */
+export async function setMeetupCommentLike(commentId: string, liked: boolean): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user) return false;
+  const [comment] = await db.select().from(schema.meetupComments).where(eq(schema.meetupComments.id, commentId));
+  if (!comment) return false;
+  if (!liked) {
+    await db.delete(schema.meetupCommentLikes)
+      .where(and(eq(schema.meetupCommentLikes.commentId, commentId), eq(schema.meetupCommentLikes.userId, user.id)));
+    return true;
+  }
+  const inserted = await db.insert(schema.meetupCommentLikes)
+    .values({ commentId, userId: user.id })
+    .onConflictDoNothing()
+    .returning({ commentId: schema.meetupCommentLikes.commentId });
+  if (inserted.length) {
+    const [actor] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
+    await createNotification({
+      userId: comment.userId,
+      kind: 'comment_like',
+      text: `${actor?.nickname || 'メンバー'}さんがあなたのコメントにいいねしました`,
+      targetPath: paths.meetup(comment.meetupId),
+      excludeUserId: user.id,
+    });
+  }
+  return true;
 }

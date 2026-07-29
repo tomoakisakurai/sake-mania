@@ -166,6 +166,21 @@ export async function deleteMyAccount(): Promise<boolean> {
       await tx.delete(schema.meetupAttendees).where(eq(schema.meetupAttendees.userId, userId));
       await tx.delete(schema.meetupBrings).where(eq(schema.meetupBrings.userId, userId));
       await tx.delete(schema.meetupVotes).where(eq(schema.meetupVotes.userId, userId));
+      // 自分のコメントに付いた(他メンバーの)いいねも道連れで消す
+      const myMeetupComments = await tx.select({ id: schema.meetupComments.id })
+        .from(schema.meetupComments).where(eq(schema.meetupComments.userId, userId));
+      if (myMeetupComments.length) {
+        await tx.delete(schema.meetupCommentLikes)
+          .where(inArray(schema.meetupCommentLikes.commentId, myMeetupComments.map((comment) => comment.id)));
+      }
+      const myEventComments = await tx.select({ id: schema.eventComments.id })
+        .from(schema.eventComments).where(eq(schema.eventComments.userId, userId));
+      if (myEventComments.length) {
+        await tx.delete(schema.eventCommentLikes)
+          .where(inArray(schema.eventCommentLikes.commentId, myEventComments.map((comment) => comment.id)));
+      }
+      await tx.delete(schema.meetupCommentLikes).where(eq(schema.meetupCommentLikes.userId, userId));
+      await tx.delete(schema.eventCommentLikes).where(eq(schema.eventCommentLikes.userId, userId));
       await tx.delete(schema.meetupComments).where(eq(schema.meetupComments.userId, userId));
       await tx.delete(schema.eventAttendees).where(eq(schema.eventAttendees.userId, userId));
       await tx.delete(schema.eventComments).where(eq(schema.eventComments.userId, userId));

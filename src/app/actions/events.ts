@@ -39,6 +39,8 @@ export interface EventCommentView {
   edited: boolean;
   createdAt: string;
   mine: boolean;
+  likeCount: number;
+  iLiked: boolean;
 }
 
 export interface EventDetail extends EventView {
@@ -133,6 +135,10 @@ export async function getEventDetail(eventId: string): Promise<EventDetail | nul
     db.select().from(schema.eventAttendees).where(eq(schema.eventAttendees.eventId, eventId)),
     db.select().from(schema.eventComments).where(eq(schema.eventComments.eventId, eventId)).orderBy(desc(schema.eventComments.createdAt)),
   ]);
+  const commentIds = comments.map((c) => c.id);
+  const commentLikes = commentIds.length
+    ? await db.select().from(schema.eventCommentLikes).where(inArray(schema.eventCommentLikes.commentId, commentIds))
+    : [];
   const userIds = Array.from(new Set<string>([eventRow.createdBy, ...attendees.map((a) => a.userId), ...comments.map((c) => c.userId)]));
   const profiles = userIds.length
     ? await db.select().from(schema.profiles).where(inArray(schema.profiles.id, userIds))
@@ -182,6 +188,8 @@ export async function getEventDetail(eventId: string): Promise<EventDetail | nul
         edited: c.edited,
         createdAt: c.createdAt.toISOString(),
         mine: !!user && c.userId === user.id,
+        likeCount: commentLikes.filter((like) => like.commentId === c.id).length,
+        iLiked: !!user && commentLikes.some((like) => like.commentId === c.id && like.userId === user.id),
       };
     }),
   };
@@ -259,6 +267,12 @@ export async function deleteEvent(eventId: string): Promise<boolean> {
       : and(eq(schema.events.id, eventId), eq(schema.events.createdBy, user.id)))
     .returning({ id: schema.events.id });
   if (!deleted.length) return false;
+  const eventCommentRows = await db.select({ id: schema.eventComments.id })
+    .from(schema.eventComments).where(eq(schema.eventComments.eventId, eventId));
+  if (eventCommentRows.length) {
+    await db.delete(schema.eventCommentLikes)
+      .where(inArray(schema.eventCommentLikes.commentId, eventCommentRows.map((comment) => comment.id)));
+  }
   await Promise.all([
     db.delete(schema.eventAttendees).where(eq(schema.eventAttendees.eventId, eventId)),
     db.delete(schema.eventComments).where(eq(schema.eventComments.eventId, eventId)),
@@ -319,6 +333,8 @@ export async function addEventComment(eventId: string, text: string): Promise<Ev
     edited: row.edited,
     createdAt: row.createdAt.toISOString(),
     mine: true,
+    likeCount: 0,
+    iLiked: false,
   };
 }
 
@@ -344,5 +360,36 @@ export async function deleteEventComment(commentId: string): Promise<boolean> {
       ? eq(schema.eventComments.id, commentId)
       : and(eq(schema.eventComments.id, commentId), eq(schema.eventComments.userId, user.id)))
     .returning({ id: schema.eventComments.id });
-  return deleted.length > 0;
+  if (!deleted.length) return false;
+  await db.delete(schema.eventCommentLikes).where(eq(schema.eventCommentLikes.commentId, commentId));
+  return true;
+}
+
+/** コメントいいねを target state で反映(冪等)。いいね時のみコメント主に通知。 */
+export async function setEventCommentLike(commentId: string, liked: boolean): Promise<boolean> {
+  const db = getDb();
+  const user = await currentUser();
+  if (!db || !user) return false;
+  const [comment] = await db.select().from(schema.eventComments).where(eq(schema.eventComments.id, commentId));
+  if (!comment) return false;
+  if (!liked) {
+    await db.delete(schema.eventCommentLikes)
+      .where(and(eq(schema.eventCommentLikes.commentId, commentId), eq(schema.eventCommentLikes.userId, user.id)));
+    return true;
+  }
+  const inserted = await db.insert(schema.eventCommentLikes)
+    .values({ commentId, userId: user.id })
+    .onConflictDoNothing()
+    .returning({ commentId: schema.eventCommentLikes.commentId });
+  if (inserted.length) {
+    const [actor] = await db.select().from(schema.profiles).where(eq(schema.profiles.id, user.id));
+    await createNotification({
+      userId: comment.userId,
+      kind: 'comment_like',
+      text: `${actor?.nickname || 'メンバー'}さんがあなたのコメントにいいねしました`,
+      targetPath: paths.event(comment.eventId),
+      excludeUserId: user.id,
+    });
+  }
+  return true;
 }

@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
+import clsx from 'clsx';
 
 // イベント詳細・MEETUP詳細で共用するコメント一覧。
-// 編集・削除の実処理は画面側から server action を注入する。
+// 編集・削除・いいねの実処理は画面側から server action を注入する。
 export interface CommentView {
   id: string;
   userId: string;
@@ -13,12 +14,16 @@ export interface CommentView {
   edited: boolean;
   createdAt: string;
   mine: boolean;
+  likeCount: number;
+  iLiked: boolean;
 }
 
 type Props = {
   comments: CommentView[];
   onEdit: (commentId: string, text: string) => Promise<boolean>;
   onDelete: (commentId: string) => Promise<boolean>;
+  /** いいねを target state で反映する。未ログイン誘導は画面側で行い false を返す */
+  onToggleLike: (commentId: string, liked: boolean) => Promise<boolean>;
   onChanged: () => void;
   /** 管理者モデレーション: 他人のコメントにも削除を出す(編集は本人のみ) */
   canModerate?: boolean;
@@ -37,9 +42,18 @@ function relativeTime(iso: string): string {
   return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-export function CommentList({ comments, onEdit, onDelete, onChanged, canModerate = false }: Props) {
+export function CommentList({ comments, onEdit, onDelete, onToggleLike, onChanged, canModerate = false }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
+  const [likeBusyId, setLikeBusyId] = useState<string | null>(null);
+
+  const handleLike = async (comment: CommentView) => {
+    if (likeBusyId) return;
+    setLikeBusyId(comment.id);
+    const ok = await onToggleLike(comment.id, !comment.iLiked);
+    setLikeBusyId(null);
+    if (ok) onChanged();
+  };
 
   const startEdit = (comment: CommentView) => {
     setEditingId(comment.id);
@@ -97,7 +111,23 @@ export function CommentList({ comments, onEdit, onDelete, onChanged, canModerate
                 <div onClick={() => { setEditingId(null); setDraft(''); }} className="border border-line text-body rounded-full px-4 py-2 text-[12.5px] cursor-pointer bg-surface">キャンセル</div>
               </div>
             ) : (
-              <div className="text-[13px] leading-relaxed text-body whitespace-pre-wrap">{comment.text}</div>
+              <>
+                <div className="text-[13px] leading-relaxed text-body whitespace-pre-wrap">{comment.text}</div>
+                <button
+                  type="button"
+                  onClick={() => handleLike(comment)}
+                  disabled={likeBusyId === comment.id}
+                  className={clsx(
+                    'mt-1.5 inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-0.5 text-[11px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                    comment.iLiked
+                      ? 'border-accent bg-accent text-surface'
+                      : 'border-line bg-surface text-muted hover:border-accent hover:text-accent',
+                  )}
+                >
+                  ♡ いいね
+                  {comment.likeCount > 0 && <span className="font-mono text-[10.5px]">{comment.likeCount}</span>}
+                </button>
+              </>
             )}
           </div>
         </div>
