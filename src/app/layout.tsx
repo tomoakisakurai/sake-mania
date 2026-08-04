@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { Providers } from '@/components/Providers';
 import { getCoreReferenceData } from '@/lib/getReferenceData';
@@ -24,6 +24,13 @@ export const metadata: Metadata = {
   // Slack/SNSのリンク展開用デフォルト（各ページが openGraph.title/description で上書き）
   openGraph: { type: 'website', siteName: SITE_NAME, locale: 'ja_JP', title: SITE_NAME, description: SITE_DESC },
   twitter: { card: 'summary', title: SITE_NAME, description: SITE_DESC },
+  // PWA: iOSのホーム画面追加時の表示名とステータスバー。faviconは app/icon.svg が自動で効く
+  appleWebApp: { capable: true, title: 'SAKE MANIA', statusBarStyle: 'default' },
+  icons: { apple: '/apple-touch-icon.png' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#F6F1E7',
 };
 
 // DB-backed app: render on demand (per request) instead of prerendering at
