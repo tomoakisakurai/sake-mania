@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { PostRef } from '@/types';
 import { usePostVals } from './usePostVals';
 import { useStore } from '@/store';
@@ -26,6 +26,12 @@ export function Post({ postRef }: { postRef: PostRef | null }) {
   const [draft, setDraft] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
+
+  // コメント本文はマウント時の一括取得に含まれないので、記録が解決したらここで social を取る。
+  useEffect(() => {
+    if (!post.recordId) return;
+    useStore.getState().loadSocial();
+  }, [post.recordId]);
 
   const startEdit = (id: string, text: string) => { setEditingId(id); setEditDraft(text); };
   const cancelEdit = () => { setEditingId(null); setEditDraft(''); };

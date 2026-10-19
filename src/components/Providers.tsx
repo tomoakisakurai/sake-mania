@@ -5,8 +5,9 @@ import { useStore } from '@/store';
 import { routeStateFromPath } from '@/lib/routes';
 import { useNavVals } from './useNavVals';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
-import { getIsAdmin, ensureProfile, getMyProfile } from '@/app/actions/profile';
+import { getMySession } from '@/app/actions/profile';
 import type { CoreReferenceData, DeferredReferenceData, ReferenceData } from '@/lib/getReferenceData';
+import type { Screen } from '@/types';
 import { Nav } from './Nav';
 import { TabBar } from './TabBar';
 import { Toast } from './Toast';
@@ -20,6 +21,10 @@ export function useReferenceData(): ReferenceData { return useContext(ReferenceC
 // 後追い取得分の初期値（mount後にクライアントから実データで上書き）。
 // 空でも各画面フック側のガードでクラッシュしない。
 const EMPTY_DEFERRED: DeferredReferenceData = { others: [], bars: [], kuraMeta: {}, prefGrid: [] };
+
+// 後追い参照データを使う画面。Detail(others)、Kura(kuraMeta)、Map(bars/kuraMeta/prefGrid)、
+// Members(prefGrid)、MyPage(prefGrid)、Post(others)。
+const DEFERRED_REFERENCE_SCREENS: ReadonlySet<Screen> = new Set<Screen>(['detail', 'kura', 'map', 'members', 'mypage', 'post']);
 
 export function Providers({ initialData, children }: { initialData: CoreReferenceData; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -59,22 +64,24 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
   }, []);
 
   // Public feed (みんなの利き酒帳) + MEETUP一覧 — visible to everyone, incl. guests.
+  // server action はクライアントで1本ずつ直列に実行されるため、マウント時の本数を最小にする。
+  // social(のみたいね・コメント)は取らない: フィードの件数は getPublicRecords が同梱しており
+  // socialOf がフォールバックする。コメント本文が要る投稿詳細は Post 画面側で取得する。
+  // action は cookie で認証するので、ログイン中ならこの時点で iGoing/mine/liked も正しい。
   useEffect(() => {
     const store = useStore.getState();
-    // MEETUP一覧はフィードと独立なので即時並行で取得（先行2リクエストを待たない）。
     store.loadMeetups();
-    // social は publicRecords のidに依存するため、この2つは直列。
-    (async () => {
-      await store.loadPublicRecords();
-      await store.loadSocial();
-    })();
+    store.loadPublicRecords();
   }, []);
 
-  // 初回ペイントに不要な参照データ(マップ系・サンプル投稿・MEETUPシード)は
-  // 描画後にクライアントから後追い取得する（SSRの描画パスをbrands/membersのみに絞る）。
+  // 初回ペイントに不要な参照データ(マップ系・サンプル投稿・MEETUPシード)は、
+  // それを使う画面を開いたときだけ後追い取得する(action の直列キューを空けておく)。
+  // 取得済みなら store 側で何もしない。
   useEffect(() => {
-    useStore.getState().loadDeferredReference();
-  }, []);
+    if (DEFERRED_REFERENCE_SCREENS.has(route.screen)) {
+      useStore.getState().loadDeferredReference();
+    }
+  }, [route.screen]);
 
   // 開いているMEETUPの詳細をルートから読み込む
   useEffect(() => {
@@ -104,28 +111,34 @@ export function Providers({ initialData, children }: { initialData: CoreReferenc
         store.patch({ authReady: true });
         return;
       }
-      // 新規登録(またはOAuth初回ログイン)で profiles が無いケースに備えて
-      // upsertする。既にあれば何もしない。プロフィール取得より先に呼ぶ。
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-        const meta = (session.user.user_metadata || {}) as { nickname?: string; user_name?: string; preferred_username?: string };
-        const nickname = meta.nickname || meta.user_name || meta.preferred_username || (session.user.email ? session.user.email.split('@')[0] : '');
-        await ensureProfile(nickname);
-      }
+      // profiles 行の保証(新規登録・OAuth初回ログイン)、プロフィール、isAdmin を
+      // 1本の action でまとめて取る(action は直列実行されるので本数を減らす)。
       // 表示名の source of truth は profiles テーブル。mapUser の
       // user_metadata 由来の値は profiles 未取得時のフォールバックに留める。
       // isAdmin も取得してから一度だけ setUser する(チラつき防止)。
-      const [isAdmin, profile] = await Promise.all([getIsAdmin(), getMyProfile()]);
+      const mySession = await getMySession();
       store.setUser({
         ...user,
-        name: profile?.nickname ?? user.name,
-        avatar: profile?.avatar ?? user.avatar,
-        isAdmin,
+        name: mySession?.profile.nickname ?? user.name,
+        avatar: mySession?.profile.avatar ?? user.avatar,
+        isAdmin: mySession?.isAdmin ?? false,
       });
       store.patch({ authReady: true });
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      if (event === 'INITIAL_SESSION') {
+        // ページ読み込み時のセッション。MEETUP一覧・フィードはマウント時に cookie 認証で
+        // ログインユーザーとして取得済みなので再取得しない。自分の記録と social だけ取る。
+        // loadSocial は store の publicRecords の id も使う。action は投入順(FIFO)に直列実行されるため、
+        // マウント時に先に投げた loadPublicRecords の結果は loadMyRecords の完了時点で入っている。
+        await store.loadMyRecords();
+        await store.loadSocial();
+        const mid = routeStateFromPath(pathname || '/').meetupId;
+        if (mid) store.loadMeetupDetail(mid);
+      } else if (event === 'SIGNED_IN') {
+        // 画面内でのログイン。マウント時にゲストとして取った一覧は iGoing/mine/liked が古いので取り直す。
         await store.loadMyRecords();
         await store.loadSocial();
         store.loadMeetups();
+        store.loadPublicRecords();
         const mid = routeStateFromPath(pathname || '/').meetupId;
         if (mid) store.loadMeetupDetail(mid);
       }

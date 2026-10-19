@@ -10,6 +10,7 @@ import { starStr } from '@/lib/format';
 const noop = () => {};
 // 該当記録が見つからない場合のフォールバック(読み込み中/URL不正)。
 export const EMPTY_POST: PostVM = {
+  recordId: '',
   user: '', mine: '', avatar: '', avatarBg: '', timePlace: '',
   canPublish: false, isPublic: false, publishLabel: '', publishToggle: noop, canDelete: false, deleteClick: noop,
   brandName: '', brewery: '', brandSubRest: '',
@@ -60,6 +61,7 @@ export function usePostVals(postRef: PostRef | null): PostVM {
   const pso = socialOf(store, px);
 
   return {
+    recordId: px.recordId,
     user: isMine ? me.user : pxUser, mine: isMine ? '(あなた)' : '',
     avatar: isMine ? me.avatar : pxAvatar, avatarBg: isMine ? me.avatarBg : pxAvatarBg,
     timePlace: pxTimePlace,

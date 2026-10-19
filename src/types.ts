@@ -222,6 +222,8 @@ export interface CommentVM {
 }
 
 export interface PostVM {
+  /** 表示中の記録id。記録が未解決(読み込み中/URL不正)なら ''。 */
+  recordId: string;
   user: string;
   mine: string;
   avatar: string;
