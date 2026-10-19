@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { inviteUrl, isInviteActive, signupErrorMessage } from './signupGate';
+import { inviteQrPath, inviteUrl, isInviteActive, signupErrorMessage } from './signupGate';
 
 describe('inviteUrl', () => {
   it('/login?invite=<token> を組み立てる', () => {
@@ -8,6 +8,16 @@ describe('inviteUrl', () => {
 
   it('トークンは encodeURIComponent する', () => {
     expect(inviteUrl('http://localhost:5174', 'a+b/c=d&e')).toBe('http://localhost:5174/login?invite=a%2Bb%2Fc%3Dd%26e');
+  });
+});
+
+describe('inviteQrPath', () => {
+  it('/api/invite-qr?token=<token> を組み立てる', () => {
+    expect(inviteQrPath('abc_DEF-123')).toBe('/api/invite-qr?token=abc_DEF-123');
+  });
+
+  it('トークンは encodeURIComponent する', () => {
+    expect(inviteQrPath('a+b/c=d&e')).toBe('/api/invite-qr?token=a%2Bb%2Fc%3Dd%26e');
   });
 });
 

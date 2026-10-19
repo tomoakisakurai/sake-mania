@@ -24,6 +24,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // api/brand-photo は認証不要の画像配信なので、画像1枚ごとに auth.getUser() の往復を走らせないよう除外する
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/brand-photo|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  // api/brand-photo と api/invite-qr は認証不要の画像配信なので、画像1枚ごとに auth.getUser() の往復を走らせないよう除外する
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/brand-photo|api/invite-qr|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };

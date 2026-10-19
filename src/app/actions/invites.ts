@@ -1,12 +1,13 @@
 'use server';
 import { and, desc, eq, isNull } from 'drizzle-orm';
-import QRCode from 'qrcode';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
 import { isAdminUser } from '@/lib/authz';
 import { absoluteUrl, postToSlack } from '@/lib/slack';
-import { inviteUrl, isInviteActive } from '@/lib/signupGate';
+import { inviteQrPath, inviteUrl, isInviteActive } from '@/lib/signupGate';
+import { inviteSiteOrigin, renderInviteQrPng } from '@/lib/inviteQr';
+import { inviteSlackPost } from '@/lib/inviteSlackPost';
 import { generateInviteToken, hashInviteToken } from '@/lib/inviteToken';
 
 // 新規登録の招待リンク(管理者のみ)。登録時の判定は auth.users のトリガーが行う(src/db/setup-signup-gate.ts)。
@@ -41,8 +42,6 @@ export interface InviteView {
 
 const LABEL_MAX_LENGTH = 100;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-// 本番 URL が無い環境(ローカル開発)で招待URLを組み立てるときの origin
-const LOCAL_ORIGIN = 'http://localhost:5174';
 
 async function currentAdminUserId(): Promise<string | null> {
   const supabase = await getSupabaseServer();
@@ -80,16 +79,17 @@ export async function createInvite(input: InviteInput): Promise<CreatedInvite | 
     .returning({ id: schema.signupInvites.id });
   if (!row) return null;
 
-  // absoluteUrl と同じ仕組みで本番 URL を求める。無い環境(ローカル開発)では localhost
+  // 本番 URL(無い環境では null)。Slack に流すかの判断に使う
   const siteOrigin = absoluteUrl('');
-  const url = inviteUrl(siteOrigin ?? LOCAL_ORIGIN, token);
-  const qrDataUrl = await QRCode.toDataURL(url, { margin: 1, width: 240 });
+  const url = inviteUrl(inviteSiteOrigin(), token);
+  const qrDataUrl = `data:image/png;base64,${(await renderInviteQrPng(url)).toString('base64')}`;
 
   // 本番 URL が無い環境では、誰も開けない localhost のリンクを Slack に流さない
   if (input.notifySlack && siteOrigin) {
     const expiresLabel = expiresAt ? expiresAt.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }) + 'まで' : '無期限';
+    const post = inviteSlackPost({ label, expiresLabel, url, qrUrl: siteOrigin + inviteQrPath(token) });
     // postToSlack は失敗しても例外を投げない(作成は成功扱い)
-    await postToSlack(`🍶 酒マニアの招待リンクです(ラベル: ${label || 'なし'}、期限: ${expiresLabel})\n${url}`);
+    await postToSlack(post.text, post.blocks);
   }
   return { id: row.id, url, qrDataUrl };
 }

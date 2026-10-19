@@ -116,3 +116,22 @@ test('新規登録: 招待リンクで開くと招待トークンを metadata �
   await expect(page.getByText('登録できませんでした。新規登録には幹事からの招待リンクが必要です(リンクが失効している場合もあります)')).toBeVisible();
   expect(captured.body?.data?.invite_token).toBe('test-token_123');
 });
+
+// 招待 QR(/api/invite-qr)と招待リンクの展開用メタデータ。dev サーバーは本物の DB を見るので、使えない招待の側だけを確かめる
+test('招待 QR: 形式不正のトークンは 404', async ({ request }) => {
+  const response = await request.get('/api/invite-qr?token=bad');
+  expect(response.status()).toBe(404);
+  expect(response.headers()['cache-control']).toContain('no-store');
+});
+
+test('招待 QR: 未登録のトークンは 404', async ({ request }) => {
+  const response = await request.get(`/api/invite-qr?token=${'A'.repeat(32)}`);
+  expect(response.status()).toBe(404);
+});
+
+test('使えない招待リンクのメタデータは通常のログイン画面のまま(QR を出さない)', async ({ page }) => {
+  await mockInviteStatus(page, false);
+  await page.goto('/login?invite=bad');
+  await expect(page).toHaveTitle('ログイン — 酒マニア');
+  await expect(page.locator('meta[property="og:image"]')).toHaveCount(0);
+});

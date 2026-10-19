@@ -13,6 +13,17 @@ export function inviteUrl(origin: string, token: string): string {
   return `${origin}/login?${INVITE_QUERY_PARAM}=${encodeURIComponent(token)}`;
 }
 
+/** QR 画像の一辺(px)。Slack の image ブロックと og:image で共有 */
+export const INVITE_QR_SIZE = 480;
+
+/** QR 画像の代替テキスト(Slack の alt_text と og:image:alt で共有) */
+export const INVITE_QR_ALT = '招待リンクの QR コード';
+
+/** QR 画像のパス(/api/invite-qr?token=...)。origin は付けない */
+export function inviteQrPath(token: string): string {
+  return `/api/invite-qr?token=${encodeURIComponent(token)}`;
+}
+
 /**
  * 招待リンクゲート(トリガー)による拒否か。Supabase Auth は経路によってトリガーの例外文
  * (`signup_gate: invite required` など)をそのまま返すことも、「Database error saving new user」に

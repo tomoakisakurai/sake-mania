@@ -21,18 +21,44 @@ export function absoluteUrl(path: string): string | null {
   return base ? `${base}${path}` : null;
 }
 
-/** Slack Incoming Webhook にテキストを投稿する。SLACK_WEBHOOK_URL未設定なら何もしない(機能OFF)。 */
-export async function postToSlack(text: string): Promise<void> {
+/** Block Kit のブロック。使うのは section と image だけなので、その2種だけ型にする */
+export type SlackBlock =
+  | { type: 'section'; text: { type: 'mrkdwn'; text: string } }
+  | { type: 'image'; image_url: string; alt_text: string };
+
+async function sendToWebhook(webhookUrl: string, payload: Record<string, unknown>): Promise<Response> {
+  return fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Slack Incoming Webhook に投稿する。SLACK_WEBHOOK_URL未設定なら何もしない(機能OFF)。
+ * blocks を渡すと Block Kit で投稿し、text は通知のプレビューと blocks 非対応クライアントの本文になる。
+ * blocks ありの投稿を Slack が 400 で拒否したら(image_url を取得できないと invalid_blocks で投稿ごと拒否される)、text だけで1回再送する。
+ * 403 と 429 では再送しない(社内ルール)。5xx でも再送しない(元の投稿が届いている可能性があり、二重になる)。
+ */
+export async function postToSlack(text: string, blocks?: SlackBlock[]): Promise<void> {
   const webhookUrl = process.env.SLACK_WEBHOOK_URL;
   if (!webhookUrl) return;
   try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    });
-    if (!response.ok) {
-      console.error('Slackへの投稿に失敗しました', response.status, await response.text());
+    if (!blocks) {
+      const response = await sendToWebhook(webhookUrl, { text });
+      if (!response.ok) {
+        console.error('Slackへの投稿に失敗しました', response.status, await response.text());
+      }
+      return;
+    }
+    // image ブロックで QR を出すので、本文中のリンクの展開(og:image の QR)で二重に出さない
+    const response = await sendToWebhook(webhookUrl, { text, blocks, unfurl_links: false, unfurl_media: false });
+    if (response.ok) return;
+    console.error('Slackへの投稿に失敗しました(blocks)', response.status, await response.text());
+    if (response.status !== 400) return;
+    const retryResponse = await sendToWebhook(webhookUrl, { text });
+    if (!retryResponse.ok) {
+      console.error('Slackへの投稿に失敗しました', retryResponse.status, await retryResponse.text());
     }
   } catch (error) {
     console.error('Slackへの投稿に失敗しました', error);
