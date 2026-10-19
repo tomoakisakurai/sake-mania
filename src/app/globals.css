@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+/* Web フォント(Google Fonts)は app/layout.tsx の <head> で <link> として読み込む。
+   ここで @import すると HTML → この CSS → Google の CSS → 描画 の直列チェーンになり、
+   初回描画が Google の CSS(日本語3書体で約800KB)の取得完了まで遅れるため。 */
 
 /* Tailwind v4: テーマ + ユーティリティのみ。preflight(リセット)は既存の
    インラインスタイル中心UIの見た目を変えうるため意図的に読み込まない。 */

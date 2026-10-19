@@ -44,6 +44,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialData = await getCoreReferenceData();
   return (
     <html lang="ja">
+      <head>
+        {/* Web フォント。globals.css の @import ではなく <head> に置き、HTML を読んだ時点で
+            globals.css と並列に取得させる(直列チェーンを避ける)。ウェイトは使用中のものだけ。 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        />
+      </head>
       <body>
         <Providers initialData={initialData}>{children}</Providers>
         <Analytics />
