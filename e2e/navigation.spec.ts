@@ -63,13 +63,13 @@ test.describe('招待リンク画面は管理者のみ', () => {
 });
 
 test.describe('ログイン画面', () => {
-  test('ログイン / 新規登録 タブが切り替えられる', async ({ page }) => {
-    await page.goto('/login');
-    // 初期表示は「ログイン」タブ
-    await expect(page.getByText('ログイン', { exact: true }).first()).toBeVisible();
-    // 「新規登録」タブをクリック → ニックネーム入力欄が出る
-    await page.getByText('新規登録', { exact: true }).first().click();
+  test('招待リンクから開くと新規登録タブで始まり、ログインタブに切り替えられる', async ({ page }) => {
+    await page.goto('/login?invite=test-token_123');
+    // 招待リンクからは「新規登録」タブで始まる → ニックネーム入力欄が出ている
     await expect(page.getByPlaceholder('例: sake_taro')).toBeVisible();
+    // 「ログイン」タブをクリック → ニックネーム入力欄が消える
+    await page.getByText('ログイン', { exact: true }).first().click();
+    await expect(page.getByPlaceholder('例: sake_taro')).toHaveCount(0);
   });
 
   test('「ログインせずにのぞいてみる」でホームへ', async ({ page }) => {

@@ -14,7 +14,7 @@ const TOKEN_ROUTE = /\/auth\/v1\/token\?.*grant_type=password/;
 test('メールアドレス未入力ならflashエラーが出る', async ({ page }) => {
   await page.goto('/login');
   // 何も入力せずに「ログイン」ボタン押下
-  await page.getByText('ログイン', { exact: true }).nth(1).click(); // [タブ, CTAボタン]の2つ目
+  await page.getByText('ログイン', { exact: true }).click(); // 招待リンクなしではタブが無く、CTAボタンだけ
   await expect(page.getByText('メールアドレスとパスワードを入力してください')).toBeVisible();
 });
 
@@ -31,13 +31,12 @@ test('不正な認証情報ならエラーが flash に出る', async ({ page })
   await page.goto('/login');
   await page.getByPlaceholder('you@example.com').fill('wrong@example.com');
   await page.getByPlaceholder('••••••••').fill('wrongpassword');
-  await page.getByText('ログイン', { exact: true }).nth(1).click();
+  await page.getByText('ログイン', { exact: true }).click();
   await expect(page.getByText('ログインに失敗しました', { exact: false })).toBeVisible();
 });
 
-test('新規登録タブで未入力ならflashエラー', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByText('新規登録', { exact: true }).first().click();
+test('招待リンクから開いた新規登録で未入力ならflashエラー', async ({ page }) => {
+  await page.goto('/login?invite=test-token_123');
   // メールパスワード未入力で「登録してはじめる」を押下
   await page.getByText('登録してはじめる', { exact: true }).click();
   await expect(page.getByText('メールアドレスとパスワードを入力してください')).toBeVisible();
@@ -68,26 +67,19 @@ test('signInWithPassword 成功時に Supabase API が叩かれる', async ({ pa
   await page.goto('/login');
   await page.getByPlaceholder('you@example.com').fill('test@example.com');
   await page.getByPlaceholder('••••••••').fill('password');
-  await page.getByText('ログイン', { exact: true }).nth(1).click();
+  await page.getByText('ログイン', { exact: true }).click();
   // signInWithPassword が叩かれることだけ確認(server側のフロー検証は別途)
   await expect.poll(() => called).toBe(true);
 });
 
 const SIGNUP_ROUTE = /\/auth\/v1\/signup/;
 
-test('新規登録: 招待リンクが無ければ送信前に止める', async ({ page }) => {
-  let signupCalled = false;
-  await page.route(SIGNUP_ROUTE, (route: Route) => {
-    signupCalled = true;
-    return route.abort();
-  });
+test('新規登録: 招待リンクなしで開くと新規登録タブもフォームも出さない', async ({ page }) => {
   await page.goto('/login');
-  await page.getByText('新規登録', { exact: true }).first().click();
-  await page.getByPlaceholder('you@example.com').fill('taro@example.com');
-  await page.getByPlaceholder('••••••••').fill('password');
-  await page.getByText('登録してはじめる', { exact: true }).click();
-  await expect(page.getByText('新規登録は、幹事から共有された招待リンクを開いて行ってください')).toBeVisible();
-  expect(signupCalled).toBe(false);
+  await expect(page.getByText('新規登録は幹事から共有される招待リンク(QR コード)から行えます。')).toBeVisible();
+  await expect(page.getByText('新規登録', { exact: true })).toHaveCount(0);
+  await expect(page.getByPlaceholder('例: sake_taro')).toHaveCount(0);
+  await expect(page.getByText('登録してはじめる', { exact: true })).toHaveCount(0);
 });
 
 test('新規登録: 招待リンクで開くと招待トークンを metadata に載せて signUp する', async ({ page }) => {

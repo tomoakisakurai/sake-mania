@@ -49,7 +49,8 @@ export function Login() {
     weight: mode === t ? 700 : 400,
     border: mode === t ? '2px solid #32507C' : '2px solid transparent',
   }));
-  const isSignup = mode === 'signup';
+  // 新規登録は招待リンク必須なので、招待トークンが無いときは新規登録モードにしない(タブも出さない)
+  const isSignup = mode === 'signup' && !!inviteToken;
   const loginCta = isSignup ? '登録してはじめる' : 'ログイン';
 
   const handleSubmit = async () => {
@@ -58,8 +59,7 @@ export function Login() {
     if (!email.trim() || !pw) { store.flash('メールアドレスとパスワードを入力してください'); return; }
 
     if (isSignup) {
-      // UX のための事前チェック。本当の判定は DB 側(auth.users のトリガー)で行う
-      if (!inviteToken) { store.flash('新規登録は、幹事から共有された招待リンクを開いて行ってください'); return; }
+      // isSignup は招待トークンがあるときだけ true。本当の判定は DB 側(auth.users のトリガー)で行う
       const nickname = name.trim() || email.split('@')[0];
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -107,16 +107,16 @@ export function Login() {
           <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: 15, color: '#5C5547', marginTop: 20, letterSpacing: '0.06em' }}>一杯ごとに、記憶を醸す。</div>
         </div>
         <div style={{ background: '#FFFFFF', border: '1px solid #E3DBCB', borderRadius: 16, padding: '28px 26px' }}>
-          <div style={{ display: 'flex', borderBottom: '1px solid #E3DBCB', marginBottom: 24 }}>
-            {loginTabs.map((lt, i: number) => (
-              <div key={i} onClick={lt.click} style={{ flex: 1, textAlign: 'center', paddingBottom: 12, fontSize: 14, cursor: 'pointer', color: lt.color, fontWeight: lt.weight, borderBottom: lt.border, marginBottom: -1 }}>{lt.label}</div>
-            ))}
-          </div>
-          {isSignup && inviteToken && (
-            <p className="m-0 mb-4 rounded-[10px] bg-accent-tint px-4 py-2.5 text-[12.5px] font-bold text-accent-dark">招待リンクから登録中</p>
+          {/* ログイン/新規登録のタブは招待リンクから開いたときだけ出す */}
+          {inviteToken && (
+            <div style={{ display: 'flex', borderBottom: '1px solid #E3DBCB', marginBottom: 24 }}>
+              {loginTabs.map((lt, i: number) => (
+                <div key={i} onClick={lt.click} style={{ flex: 1, textAlign: 'center', paddingBottom: 12, fontSize: 14, cursor: 'pointer', color: lt.color, fontWeight: lt.weight, borderBottom: lt.border, marginBottom: -1 }}>{lt.label}</div>
+              ))}
+            </div>
           )}
-          {isSignup && !inviteToken && (
-            <p className="m-0 mb-4 rounded-[10px] bg-bg px-4 py-2.5 text-[12.5px] leading-[1.7] text-body">新規登録は、幹事から共有された招待リンク(QR コード)を開いて行ってください。</p>
+          {isSignup && (
+            <p className="m-0 mb-4 rounded-[10px] bg-accent-tint px-4 py-2.5 text-[12.5px] font-bold text-accent-dark">招待リンクから登録中</p>
           )}
           {isSignup && (
             <>
