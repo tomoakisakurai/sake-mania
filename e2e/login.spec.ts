@@ -1,4 +1,4 @@
-import { test, expect, type Route } from '@playwright/test';
+import { test, expect, type Page, type Route } from '@playwright/test';
 
 // ログインフォームの挙動(クライアント側のみ)。
 // Supabase API レスポンスを page.route でモックして、cookie 注入なしで
@@ -10,6 +10,12 @@ import { test, expect, type Route } from '@playwright/test';
 // パスワードログインは必ず `/auth/v1/token?grant_type=password` を叩くため、
 // URL末尾でマッチングする。
 const TOKEN_ROUTE = /\/auth\/v1\/token\?.*grant_type=password/;
+
+// 招待リンクの有効性確認(/api/invite-status)は本物の DB を見るので、テストでは結果を差し替える
+async function mockInviteStatus(page: Page, active: boolean) {
+  await page.route(/\/api\/invite-status/, (route: Route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ active }) }));
+}
 
 test('メールアドレス未入力ならflashエラーが出る', async ({ page }) => {
   await page.goto('/login');
@@ -36,6 +42,7 @@ test('不正な認証情報ならエラーが flash に出る', async ({ page })
 });
 
 test('招待リンクから開いた新規登録で未入力ならflashエラー', async ({ page }) => {
+  await mockInviteStatus(page, true);
   await page.goto('/login?invite=test-token_123');
   // メールパスワード未入力で「登録してはじめる」を押下
   await page.getByText('登録してはじめる', { exact: true }).click();
@@ -82,6 +89,14 @@ test('新規登録: 招待リンクなしで開くと新規登録タブもフォ
   await expect(page.getByText('登録してはじめる', { exact: true })).toHaveCount(0);
 });
 
+test('新規登録: 失効などで使えない招待リンクなら登録フォームを出さずに案内する', async ({ page }) => {
+  await mockInviteStatus(page, false);
+  await page.goto('/login?invite=revoked-token');
+  await expect(page.getByText('この招待リンクは使えません(失効・期限切れの可能性があります)。幹事に新しいリンクをもらってください')).toBeVisible();
+  await expect(page.getByText('新規登録', { exact: true })).toHaveCount(0);
+  await expect(page.getByPlaceholder('例: sake_taro')).toHaveCount(0);
+});
+
 test('新規登録: 招待リンクで開くと招待トークンを metadata に載せて signUp する', async ({ page }) => {
   const captured: { body: { data?: Record<string, unknown> } | null } = { body: null };
   await page.route(SIGNUP_ROUTE, (route: Route) => {
@@ -92,6 +107,7 @@ test('新規登録: 招待リンクで開くと招待トークンを metadata �
       body: JSON.stringify({ code: 500, error_code: 'unexpected_failure', msg: 'Database error saving new user' }),
     });
   });
+  await mockInviteStatus(page, true);
   await page.goto('/login?invite=test-token_123');
   await expect(page.getByText('招待リンクから登録中')).toBeVisible();
   await page.getByPlaceholder('you@example.com').fill('taro@example.com');

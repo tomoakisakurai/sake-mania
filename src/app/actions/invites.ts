@@ -1,5 +1,4 @@
 'use server';
-import { createHash, randomBytes } from 'node:crypto';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import QRCode from 'qrcode';
 import { getDb } from '@/db/client';
@@ -8,6 +7,7 @@ import { getSupabaseServer } from '@/lib/supabase/server';
 import { isAdminUser } from '@/lib/authz';
 import { absoluteUrl, postToSlack } from '@/lib/slack';
 import { inviteUrl, isInviteActive } from '@/lib/signupGate';
+import { generateInviteToken, hashInviteToken } from '@/lib/inviteToken';
 
 // 新規登録の招待リンク(管理者のみ)。登録時の判定は auth.users のトリガーが行う(src/db/setup-signup-gate.ts)。
 // トークンの平文は DB に保存せず、発行時の戻り値で1回だけ返す。
@@ -59,11 +59,6 @@ function isNullOrPositiveInteger(value: number | null): boolean {
   return value === null || (Number.isInteger(value) && value > 0);
 }
 
-/** トリガー側の encode(digest(token, 'sha256'), 'hex') と同じ値 */
-function hashInviteToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
-}
-
 export async function createInvite(input: InviteInput): Promise<CreatedInvite | null> {
   const userId = await currentAdminUserId();
   const db = getDb();
@@ -72,7 +67,7 @@ export async function createInvite(input: InviteInput): Promise<CreatedInvite | 
   if (label.length > LABEL_MAX_LENGTH) return null;
   if (!isNullOrPositiveInteger(input.expiresInDays) || !isNullOrPositiveInteger(input.maxUses)) return null;
 
-  const token = randomBytes(24).toString('base64url');
+  const token = generateInviteToken();
   const expiresAt = input.expiresInDays === null ? null : new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000);
   const [row] = await db.insert(schema.signupInvites)
     .values({

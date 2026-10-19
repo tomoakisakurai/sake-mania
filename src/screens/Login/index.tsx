@@ -26,21 +26,40 @@ export function Login() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signupError]);
 
-  // 招待リンク(/login?invite=...)で来たらトークンを sessionStorage に残す(タブを切り替えたり再読み込みしても登録できるように)
-  useEffect(() => {
-    if (inviteParam) {
-      setInviteToken(inviteParam);
-      setMode('signup');
-      try { sessionStorage.setItem(INVITE_TOKEN_STORAGE_KEY, inviteParam); } catch { /* storage が使えなくても state で登録できる */ }
-      return;
-    }
-    try { setInviteToken(sessionStorage.getItem(INVITE_TOKEN_STORAGE_KEY) ?? ''); } catch { /* storage が使えない環境 */ }
-  }, [inviteParam]);
-
   const clearInviteToken = () => {
     setInviteToken('');
     try { sessionStorage.removeItem(INVITE_TOKEN_STORAGE_KEY); } catch { /* storage が使えない環境 */ }
   };
+
+  // 招待リンク(/login?invite=...)で来たら、まだ使えるリンクかを確かめてから登録フォームを出す。
+  // 使えるトークンは sessionStorage に残す(タブを切り替えたり再読み込みしても登録できるように)。
+  // 失効・期限切れ・上限到達・存在しないリンクなら、登録フォームを出さずに案内する。
+  useEffect(() => {
+    let candidate = inviteParam ?? '';
+    if (!candidate) {
+      try { candidate = sessionStorage.getItem(INVITE_TOKEN_STORAGE_KEY) ?? ''; } catch { /* storage が使えない環境 */ }
+    }
+    if (!candidate) return;
+    let active = true;
+    fetch(`/api/invite-status?token=${encodeURIComponent(candidate)}`)
+      .then((response) => response.json() as Promise<{ active: boolean }>)
+      .then((status) => {
+        if (!active) return;
+        if (!status.active) {
+          clearInviteToken();
+          store.flash('この招待リンクは使えません(失効・期限切れの可能性があります)。幹事に新しいリンクをもらってください');
+          return;
+        }
+        setInviteToken(candidate);
+        setMode('signup');
+        try { sessionStorage.setItem(INVITE_TOKEN_STORAGE_KEY, candidate); } catch { /* storage が使えなくても state で登録できる */ }
+      })
+      .catch(() => {
+        if (active) store.flash('招待リンクを確認できませんでした。通信状況を確かめて、もう一度リンクを開いてください');
+      });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inviteParam]);
 
   const loginTabs = (['login', 'signup'] as const).map((t) => ({
     label: t === 'login' ? 'ログイン' : '新規登録',

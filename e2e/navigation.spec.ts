@@ -64,6 +64,9 @@ test.describe('招待リンク画面は管理者のみ', () => {
 
 test.describe('ログイン画面', () => {
   test('招待リンクから開くと新規登録タブで始まり、ログインタブに切り替えられる', async ({ page }) => {
+    // 招待リンクの有効性確認は本物の DB を見るので、有効という結果に差し替える
+    await page.route(/\/api\/invite-status/, (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ active: true }) }));
     await page.goto('/login?invite=test-token_123');
     // 招待リンクからは「新規登録」タブで始まる → ニックネーム入力欄が出ている
     await expect(page.getByPlaceholder('例: sake_taro')).toBeVisible();
