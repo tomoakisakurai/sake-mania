@@ -13,15 +13,29 @@ export function inviteUrl(origin: string, token: string): string {
   return `${origin}/login?${INVITE_QUERY_PARAM}=${encodeURIComponent(token)}`;
 }
 
-/** QR 画像の一辺(px)。Slack の image ブロックと og:image で共有 */
-export const INVITE_QR_SIZE = 480;
+/**
+ * QR 画像の一辺(px)。large は og:image(小さいと Slack 等が大きく展開しない)と管理画面、
+ * small は Slack 投稿の image ブロック(Slack は画像をほぼ実寸で出すので、480px だと大きすぎた)。
+ * 任意のサイズは受け付けない(巨大な画像を作らせないため)。
+ */
+export const INVITE_QR_SIZES = { large: 480, small: 200 } as const;
+export type InviteQrSize = keyof typeof INVITE_QR_SIZES;
+
+/** og:image の width/height に使う既定サイズ */
+export const INVITE_QR_SIZE = INVITE_QR_SIZES.large;
+
+/** ?size= の値を InviteQrSize に。small 以外はすべて large */
+export function parseInviteQrSize(value: string | null): InviteQrSize {
+  return value === 'small' ? 'small' : 'large';
+}
 
 /** QR 画像の代替テキスト(Slack の alt_text と og:image:alt で共有) */
 export const INVITE_QR_ALT = '招待リンクの QR コード';
 
-/** QR 画像のパス(/api/invite-qr?token=...)。origin は付けない */
-export function inviteQrPath(token: string): string {
-  return `/api/invite-qr?token=${encodeURIComponent(token)}`;
+/** QR 画像のパス(/api/invite-qr?token=...)。origin は付けない。small のときだけ &size=small を付ける */
+export function inviteQrPath(token: string, size: InviteQrSize = 'large'): string {
+  const sizeQuery = size === 'small' ? '&size=small' : '';
+  return `/api/invite-qr?token=${encodeURIComponent(token)}${sizeQuery}`;
 }
 
 /**

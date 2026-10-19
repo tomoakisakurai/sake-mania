@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { isInviteTokenActive } from '@/lib/inviteStatus';
 import { inviteSiteOrigin, renderInviteQrPng } from '@/lib/inviteQr';
-import { inviteUrl } from '@/lib/signupGate';
+import { inviteUrl, parseInviteQrSize } from '@/lib/signupGate';
 
 // 招待リンクの QR を PNG で返す(Slack の image ブロックと、招待リンクの展開の og:image 用)。
 // 招待を開く人は未ログインで、Slack のサーバーも cookie なしで取りに来るので認証はしない。
@@ -13,7 +13,9 @@ export async function GET(request: NextRequest) {
     return new Response(null, { status: 404, headers: { 'Cache-Control': 'no-store' } });
   }
 
-  const png = await renderInviteQrPng(inviteUrl(inviteSiteOrigin(), token));
+  // ?size=small は Slack 投稿用の小さい QR。それ以外は og:image 用の large
+  const size = parseInviteQrSize(request.nextUrl.searchParams.get('size'));
+  const png = await renderInviteQrPng(inviteUrl(inviteSiteOrigin(), token), size);
   return new Response(new Uint8Array(png), {
     headers: {
       'Content-Type': 'image/png',

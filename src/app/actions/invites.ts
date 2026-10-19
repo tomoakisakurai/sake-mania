@@ -87,7 +87,7 @@ export async function createInvite(input: InviteInput): Promise<CreatedInvite | 
   // 本番 URL が無い環境では、誰も開けない localhost のリンクを Slack に流さない
   if (input.notifySlack && siteOrigin) {
     const expiresLabel = expiresAt ? expiresAt.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }) + 'まで' : '無期限';
-    const post = inviteSlackPost({ label, expiresLabel, url, qrUrl: siteOrigin + inviteQrPath(token) });
+    const post = inviteSlackPost({ label, expiresLabel, url, qrUrl: siteOrigin + inviteQrPath(token, 'small') });
     // postToSlack は失敗しても例外を投げない(作成は成功扱い)
     await postToSlack(post.text, post.blocks);
   }

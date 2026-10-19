@@ -3,10 +3,18 @@ import { inviteSiteOrigin, renderInviteQrPng } from './inviteQr';
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
+// PNG の IHDR チャンクの幅(バイト 16〜19、ビッグエンディアン)
+const pngWidth = (png: Buffer) => png.readUInt32BE(16);
+
 describe('renderInviteQrPng', () => {
   it('PNG を返す', async () => {
     const png = await renderInviteQrPng('https://example.com/login?invite=x');
     expect([...png.subarray(0, 8)]).toEqual(PNG_SIGNATURE);
+  });
+
+  it('既定(large)は 480px、small は 200px', async () => {
+    expect(pngWidth(await renderInviteQrPng('https://example.com/login?invite=x'))).toBe(480);
+    expect(pngWidth(await renderInviteQrPng('https://example.com/login?invite=x', 'small'))).toBe(200);
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { inviteQrPath, inviteUrl, isInviteActive, signupErrorMessage } from './signupGate';
+import { inviteQrPath, inviteUrl, isInviteActive, parseInviteQrSize, signupErrorMessage } from './signupGate';
 
 describe('inviteUrl', () => {
   it('/login?invite=<token> を組み立てる', () => {
@@ -18,6 +18,21 @@ describe('inviteQrPath', () => {
 
   it('トークンは encodeURIComponent する', () => {
     expect(inviteQrPath('a+b/c=d&e')).toBe('/api/invite-qr?token=a%2Bb%2Fc%3Dd%26e');
+  });
+
+  it('small のときだけ &size=small を付ける', () => {
+    expect(inviteQrPath('abc', 'small')).toBe('/api/invite-qr?token=abc&size=small');
+    expect(inviteQrPath('abc', 'large')).toBe('/api/invite-qr?token=abc');
+  });
+});
+
+describe('parseInviteQrSize', () => {
+  it('small だけ small、それ以外(未指定・数値・未知の値)は large', () => {
+    expect(parseInviteQrSize('small')).toBe('small');
+    expect(parseInviteQrSize(null)).toBe('large');
+    expect(parseInviteQrSize('large')).toBe('large');
+    expect(parseInviteQrSize('9999')).toBe('large');
+    expect(parseInviteQrSize('SMALL')).toBe('large');
   });
 });
 
