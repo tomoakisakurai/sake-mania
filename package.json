@@ -24,8 +24,8 @@
     "@supabase/supabase-js": "^2.108.1",
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.44.6",
-    "next": "^15.5.4",
+    "drizzle-orm": "^0.45.4",
+    "next": "^15.5.28",
     "openai": "^6.44.0",
     "postgres": "^3.4.7",
     "react": "^19.2.0",
@@ -41,10 +41,10 @@
     "@types/react-dom": "^19.2.0",
     "drizzle-kit": "^0.31.5",
     "eslint": "^9.37.0",
-    "eslint-config-next": "^15.5.4",
+    "eslint-config-next": "^15.5.28",
     "tailwindcss": "^4.3.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.12"
   }
 }
