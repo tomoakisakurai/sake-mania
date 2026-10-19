@@ -5,7 +5,7 @@ import * as schema from '@/db/schema';
 import { getSupabaseServer } from '@/lib/supabase/server';
 import { absoluteUrl, postToSlack } from '@/lib/slack';
 import { paths } from '@/lib/routes';
-import { createNotification, createNotificationForAll } from './notifications';
+import { createNotification, createNotificationForAll } from '@/lib/notifications';
 import { isAdminUser } from '@/lib/authz';
 
 export type EventStatus = 'going' | 'interested';

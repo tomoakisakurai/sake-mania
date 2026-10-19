@@ -6,7 +6,7 @@ import { getSupabaseServer } from '@/lib/supabase/server';
 import { isAdminUser } from '@/lib/authz';
 import { absoluteUrl, postToSlack } from '@/lib/slack';
 import { paths } from '@/lib/routes';
-import { createNotification, createNotificationForAll } from './notifications';
+import { createNotification, createNotificationForAll } from '@/lib/notifications';
 
 export interface MeetupView {
   id: string;

@@ -7,6 +7,7 @@ import { paths } from '@/lib/routes';
 import { getProfileById, type ProfileView } from '@/app/actions/profile';
 import { getMemberHistoryById, type MemberHistory } from '@/app/actions/members';
 import { Loading } from '@/components/shared/Loading';
+import { Button } from '@/components/shared/Button';
 import { ProfileHeader } from './ProfileHeader';
 import { Stats } from './Stats';
 import { BringCard, type BringItem } from './BringCard';
@@ -16,6 +17,8 @@ import { AttendedMeetups, type AttendedMeetup } from './AttendedMeetups';
 export function Member({ memberId }: { memberId: string }) {
   const store = useStore();
   const router = useRouter();
+  const authReady = useStore((s) => s.authReady);
+  const isLoggedIn = useStore((s) => !!s.user);
   const isMobile = useStore((s) => s.vw < 768);
   const pagePadding = isMobile ? '20px 18px 130px' : '32px 40px 80px';
   const isMe = store.user?.id === memberId;
@@ -26,6 +29,7 @@ export function Member({ memberId }: { memberId: string }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (!authReady || !isLoggedIn) return;
     let active = true;
     setLoaded(false);
     Promise.all([
@@ -38,8 +42,21 @@ export function Member({ memberId }: { memberId: string }) {
       setLoaded(true);
     });
     return () => { active = false; };
-  }, [memberId]);
+  }, [memberId, authReady, isLoggedIn]);
 
+  if (!authReady) {
+    return <main style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }} />;
+  }
+  if (!isLoggedIn) {
+    return (
+      <main style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}>
+        <a onClick={() => store.nav('members')} className="mb-6 block cursor-pointer text-[13px] text-muted transition-colors hover:text-primary">← メンバー出身地マップにもどる</a>
+        <h1 className="m-0 mb-3 font-serif text-[22px] font-bold">ログインが必要です</h1>
+        <p className="m-0 mb-5 text-[14px] leading-[1.9] text-body">メンバーのプロフィールを見るにはログインが必要です。</p>
+        <Button type="button" onClick={() => store.nav('login')}>ログインする</Button>
+      </main>
+    );
+  }
   if (!loaded) {
     return <main style={{ maxWidth: 880, margin: '0 auto', padding: pagePadding }}><Loading /></main>;
   }

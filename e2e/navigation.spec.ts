@@ -33,18 +33,24 @@ test.describe('ヘッダー(SP)', () => {
   });
 });
 
-test.describe('メンバー出身地マップのURL状態管理', () => {
-  test('未認証だと選択可能な県がない可能性が高いので、初期表示のみ確認', async ({ page }) => {
+test.describe('メンバー画面はログイン必須', () => {
+  test('未認証で /members を開くとログイン案内が出る', async ({ page }) => {
     const res = await page.goto('/members');
     expect(res?.status() ?? 0).toBeLessThan(500);
     await expect(page.getByRole('heading', { name: 'メンバー出身地マップ' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'ログインが必要です' })).toBeVisible();
   });
 
-  test('?pref=東京 でアクセスすると選択状態がURLから復元される', async ({ page }) => {
+  test('未認証で ?pref=東京 を開いても出身者パネルは出ずログイン案内が出る', async ({ page }) => {
     await page.goto('/members?pref=東京');
-    // URLだけでなく、UIに選択中パネルが復元されていることを確認する。
-    // HometownPanel は該当メンバー0人でも「{県名} 出身のメンバー」見出しを出す。
-    await expect(page.getByRole('heading', { name: '東京 出身のメンバー' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'ログインが必要です' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '東京 出身のメンバー' })).toHaveCount(0);
+  });
+
+  test('未認証でメンバー詳細を開くとログイン案内が出る', async ({ page }) => {
+    const res = await page.goto('/member/00000000-0000-0000-0000-000000000000');
+    expect(res?.status() ?? 0).toBeLessThan(500);
+    await expect(page.getByRole('heading', { name: 'ログインが必要です' })).toBeVisible();
   });
 });
 

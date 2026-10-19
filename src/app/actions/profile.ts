@@ -71,9 +71,14 @@ export async function getMyProfile(): Promise<ProfileView | null> {
 
 /**
  * 任意のメンバーのプロフィールを id (= auth.users.id) で取得。
- * メンバー詳細 `/member/[id]` の表示用。
+ * メンバー詳細 `/member/[id]` の表示用。未ログインなら null。
  */
 export async function getProfileById(id: string): Promise<ProfileView | null> {
+  // 部署・出身地・自己紹介は社員情報なのでメンバー(ログイン済み)にだけ見せる
+  const supabase = await getSupabaseServer();
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return null;
   const db = getDb();
   if (!db) return null;
   const [row] = await db

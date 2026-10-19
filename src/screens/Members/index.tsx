@@ -6,9 +6,12 @@ import { listMembers, type MemberRow } from '@/app/actions/members';
 import { PrefMap } from './PrefMap';
 import { HometownPanel } from './HometownPanel';
 import { Loading } from '@/components/shared/Loading';
+import { Button } from '@/components/shared/Button';
 
 export function Members() {
   const store = useStore();
+  const authReady = useStore((s) => s.authReady);
+  const isLoggedIn = useStore((s) => !!s.user);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -18,10 +21,11 @@ export function Members() {
   const [members, setMembers] = useState<MemberRow[] | null>(null);
 
   useEffect(() => {
+    if (!authReady || !isLoggedIn) return;
     let active = true;
     listMembers().then((rows) => { if (active) setMembers(rows); });
     return () => { active = false; };
-  }, []);
+  }, [authReady, isLoggedIn]);
 
   const setSelectedPref = useCallback((pref: string | null) => {
     const sp = new URLSearchParams(searchParams.toString());
@@ -45,6 +49,23 @@ export function Members() {
   const mapStats = `出身地が登録されたメンバー ${totalMembers}名 ・ ${totalPrefs}都道府県`;
 
   const selectedMembers = selectedPref ? membersByPref.get(selectedPref) ?? [] : [];
+
+  if (!authReady) {
+    return <main className="mx-auto max-w-285 px-4.5 pt-7 pb-32.5 md:px-10 md:pt-10 md:pb-20" />;
+  }
+  if (!isLoggedIn) {
+    return (
+      <main className="mx-auto max-w-285 px-4.5 pt-7 pb-32.5 md:px-10 md:pt-10 md:pb-20">
+        <a onClick={() => store.nav('home')} className="mb-6 block cursor-pointer text-[13px] text-muted transition-colors hover:text-primary">← ホームにもどる</a>
+        <h1 className="m-0 mb-6 font-serif text-[28px] font-bold">メンバー出身地マップ</h1>
+        <section>
+          <h2 className="m-0 mb-3 font-serif text-[22px] font-bold">ログインが必要です</h2>
+          <p className="m-0 mb-5 text-[14px] leading-[1.9] text-body">メンバーの出身地や部署を見るにはログインが必要です。</p>
+          <Button type="button" onClick={() => store.nav('login')}>ログインする</Button>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-285 px-4.5 pt-7 pb-32.5 md:px-10 md:pt-10 md:pb-20">

@@ -1,5 +1,6 @@
 'use server';
 import OpenAI from 'openai';
+import { getSupabaseServer } from '@/lib/supabase/server';
 
 export interface LabelAnalysisResult {
   name: string;
@@ -16,6 +17,11 @@ const SYSTEM_PROMPT = `あなたは日本酒のラベルを構造化するアシ
 スキーマ: { "name": "銘柄名", "brewery": "酒蔵名", "pref": "都道府県", "cls": "分類 例: 純米大吟醸", "polish": "精米歩合 例: 50%", "rice": "使用酒米", "description": "味わいの短い紹介文(40〜70字)" }`;
 
 export async function analyzeLabel(dataUrl: string): Promise<LabelAnalysisResult | null> {
+  // 未ログインで OpenAI を呼ばせない(API キーの課金を外部から発生させられるため)
+  const supabase = await getSupabaseServer();
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return null;
   if (!process.env.OPENAI_API_KEY) return null;
   if (!/^data:image\/(jpeg|png|webp|gif);base64,/.test(dataUrl)) return null;
 

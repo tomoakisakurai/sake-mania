@@ -2,6 +2,7 @@
 import { asc, eq, inArray, sql } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
+import { getSupabaseServer } from '@/lib/supabase/server';
 
 // メンバー出身地マップ・メンバー詳細で扱うprofile行のサマリ。
 export interface MemberRow {
@@ -15,11 +16,20 @@ export interface MemberRow {
   bio: string | null;
 }
 
+// 部署・出身地・自己紹介は社員情報なのでメンバー(ログイン済み)にだけ見せる
+async function currentUser() {
+  const supabase = await getSupabaseServer();
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getUser();
+  return data.user;
+}
+
 /**
- * 登録済みプロフィール一覧。新しいユーザーから順に並べる。
+ * 登録済みプロフィール一覧。未ログインなら空配列。新しいユーザーから順に並べる。
  * profilesテーブル(=実際のアプリ利用者)を返す。モックデータは使わない。
  */
 export async function listMembers(): Promise<MemberRow[]> {
+  if (!(await currentUser())) return [];
   const db = getDb();
   if (!db) return [];
   const rows = await db
@@ -71,10 +81,11 @@ function shortOf(dateLabel: string, eventDate: string | null): string {
 
 /**
  * userId (= profiles.id) から meetup_attendees / meetup_brings を集計して
- * 参加履歴と持ち寄り(+MVP判定)を返す。
+ * 参加履歴と持ち寄り(+MVP判定)を返す。未ログインなら空の履歴。
  */
 export async function getMemberHistoryById(userId: string): Promise<MemberHistory> {
   const empty: MemberHistory = { attended: [], brings: [], mvpCount: 0 };
+  if (!(await currentUser())) return empty;
   const db = getDb();
   if (!db) return empty;
 
