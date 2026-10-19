@@ -75,7 +75,7 @@ test('signInWithPassword 成功時に Supabase API が叩かれる', async ({ pa
 
 const SIGNUP_ROUTE = /\/auth\/v1\/signup/;
 
-test('新規登録: 社用メール以外で招待リンクが無ければ送信前に止める', async ({ page }) => {
+test('新規登録: 招待リンクが無ければ送信前に止める', async ({ page }) => {
   let signupCalled = false;
   await page.route(SIGNUP_ROUTE, (route: Route) => {
     signupCalled = true;
@@ -86,7 +86,7 @@ test('新規登録: 社用メール以外で招待リンクが無ければ送信
   await page.getByPlaceholder('you@example.com').fill('taro@example.com');
   await page.getByPlaceholder('••••••••').fill('password');
   await page.getByText('登録してはじめる', { exact: true }).click();
-  await expect(page.getByText('社用メールアドレス以外で登録するには、幹事からの招待リンクを開いて登録してください')).toBeVisible();
+  await expect(page.getByText('新規登録は、幹事から共有された招待リンクを開いて行ってください')).toBeVisible();
   expect(signupCalled).toBe(false);
 });
 
@@ -105,6 +105,6 @@ test('新規登録: 招待リンクで開くと招待トークンを metadata �
   await page.getByPlaceholder('you@example.com').fill('taro@example.com');
   await page.getByPlaceholder('••••••••').fill('password');
   await page.getByText('登録してはじめる', { exact: true }).click();
-  await expect(page.getByText('登録できませんでした。社用メールアドレス以外は幹事からの招待リンクが必要です(リンクが失効している場合もあります)')).toBeVisible();
+  await expect(page.getByText('登録できませんでした。新規登録には幹事からの招待リンクが必要です(リンクが失効している場合もあります)')).toBeVisible();
   expect(captured.body?.data?.invite_token).toBe('test-token_123');
 });

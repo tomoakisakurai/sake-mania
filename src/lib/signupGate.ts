@@ -8,13 +8,6 @@ export const INVITE_TOKEN_METADATA_KEY = 'invite_token';
 /** 招待リンクで招待トークンを渡すクエリパラメータ名(/login?invite=...) */
 export const INVITE_QUERY_PARAM = 'invite';
 
-const COMPANY_EMAIL_DOMAIN = '@asoview.co.jp';
-
-/** 社用ドメインのメールアドレスか(前後空白・大文字小文字は無視) */
-export function isCompanyEmail(email: string): boolean {
-  return email.trim().toLowerCase().endsWith(COMPANY_EMAIL_DOMAIN);
-}
-
 /** 招待リンクの URL */
 export function inviteUrl(origin: string, token: string): string {
   return `${origin}/login?${INVITE_QUERY_PARAM}=${encodeURIComponent(token)}`;
@@ -32,7 +25,7 @@ export function isSignupGateError(message: string): boolean {
 /** Supabase の signUp が返した error.message を、画面に出す日本語に変換する */
 export function signupErrorMessage(message: string): string {
   if (isSignupGateError(message)) {
-    return '登録できませんでした。社用メールアドレス以外は幹事からの招待リンクが必要です(リンクが失効している場合もあります)';
+    return '登録できませんでした。新規登録には幹事からの招待リンクが必要です(リンクが失効している場合もあります)';
   }
   if (/already registered|already exists/i.test(message)) {
     return 'このメールアドレスは登録済みです。ログインしてください';

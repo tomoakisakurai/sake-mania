@@ -75,7 +75,7 @@ export function AdminInvites() {
     <main style={{ maxWidth: 720, margin: '0 auto', padding: pagePadding }}>
       <h1 className="m-0 mb-2 font-serif text-[24px] font-bold">招待リンク</h1>
       <p className="m-0 mb-8 text-[13px] leading-[1.9] text-body">
-        社用メールアドレス以外の方は、招待リンクを開いたときだけ新規登録できます。社用メールアドレスの方には不要です。
+        新規登録は、招待リンクを開いたときだけできます(メールアドレスのドメインは問いません。GitHub での新規登録はできません)。
       </p>
       <InviteForm onCreate={handleCreate} />
       {createdInvite && <CreatedInvitePanel invite={createdInvite} />}

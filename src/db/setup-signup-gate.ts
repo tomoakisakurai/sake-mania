@@ -1,8 +1,9 @@
 // 新規登録の招待リンクゲートを DB に設定する(再実行可能)。実行: yarn db:signup-gate
 //
-// 目的: 誰でも新規登録できる状態を閉じる。@asoview.co.jp のメールはそのまま登録でき、
-// それ以外のメールは有効な招待トークン(管理者が /admin/invites で発行する招待リンクに含まれる)を
-// 持っているときだけ登録できる。判定はフォームではなく auth.users の BEFORE INSERT トリガーで行う
+// 目的: 誰でも新規登録できる状態を閉じる。メールアドレスのドメインを問わず、有効な招待トークン
+// (管理者が /admin/invites で発行する招待リンクに含まれる)を持っているときだけ登録できる。
+// GitHub ログインは招待トークンを渡せないので、新規登録はできない(既存ユーザーのログインは可)。
+// 判定はフォームではなく auth.users の BEFORE INSERT トリガーで行う
 // (フォームの判定は anon key で Supabase の API を直接叩けば迂回できるため)。
 // トリガーが拒否すると、Supabase Auth は例外文(signup_gate: ...)をそのまま、または「Database error saving new user」として返す。
 import { readFileSync } from 'node:fs';
@@ -55,10 +56,6 @@ const statements = [
     given text;
     invite_id uuid;
   begin
-    if new.email is not null and lower(new.email) like '%@asoview.co.jp' then
-      return new;
-    end if;
-
     given := new.raw_user_meta_data ->> 'invite_token';
     if given is null or given = '' then
       raise exception 'signup_gate: invite required';

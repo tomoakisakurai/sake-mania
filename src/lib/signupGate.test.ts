@@ -1,31 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { inviteUrl, isCompanyEmail, isInviteActive, signupErrorMessage } from './signupGate';
-
-describe('isCompanyEmail', () => {
-  it('社用ドメインなら true', () => {
-    expect(isCompanyEmail('taro@asoview.co.jp')).toBe(true);
-  });
-
-  it('大文字が混ざっていても true', () => {
-    expect(isCompanyEmail('Taro@ASOVIEW.CO.JP')).toBe(true);
-  });
-
-  it('前後に空白があっても true', () => {
-    expect(isCompanyEmail('  taro@asoview.co.jp  ')).toBe(true);
-  });
-
-  it('社外ドメインなら false', () => {
-    expect(isCompanyEmail('taro@example.com')).toBe(false);
-  });
-
-  it('社用ドメインを前方に含むだけのドメインは false', () => {
-    expect(isCompanyEmail('a@asoview.co.jp.evil.com')).toBe(false);
-  });
-
-  it('空文字なら false', () => {
-    expect(isCompanyEmail('')).toBe(false);
-  });
-});
+import { inviteUrl, isInviteActive, signupErrorMessage } from './signupGate';
 
 describe('inviteUrl', () => {
   it('/login?invite=<token> を組み立てる', () => {
@@ -39,7 +13,7 @@ describe('inviteUrl', () => {
 
 describe('signupErrorMessage', () => {
   it('トリガー拒否は招待リンクの案内にする(例外文そのまま・Database error に包まれた形の両方)', () => {
-    const expected = '登録できませんでした。社用メールアドレス以外は幹事からの招待リンクが必要です(リンクが失効している場合もあります)';
+    const expected = '登録できませんでした。新規登録には幹事からの招待リンクが必要です(リンクが失効している場合もあります)';
     expect(signupErrorMessage('signup_gate: invite required')).toBe(expected);
     expect(signupErrorMessage('signup_gate: invite invalid')).toBe(expected);
     expect(signupErrorMessage('Database error saving new user')).toBe(expected);

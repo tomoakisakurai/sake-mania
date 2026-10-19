@@ -269,7 +269,7 @@ export const notifications = pgTable('notifications', {
 });
 
 // ===== 新規登録の招待リンク =====
-// 社用ドメイン以外のメールで新規登録するための招待。判定は auth.users の BEFORE INSERT
+// 新規登録に必須の招待(ドメインを問わず全員)。判定は auth.users の BEFORE INSERT
 // トリガー(src/db/setup-signup-gate.ts)が行う。トークンの平文は保存せず sha256 の hex だけを持つ。
 // expiresAt / maxUses は null なら無期限 / 無制限。
 export const signupInvites = pgTable('signup_invites', {

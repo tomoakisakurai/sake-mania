@@ -3,7 +3,7 @@ import type { ChangeEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useStore } from '@/store';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
-import { INVITE_QUERY_PARAM, INVITE_TOKEN_METADATA_KEY, isCompanyEmail, signupErrorMessage } from '@/lib/signupGate';
+import { INVITE_QUERY_PARAM, INVITE_TOKEN_METADATA_KEY, signupErrorMessage } from '@/lib/signupGate';
 
 // 招待リンクのトークンを保持する sessionStorage のキー
 const INVITE_TOKEN_STORAGE_KEY = 'sake-mania.invite_token';
@@ -22,7 +22,7 @@ export function Login() {
   // GitHub ログインの新規ユーザーが招待リンクゲートで拒否されると、/auth/callback から ?error=signup_gate で戻ってくる
   useEffect(() => {
     if (signupError !== 'signup_gate') return;
-    store.flash('GitHub アカウントのメールアドレスが社用ドメインではないため登録できませんでした。幹事からの招待リンクを開いて、メールアドレスで登録してください');
+    store.flash('GitHub での新規登録は受け付けていません。幹事からの招待リンクを開いて、メールアドレスで登録してください(登録済みの方は GitHub でログインできます)');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signupError]);
 
@@ -59,15 +59,13 @@ export function Login() {
 
     if (isSignup) {
       // UX のための事前チェック。本当の判定は DB 側(auth.users のトリガー)で行う
-      // 社用メールはトリガーが招待を見ずに通す(metadata から消されない)ので、トークンを送らない
-      const signupInviteToken = isCompanyEmail(email) ? '' : inviteToken;
-      if (!isCompanyEmail(email) && !signupInviteToken) { store.flash('社用メールアドレス以外で登録するには、幹事からの招待リンクを開いて登録してください'); return; }
+      if (!inviteToken) { store.flash('新規登録は、幹事から共有された招待リンクを開いて行ってください'); return; }
       const nickname = name.trim() || email.split('@')[0];
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: pw,
         options: {
-          data: { nickname, ...(signupInviteToken ? { [INVITE_TOKEN_METADATA_KEY]: signupInviteToken } : {}) },
+          data: { nickname, [INVITE_TOKEN_METADATA_KEY]: inviteToken },
           emailRedirectTo: window.location.origin + '/auth/confirm',
         },
       });
@@ -117,6 +115,9 @@ export function Login() {
           {isSignup && inviteToken && (
             <p className="m-0 mb-4 rounded-[10px] bg-accent-tint px-4 py-2.5 text-[12.5px] font-bold text-accent-dark">招待リンクから登録中</p>
           )}
+          {isSignup && !inviteToken && (
+            <p className="m-0 mb-4 rounded-[10px] bg-bg px-4 py-2.5 text-[12.5px] leading-[1.7] text-body">新規登録は、幹事から共有された招待リンク(QR コード)を開いて行ってください。</p>
+          )}
           {isSignup && (
             <>
               <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>ニックネーム</div>
@@ -128,6 +129,8 @@ export function Login() {
           <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>パスワード</div>
           <input type="password" value={pw} onChange={(e: ChangeEvent<HTMLInputElement>) => setPw(e.target.value)} placeholder="••••••••" style={{ width: '100%', background: '#FDFBF5', border: '1px solid #E3DBCB', borderRadius: 10, padding: '12px 16px', fontSize: 14, fontFamily: "'Zen Kaku Gothic New', sans-serif", color: '#2E2A24', marginBottom: 22 }} />
           <div onClick={handleSubmit} style={{ background: '#32507C', color: '#FDFBF5', borderRadius: 999, padding: 14, textAlign: 'center', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>{loginCta}</div>
+          {/* GitHub は登録済みの方のログイン専用(招待トークンを渡せないので新規登録はトリガーが拒否する) */}
+          {!isSignup && (<>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
             <div style={{ flex: 1, height: 1, background: '#E3DBCB' }}></div>
             <span style={{ fontSize: 11, color: '#A89D8A' }}>または</span>
@@ -137,9 +140,10 @@ export function Login() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.5v-1.7c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 4.6 18 4.9 18 4.9c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"></path></svg>
             <span style={{ fontSize: 13.5, fontWeight: 700 }}>GitHubでログイン</span>
           </div>
+          </>)}
           <div onClick={() => store.nav('home')} style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#8B8273', cursor: 'pointer' }}>ログインせずにのぞいてみる →</div>
         </div>
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#A89D8A', marginTop: 14 }}>社用メールアドレスならそのまま登録できます。それ以外のメールアドレスは幹事からの招待リンクが必要です。</div>
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#A89D8A', marginTop: 14 }}>新規登録は幹事から共有される招待リンク(QR コード)から行えます。</div>
       </div>
     </div>
   );
