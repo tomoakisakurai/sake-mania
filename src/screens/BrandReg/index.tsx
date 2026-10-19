@@ -6,6 +6,7 @@ import { useReferenceData } from '@/components/Providers';
 import { paths } from '@/lib/routes';
 import { createBrand, updateBrand, deleteBrand } from '@/app/actions/brands';
 import { analyzeLabel } from '@/app/actions/analyzeLabel';
+import { isImageDataUrl } from '@/lib/brandPhoto';
 import { Input } from '@/components/shared/Input';
 import { Textarea } from '@/components/shared/Textarea';
 import { Button } from '@/components/shared/Button';
@@ -75,7 +76,9 @@ export function BrandReg({ editingId }: { editingId?: string }) {
       store.flash('銘柄名と酒蔵は必須です');
       return;
     }
-    const input = { name: name.trim(), brewery: brewery.trim(), pref, cls, polish, rice, description, photo: photo || null };
+    // 編集モードの初期値は画像ルートのURLなので、触らなければ undefined(変更なし)。削除すると ''→null、新しく選べばデータURL
+    const photoChange = photo === '' ? null : isImageDataUrl(photo) ? photo : undefined;
+    const input = { name: name.trim(), brewery: brewery.trim(), pref, cls, polish, rice, description, photo: photoChange };
     setSaving(true);
     try {
       if (isEdit && editingId) {
@@ -138,6 +141,10 @@ export function BrandReg({ editingId }: { editingId?: string }) {
 
   const handleRead = async () => {
     if (!photo || reading) return;
+    if (!isImageDataUrl(photo)) {
+      store.flash('AI読み取りは新しく選んだ写真にのみ使えます');
+      return;
+    }
     setReading(true);
     try {
       const result = await analyzeLabel(photo);

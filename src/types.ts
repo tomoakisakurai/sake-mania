@@ -43,7 +43,7 @@ export interface Brand {
   count: number;
   tags: string[];
   desc: string;
-  photo?: string | null;
+  photo?: string | null; // 画像ルートのURL(/api/brand-photo/...)。base64 は入れない
 }
 
 export interface Comment {

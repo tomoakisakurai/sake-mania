@@ -1,5 +1,5 @@
 import 'server-only';
-import { asc, desc } from 'drizzle-orm';
+import { asc, desc, getTableColumns, sql } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import * as schema from '@/db/schema';
 import {
@@ -10,10 +10,12 @@ import {
   prefGrid as mockPrefGrid,
 } from '@/data';
 import type { Brand, OtherRec, Bar, KuraMetaEntry } from '@/types';
+import { brandPhotoPath } from '@/lib/brandPhoto';
 
 // 図鑑コンテンツ等の「参照データ」(シード済みでほぼ不変)。
 // メンバーは profiles、MEETUPは meetup_events に移行済みのため含まない。
 // others はサンプル投稿だが、銘柄詳細のシードレビューとして現役なので残している。
+// brands.photo は base64 ではなく画像ルートの URL を入れる(SSR ペイロードを小さく保つため)。
 export interface ReferenceData {
   brands: Brand[];
   others: OtherRec[];
@@ -70,11 +72,22 @@ export function invalidateCoreReferenceCache(): void {
 }
 let deferredCache: { at: number; data: DeferredReferenceData } | null = null;
 
-function mapBrands(rows: (typeof schema.brands.$inferSelect)[]): Brand[] {
+// photo(base64) は取得せず、内容のハッシュだけを取って画像ルートの URL のキャッシュキーにする。
+// photo が null なら md5 も null になる。
+const { photo: _photo, ...brandColumnsWithoutPhoto } = getTableColumns(schema.brands);
+const brandSelection = {
+  ...brandColumnsWithoutPhoto,
+  photoVersion: sql<string | null>`md5(${schema.brands.photo})`,
+};
+
+type BrandRow = Omit<typeof schema.brands.$inferSelect, 'photo'> & { photoVersion: string | null };
+
+function mapBrands(rows: BrandRow[]): Brand[] {
   return rows.map((r) => ({
     id: r.id, name: r.name, brewery: r.brewery, pref: r.pref, cls: r.cls, polish: r.polish,
     rice: r.rice, yeast: r.yeast, smv: r.smv, abv: r.abv, temp: r.temp, x: num(r.x), y: num(r.y),
-    rating: num(r.rating), count: num(r.count), tags: arr(r.tags), desc: r.description, photo: r.photo,
+    rating: num(r.rating), count: num(r.count), tags: arr(r.tags), desc: r.description,
+    photo: r.photoVersion ? brandPhotoPath(r.id, r.photoVersion) : null,
   }));
 }
 
@@ -91,7 +104,7 @@ export async function getCoreReferenceData(): Promise<CoreReferenceData> {
 
   try {
     // 新しく登録された銘柄を先頭に。シードデータは一括INSERTで createdAt が同一のため sortOrder で従来順を維持
-    const bRows = await db.select().from(schema.brands).orderBy(desc(schema.brands.createdAt), asc(schema.brands.sortOrder));
+    const bRows = await db.select(brandSelection).from(schema.brands).orderBy(desc(schema.brands.createdAt), asc(schema.brands.sortOrder));
     if (!bRows.length) {
       console.warn('[getCoreReferenceData] DB not seeded — falling back to mock.');
       return mockCore;
