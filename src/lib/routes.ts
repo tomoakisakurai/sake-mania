@@ -39,6 +39,7 @@ export function routeStateFromPath(pathname: string): RouteState {
   if (p === '/meetup/create') return { ...base, screen: 'meetupCreate' };
   if (p === '/events') return { ...base, screen: 'events' };
   if (p === '/members') return { ...base, screen: 'members' };
+  if (p === '/admin/invites') return { ...base, screen: 'adminInvites' };
   if (seg[0] === 'member' && seg[1]) return { ...base, screen: 'member', memberId: decodeURIComponent(seg[1]) };
   if (p === '/event/create') return { ...base, screen: 'eventCreate' };
   if (seg[0] === 'event' && seg[1] && seg[2] === 'edit') return { ...base, screen: 'eventEdit', eventId: decodeURIComponent(seg[1]) };
@@ -67,6 +68,7 @@ export function pathForScreen(screen: Screen): string {
     case 'members': return '/members';
     case 'kuraReg': return '/kura/register';
     case 'brandReg': return '/brand/register';
+    case 'adminInvites': return '/admin/invites';
     default: return '/';
   }
 }
@@ -82,4 +84,5 @@ export const paths = {
   event: (id: string) => `/event/${encodeURIComponent(id)}`,
   eventEdit: (id: string) => `/event/${encodeURIComponent(id)}/edit`,
   member: (id: string) => `/member/${encodeURIComponent(id)}`,
+  adminInvites: () => '/admin/invites',
 };

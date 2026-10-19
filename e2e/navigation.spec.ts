@@ -54,6 +54,14 @@ test.describe('メンバー画面はログイン必須', () => {
   });
 });
 
+test.describe('招待リンク画面は管理者のみ', () => {
+  test('未認証で /admin/invites を開くと管理者のみの案内が出る', async ({ page }) => {
+    const res = await page.goto('/admin/invites');
+    expect(res?.status() ?? 0).toBeLessThan(500);
+    await expect(page.getByRole('heading', { name: '管理者のみ' })).toBeVisible();
+  });
+});
+
 test.describe('ログイン画面', () => {
   test('ログイン / 新規登録 タブが切り替えられる', async ({ page }) => {
     await page.goto('/login');

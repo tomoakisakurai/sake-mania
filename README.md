@@ -71,3 +71,44 @@ export default defineConfig([
   },
 ])
 ```
+
+## 新規登録の制限(招待リンク)
+
+### 仕組み
+
+- `@asoview.co.jp` のメールアドレスは、そのまま新規登録できます。
+- それ以外のメールアドレスは、管理者が発行した招待リンク(`/login?invite=<トークン>`)を開いたときだけ登録できます。
+- 判定は `auth.users` の BEFORE INSERT トリガー(`public.enforce_signup_gate`)で行います。フォームの判定は anon key で Supabase の API を直接叩けば迂回できるため、フォーム側のチェックは案内のためだけです。
+- 招待トークンは `public.signup_invites` に sha256 のハッシュだけを保存します。平文は発行した画面で1回だけ表示します。登録時に送られたトークンは、トリガーが user metadata から取り除くので `auth.users` に残りません。
+- トリガーが拒否すると、Supabase は「Database error saving new user」を返します。画面では招待リンクが必要な旨のメッセージに変換して表示します。
+
+### セットアップ
+
+```bash
+yarn db:signup-gate   # テーブル・関数・トリガーを作る(再実行可能)
+```
+
+### 招待リンクの発行
+
+1. 管理者(`profiles.is_admin = true`)でログインし、`/admin/invites`(SP ではハンバーガーメニューの「招待リンク」)を開く。
+2. ラベル、有効期限(日数)、使用回数の上限を入れて「発行する」を押す。「Slack にも投稿する」が ON なら、Slack にもリンクを投稿します(本番 URL が決まっている環境だけ)。
+3. 表示された URL か QR コードを相手に渡す。トークンはこのときだけ表示されるので、画面を離れる前にコピーしてください。
+
+不要になったリンクは、発行済み一覧の「失効する」で使えなくできます。
+
+### 有効期限と使用回数の上限
+
+- 有効期限: 発行から指定した日数が過ぎると、そのリンクでは登録できなくなります。空欄なら無期限です。
+- 使用回数の上限: そのリンクで登録できる人数です。登録が1件成功するたびに使用回数が1増え、上限に達すると登録できなくなります。空欄なら無制限です。
+- 期限と上限は登録の瞬間(`auth.users` への INSERT 時)に判定します。リンクを開いた時点では判定しません。
+
+### Supabase ダッシュボードで行うこと
+
+1. Authentication → Providers → Email の「Confirm email」を ON にする。
+2. Authentication → Email Templates の「Confirm signup」のリンクを `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup` に変える。
+3. Authentication → URL Configuration の Site URL と Redirect URLs に、本番 URL と `/auth/confirm`・`/auth/callback` を登録する。
+
+### 補足
+
+- GitHub ログインで新規登録できるのは、GitHub アカウントのメールアドレスが社用ドメインのときだけです。それ以外はログイン画面に戻り、招待リンクからメールアドレスで登録するよう案内します。
+- 判定は `auth.users` への INSERT 時だけなので、既存ユーザーのログインには影響しません。

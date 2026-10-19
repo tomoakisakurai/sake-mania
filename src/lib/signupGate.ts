@@ -1,0 +1,44 @@
+// 新規登録の招待リンクゲート(クライアント・サーバー共通の補助)。
+// 本当の判定は auth.users の BEFORE INSERT トリガー(src/db/setup-signup-gate.ts)で行う。
+// ここはフォームで送信前に案内を出すため、招待URLを組み立てるため、Supabase のエラー文言を日本語にするために使う。
+
+/** signUp の user metadata に招待トークンを載せるキー。トリガー側の `raw_user_meta_data ->> 'invite_token'` と一致させる */
+export const INVITE_TOKEN_METADATA_KEY = 'invite_token';
+
+/** 招待リンクで招待トークンを渡すクエリパラメータ名(/login?invite=...) */
+export const INVITE_QUERY_PARAM = 'invite';
+
+const COMPANY_EMAIL_DOMAIN = '@asoview.co.jp';
+
+/** 社用ドメインのメールアドレスか(前後空白・大文字小文字は無視) */
+export function isCompanyEmail(email: string): boolean {
+  return email.trim().toLowerCase().endsWith(COMPANY_EMAIL_DOMAIN);
+}
+
+/** 招待リンクの URL */
+export function inviteUrl(origin: string, token: string): string {
+  return `${origin}/login?${INVITE_QUERY_PARAM}=${encodeURIComponent(token)}`;
+}
+
+/** Supabase の signUp が返した error.message を、画面に出す日本語に変換する */
+export function signupErrorMessage(message: string): string {
+  // トリガーが拒否すると Supabase Auth は「Database error saving new user」を返す
+  if (/database error/i.test(message)) {
+    return '登録できませんでした。社用メールアドレス以外は幹事からの招待リンクが必要です(リンクが失効している場合もあります)';
+  }
+  if (/already registered|already exists/i.test(message)) {
+    return 'このメールアドレスは登録済みです。ログインしてください';
+  }
+  return '登録に失敗しました: ' + message;
+}
+
+/** 招待がまだ使えるか(失効していない・期限内・上限未満)。トリガー側の判定と同じ条件 */
+export function isInviteActive(
+  invite: { revokedAt: Date | null; expiresAt: Date | null; maxUses: number | null; usedCount: number },
+  now: Date,
+): boolean {
+  if (invite.revokedAt) return false;
+  if (invite.expiresAt && invite.expiresAt.getTime() <= now.getTime()) return false;
+  if (invite.maxUses != null && invite.usedCount >= invite.maxUses) return false;
+  return true;
+}

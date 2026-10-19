@@ -267,3 +267,19 @@ export const notifications = pgTable('notifications', {
   readAt: timestamp('read_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ===== 新規登録の招待リンク =====
+// 社用ドメイン以外のメールで新規登録するための招待。判定は auth.users の BEFORE INSERT
+// トリガー(src/db/setup-signup-gate.ts)が行う。トークンの平文は保存せず sha256 の hex だけを持つ。
+// expiresAt / maxUses は null なら無期限 / 無制限。
+export const signupInvites = pgTable('signup_invites', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tokenHash: text('token_hash').notNull().unique(),
+  label: text('label').notNull().default(''),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  maxUses: integer('max_uses'),
+  usedCount: integer('used_count').notNull().default(0),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});

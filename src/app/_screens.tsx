@@ -24,6 +24,7 @@ import { EventReg } from '@/screens/EventReg';
 import { Members } from '@/screens/Members';
 import { Member } from '@/screens/Member';
 import { Post } from '@/screens/Post';
+import { AdminInvites } from '@/screens/AdminInvites';
 
 export const HomeClient = () => <Home />;
 export const ZukanClient = () => <Zukan />;
@@ -90,3 +91,4 @@ export const PostClient = () => {
   const i = Number(params?.i ?? -1);
   return <Post postRef={Number.isNaN(i) || i < 0 ? null : { src, i }} />;
 };
+export const AdminInvitesClient = () => <AdminInvites />;

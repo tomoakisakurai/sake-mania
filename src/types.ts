@@ -23,7 +23,8 @@ export type Screen =
   | 'eventCreate'
   | 'eventEdit'
   | 'members'
-  | 'member';
+  | 'member'
+  | 'adminInvites';
 
 export interface Brand {
   id: string;

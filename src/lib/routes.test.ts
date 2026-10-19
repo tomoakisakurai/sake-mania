@@ -18,6 +18,7 @@ describe('routeStateFromPath', () => {
       ['/brand/register', 'brandReg'],
       ['/meetup/create', 'meetupCreate'],
       ['/event/create', 'eventCreate'],
+      ['/admin/invites', 'adminInvites'],
     ])('%s → screen=%s', (path, screen) => {
       expect(routeStateFromPath(path).screen).toBe(screen);
     });
@@ -114,6 +115,7 @@ describe('pathForScreen', () => {
     expect(pathForScreen('meetupCreate')).toBe('/meetup/create');
     expect(pathForScreen('eventCreate')).toBe('/event/create');
     expect(pathForScreen('kuraReg')).toBe('/kura/register');
+    expect(pathForScreen('adminInvites')).toBe('/admin/invites');
   });
 });
 

@@ -72,6 +72,7 @@ export function buildMenuItems(st: NavStore & { openMeetupCreate: () => void; op
     ...(isAdmin ? [
       { label: '酒蔵を登録する', click: () => st.openKuraReg() },
       { label: '銘柄を登録する', click: () => st.nav('brandReg') },
+      { label: '招待リンク', click: () => st.nav('adminInvites') },
     ] : []),
   ];
 }

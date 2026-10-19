@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useStore } from '@/store';
 import { getSupabaseBrowser, mapUser } from '@/lib/supabase/client';
+import { INVITE_QUERY_PARAM, INVITE_TOKEN_METADATA_KEY, isCompanyEmail, signupErrorMessage } from '@/lib/signupGate';
+
+// 招待リンクのトークンを保持する sessionStorage のキー
+const INVITE_TOKEN_STORAGE_KEY = 'sake-mania.invite_token';
 
 export function Login() {
   const store = useStore();
@@ -9,6 +14,33 @@ export function Login() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
+  const [inviteToken, setInviteToken] = useState('');
+  const searchParams = useSearchParams();
+  const signupError = searchParams.get('error');
+  const inviteParam = searchParams.get(INVITE_QUERY_PARAM);
+
+  // GitHub ログインの新規ユーザーが招待リンクゲートで拒否されると、/auth/callback から ?error=signup_gate で戻ってくる
+  useEffect(() => {
+    if (signupError !== 'signup_gate') return;
+    store.flash('GitHub アカウントのメールアドレスが社用ドメインではないため登録できませんでした。幹事からの招待リンクを開いて、メールアドレスで登録してください');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signupError]);
+
+  // 招待リンク(/login?invite=...)で来たらトークンを sessionStorage に残す(タブを切り替えたり再読み込みしても登録できるように)
+  useEffect(() => {
+    if (inviteParam) {
+      setInviteToken(inviteParam);
+      setMode('signup');
+      try { sessionStorage.setItem(INVITE_TOKEN_STORAGE_KEY, inviteParam); } catch { /* storage が使えなくても state で登録できる */ }
+      return;
+    }
+    try { setInviteToken(sessionStorage.getItem(INVITE_TOKEN_STORAGE_KEY) ?? ''); } catch { /* storage が使えない環境 */ }
+  }, [inviteParam]);
+
+  const clearInviteToken = () => {
+    setInviteToken('');
+    try { sessionStorage.removeItem(INVITE_TOKEN_STORAGE_KEY); } catch { /* storage が使えない環境 */ }
+  };
 
   const loginTabs = (['login', 'signup'] as const).map((t) => ({
     label: t === 'login' ? 'ログイン' : '新規登録',
@@ -26,9 +58,22 @@ export function Login() {
     if (!email.trim() || !pw) { store.flash('メールアドレスとパスワードを入力してください'); return; }
 
     if (isSignup) {
+      // UX のための事前チェック。本当の判定は DB 側(auth.users のトリガー)で行う
+      // 社用メールはトリガーが招待を見ずに通す(metadata から消されない)ので、トークンを送らない
+      const signupInviteToken = isCompanyEmail(email) ? '' : inviteToken;
+      if (!isCompanyEmail(email) && !signupInviteToken) { store.flash('社用メールアドレス以外で登録するには、幹事からの招待リンクを開いて登録してください'); return; }
       const nickname = name.trim() || email.split('@')[0];
-      const { data, error } = await supabase.auth.signUp({ email: email.trim(), password: pw, options: { data: { nickname } } });
-      if (error) { store.flash('登録に失敗しました: ' + error.message); return; }
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: pw,
+        options: {
+          data: { nickname, ...(signupInviteToken ? { [INVITE_TOKEN_METADATA_KEY]: signupInviteToken } : {}) },
+          emailRedirectTo: window.location.origin + '/auth/confirm',
+        },
+      });
+      if (error) { store.flash(signupErrorMessage(error.message)); return; }
+      // 登録できた(確認メール送信を含む)ら招待トークンは不要
+      clearInviteToken();
       if (!data.session) { store.flash('確認メールを送信しました。メール内のリンクから認証してください'); return; }
       const user = mapUser(data.user);
       store.patch({ user });
@@ -69,6 +114,9 @@ export function Login() {
               <div key={i} onClick={lt.click} style={{ flex: 1, textAlign: 'center', paddingBottom: 12, fontSize: 14, cursor: 'pointer', color: lt.color, fontWeight: lt.weight, borderBottom: lt.border, marginBottom: -1 }}>{lt.label}</div>
             ))}
           </div>
+          {isSignup && inviteToken && (
+            <p className="m-0 mb-4 rounded-[10px] bg-accent-tint px-4 py-2.5 text-[12.5px] font-bold text-accent-dark">招待リンクから登録中</p>
+          )}
           {isSignup && (
             <>
               <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>ニックネーム</div>
@@ -91,7 +139,7 @@ export function Login() {
           </div>
           <div onClick={() => store.nav('home')} style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#8B8273', cursor: 'pointer' }}>ログインせずにのぞいてみる →</div>
         </div>
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#A89D8A', marginTop: 14 }}>新規登録はメールアドレスとパスワード（6文字以上）だけ。確認メールなしですぐ始められます。</div>
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#A89D8A', marginTop: 14 }}>社用メールアドレスならそのまま登録できます。それ以外のメールアドレスは幹事からの招待リンクが必要です。</div>
       </div>
     </div>
   );

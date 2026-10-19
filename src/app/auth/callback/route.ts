@@ -9,6 +9,14 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const next = searchParams.get('next') || '/';
 
+  // 招待リンクゲート(auth.users のトリガー)が GitHub ログインの新規ユーザーを拒否すると、
+  // Supabase は code ではなく `?error=server_error&error_description=Database error saving new user`
+  // を付けて戻してくる。社用ドメイン以外のメールが原因なので、ログイン画面で理由を案内する。
+  const errorDescription = searchParams.get('error_description') ?? '';
+  if (/database error/i.test(errorDescription)) {
+    return NextResponse.redirect(`${origin}/login?error=signup_gate`);
+  }
+
   if (code) {
     const supabase = await getSupabaseServer();
     if (supabase) {

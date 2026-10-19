@@ -72,3 +72,39 @@ test('signInWithPassword 成功時に Supabase API が叩かれる', async ({ pa
   // signInWithPassword が叩かれることだけ確認(server側のフロー検証は別途)
   await expect.poll(() => called).toBe(true);
 });
+
+const SIGNUP_ROUTE = /\/auth\/v1\/signup/;
+
+test('新規登録: 社用メール以外で招待リンクが無ければ送信前に止める', async ({ page }) => {
+  let signupCalled = false;
+  await page.route(SIGNUP_ROUTE, (route: Route) => {
+    signupCalled = true;
+    return route.abort();
+  });
+  await page.goto('/login');
+  await page.getByText('新規登録', { exact: true }).first().click();
+  await page.getByPlaceholder('you@example.com').fill('taro@example.com');
+  await page.getByPlaceholder('••••••••').fill('password');
+  await page.getByText('登録してはじめる', { exact: true }).click();
+  await expect(page.getByText('社用メールアドレス以外で登録するには、幹事からの招待リンクを開いて登録してください')).toBeVisible();
+  expect(signupCalled).toBe(false);
+});
+
+test('新規登録: 招待リンクで開くと招待トークンを metadata に載せて signUp する', async ({ page }) => {
+  const captured: { body: { data?: Record<string, unknown> } | null } = { body: null };
+  await page.route(SIGNUP_ROUTE, (route: Route) => {
+    captured.body = JSON.parse(route.request().postData() || '{}');
+    return route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({ code: 500, error_code: 'unexpected_failure', msg: 'Database error saving new user' }),
+    });
+  });
+  await page.goto('/login?invite=test-token_123');
+  await expect(page.getByText('招待リンクから登録中')).toBeVisible();
+  await page.getByPlaceholder('you@example.com').fill('taro@example.com');
+  await page.getByPlaceholder('••••••••').fill('password');
+  await page.getByText('登録してはじめる', { exact: true }).click();
+  await expect(page.getByText('登録できませんでした。社用メールアドレス以外は幹事からの招待リンクが必要です(リンクが失効している場合もあります)')).toBeVisible();
+  expect(captured.body?.data?.invite_token).toBe('test-token_123');
+});
