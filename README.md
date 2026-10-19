@@ -80,7 +80,7 @@ export default defineConfig([
 - それ以外のメールアドレスは、管理者が発行した招待リンク(`/login?invite=<トークン>`)を開いたときだけ登録できます。
 - 判定は `auth.users` の BEFORE INSERT トリガー(`public.enforce_signup_gate`)で行います。フォームの判定は anon key で Supabase の API を直接叩けば迂回できるため、フォーム側のチェックは案内のためだけです。
 - 招待トークンは `public.signup_invites` に sha256 のハッシュだけを保存します。平文は発行した画面で1回だけ表示します。登録時に送られたトークンは、トリガーが user metadata から取り除くので `auth.users` に残りません。
-- トリガーが拒否すると、Supabase は「Database error saving new user」を返します。画面では招待リンクが必要な旨のメッセージに変換して表示します。
+- トリガーが拒否すると、Supabase Auth はトリガーの例外文(`signup_gate: invite required` など)か「Database error saving new user」を返します。画面では招待リンクが必要な旨のメッセージに変換して表示します。
 
 ### セットアップ
 

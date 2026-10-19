@@ -4,7 +4,7 @@
 // それ以外のメールは有効な招待トークン(管理者が /admin/invites で発行する招待リンクに含まれる)を
 // 持っているときだけ登録できる。判定はフォームではなく auth.users の BEFORE INSERT トリガーで行う
 // (フォームの判定は anon key で Supabase の API を直接叩けば迂回できるため)。
-// トリガーが拒否すると、Supabase は「Database error saving new user」を返す。
+// トリガーが拒否すると、Supabase Auth は例外文(signup_gate: ...)をそのまま、または「Database error saving new user」として返す。
 import { readFileSync } from 'node:fs';
 try {
   for (const l of readFileSync('.env', 'utf8').split('\n')) {

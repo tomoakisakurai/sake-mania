@@ -20,10 +20,18 @@ export function inviteUrl(origin: string, token: string): string {
   return `${origin}/login?${INVITE_QUERY_PARAM}=${encodeURIComponent(token)}`;
 }
 
+/**
+ * 招待リンクゲート(トリガー)による拒否か。Supabase Auth は経路によってトリガーの例外文
+ * (`signup_gate: invite required` など)をそのまま返すことも、「Database error saving new user」に
+ * 包んで返すこともあるため、両方を拾う(2026-10-20 に signup API で前者を確認)。
+ */
+export function isSignupGateError(message: string): boolean {
+  return /signup_gate|database error/i.test(message);
+}
+
 /** Supabase の signUp が返した error.message を、画面に出す日本語に変換する */
 export function signupErrorMessage(message: string): string {
-  // トリガーが拒否すると Supabase Auth は「Database error saving new user」を返す
-  if (/database error/i.test(message)) {
+  if (isSignupGateError(message)) {
     return '登録できませんでした。社用メールアドレス以外は幹事からの招待リンクが必要です(リンクが失効している場合もあります)';
   }
   if (/already registered|already exists/i.test(message)) {

@@ -38,10 +38,11 @@ describe('inviteUrl', () => {
 });
 
 describe('signupErrorMessage', () => {
-  it('トリガー拒否(Database error saving new user)は招待リンクの案内にする', () => {
-    expect(signupErrorMessage('Database error saving new user')).toBe(
-      '登録できませんでした。社用メールアドレス以外は幹事からの招待リンクが必要です(リンクが失効している場合もあります)',
-    );
+  it('トリガー拒否は招待リンクの案内にする(例外文そのまま・Database error に包まれた形の両方)', () => {
+    const expected = '登録できませんでした。社用メールアドレス以外は幹事からの招待リンクが必要です(リンクが失効している場合もあります)';
+    expect(signupErrorMessage('signup_gate: invite required')).toBe(expected);
+    expect(signupErrorMessage('signup_gate: invite invalid')).toBe(expected);
+    expect(signupErrorMessage('Database error saving new user')).toBe(expected);
   });
 
   it('登録済みのメールアドレスはログインを案内する', () => {
